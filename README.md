@@ -2,13 +2,13 @@
 
 ## Overview
 
-The Open Motion Planning Library (OMPL) is a major facilitator to research and development in the field of robotic manipulation and motion planning. In the interests of broadening Viam's motion planning capabilities, eventual utilization of the OMPL from within the `rdk` has been set as a long term objective of the Motion Team. In the shorter term, comparing the performance of supported planners within OMPL to our own motion planning services will be an important element of assessing `rdk` performance. To those ends, this repository is intended to serve as a testing environment for planners, a benchmarking environment for Viam's motion planning, an interface development sandbox, and, over time, help us craft the blueprints to interface `rdk` with the OMPL.
+The [Open Motion Planning Library (OMPL)](https://ompl.kavrakilab.org/) is a major facilitator to research and development in the field of robotic manipulation and motion planning. In the interests of broadening Viam's motion planning capabilities, eventual utilization of the OMPL from within the `rdk` has been set as a long term objective of the Motion Team. In the shorter term, comparing the performance of supported planners within OMPL to our own motion planning services will be an important element of assessing `rdk` performance. To those ends, this repository is intended to serve as a testing environment for planners, a benchmarking environment for Viam's motion planning, an interface development sandbox, and, over time, help us craft the blueprints to interface `rdk` with the OMPL.
 
 For now, the majority of code in this repository will probably be written in C++ or Python, but over time these files will be amended with or replaced by code written in Golang or Rust.
 
 ## Setting Up OMPL
 
-These instructions assume the user will NOT be using OMPL binaries and libraries included with any release version of the Robot Operating System (ROS). Instead, this section will walk through the steps required to build a standalone install of OMPL and include its capabilities as part of other software, such as this repository. Several dependencies are required by the OMPL, including CMake, Boost, and Eigen; depending on the chosen method of installation, additional manual steps may need to be taken before using OMPL as part of your exploration. At the end of this section, you should be able to 
+These instructions assume the user will NOT be using OMPL binaries and libraries included with any release version of the Robot Operating System (ROS). Instead, this section will walk through the steps required to build a standalone install of OMPL and include its capabilities as part of other software, such as this repository. Several dependencies are required by the OMPL, including CMake, Boost, and Eigen; depending on the chosen method of installation, additional manual steps may need to be taken before using OMPL as part of your exploration.
 
 ### From Source
 
