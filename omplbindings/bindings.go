@@ -1,9 +1,20 @@
 package main
 
+/*
+	struct pose {
+		double X;
+		double Y;
+		double Z;
+		double Pitch;
+		double Roll;
+		double Yaw;
+	};
+*/
+import "C"
 import (
-	"C"
 	"os"
 	"fmt"
+	"unsafe"
 	
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
@@ -13,9 +24,10 @@ import (
 var sceneFS referenceframe.FrameSystem
 
 //export ComputePositions
-func ComputePositions(frameName string, pos []float64) []float64 {
+func ComputePositions(frameName string, pos []float64) *C.struct_pose {
 	
-	var eulerPose []float64
+	eulerPose := (*C.struct_pose)(C.malloc(C.size_t(unsafe.Sizeof(C.struct_pose{}))))
+
 	
 	positions := map[string][]referenceframe.Input{}
 	inputs := referenceframe.FloatsToInputs(pos)
@@ -25,18 +37,20 @@ func ComputePositions(frameName string, pos []float64) []float64 {
 	if err != nil{
 		fmt.Println(err)
 		return eulerPose
+		//~ return
 	}
 	pose, _ := tf.(*referenceframe.PoseInFrame)
 	pt := pose.Pose().Point()
-	eulerPose = append(eulerPose, pt.X)
-	eulerPose = append(eulerPose, pt.Y)
-	eulerPose = append(eulerPose, pt.Z)
+	eulerPose.X = C.double(pt.X)
+	eulerPose.Y = C.double(pt.Y)
+	eulerPose.Z = C.double(pt.Z)
 	
 	orient := pose.Pose().Orientation().EulerAngles()
-	eulerPose = append(eulerPose, orient.Pitch)
-	eulerPose = append(eulerPose, orient.Roll)
-	eulerPose = append(eulerPose, orient.Yaw)
+	eulerPose.Pitch = C.double(orient.Pitch)
+	eulerPose.Roll = C.double(orient.Roll)
+	eulerPose.Yaw = C.double(orient.Yaw)
 	
+	fmt.Println(eulerPose)
 	return eulerPose
 }
 
