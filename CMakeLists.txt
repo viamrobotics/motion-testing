@@ -9,6 +9,14 @@ include_directories(
   ${OMPL_INCLUDE_DIRS}
 )
 
+add_library(${PROJECT_NAME}_interfaces
+  src/interfaces/ArmPlanningInterface.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}_interfaces
+  ${OMPL_LIBRARIES}
+)
+
 add_executable(${PROJECT_NAME}_simplesetup src/simplesetup_demo.cpp)
 target_link_libraries(${PROJECT_NAME}_simplesetup
   ${OMPL_LIBRARIES}
