@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(ompl-evaluation)
 
+add_compile_options(-std=c++11)
+
 find_package(ompl REQUIRED)
 
 include_directories(
