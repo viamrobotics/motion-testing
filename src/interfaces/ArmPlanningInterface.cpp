@@ -1,5 +1,7 @@
 #include <ompl-evaluation/interfaces/ArmPlanningInterface.hpp>
 
+#include "bindings.h"
+
 #include <ompl/base/spaces/RealVectorBounds.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/Path.h>
@@ -22,6 +24,33 @@ bool isStateValid(const ompl::base::SpaceInformation* si, const ompl::base::Stat
   return si->satisfiesBounds(joints_state);
 }
 
+bool isStateValidWithGo(const ompl::base::SpaceInformation* si, const ompl::base::State* joints_state)
+{
+  GoString kinFile = {"/home/wspies/workspace/rdk/components/arm/xarm/xarm7_kinematics.json", 68};
+  Init(kinFile);
+
+  double *joint_angles = joints_state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+
+  std::cout << "\n>>> Joint angles at current state:\n";
+  std::cout << "J1: " << joint_angles[0] << " , " << "J2: " << joint_angles[1] << " , "
+            << "J3: " << joint_angles[2] << " , " << "J4: " << joint_angles[3] << " , "
+            << "J5: " << joint_angles[4] << " , " << "J6: " << joint_angles[5] << " , "
+            << "J7: " << joint_angles[6] << std::endl;
+
+  GoFloat64 jointData[] = {joint_angles[0], joint_angles[1], joint_angles[2], joint_angles[3], joint_angles[4],
+                           joint_angles[5], joint_angles[6]};
+  GoSlice joints = {jointData, 7, 7};
+  GoString armName = {"arm", 3};
+
+  struct pose* p;
+  p = ComputePositions(armName, joints);
+
+  std::cout << ">>> FK results for arm at current joint angles:\n";
+  std::cout << "X: "     << p->X     << " , "  << "Y: "    << p->Y    << " , " << "Z: "   << p->Z   << " , "
+            << "Pitch: " << p->Pitch << " , "  << "Roll: " << p->Roll << " , " << "Yaw: " << p->Yaw << std::endl;
+
+  return si->satisfiesBounds(joints_state);
+}
 
 ArmPlanningInterface::ArmPlanningInterface(const std::string name, const std::uint8_t dof,
                                            const std::vector<double>& start_pos, const std::vector<double>& goal_pos,
@@ -92,7 +121,7 @@ bool ArmPlanningInterface::initSpace()
   // Finally, construct an instance of SpaceInformation from the arm state space
   arm_si_ = std::make_shared<ompl::base::SpaceInformation>(arm_ss_);
   arm_si_->setStateValidityChecker(
-    [this](const ompl::base::State* joints_state) { return isStateValid(this->arm_si_.get(), joints_state); }
+    [this](const ompl::base::State* joints_state) { return isStateValidWithGo(this->arm_si_.get(), joints_state); }
   );
 
   // Call SpaceInformation setup method
