@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-using namespace ompl_evaluation;
+using namespace ompl_evaluation::interfaces;
 
 
 bool isStateValid(const ompl::base::SpaceInformation* si, const ompl::base::State* joints_state)
@@ -23,8 +23,9 @@ bool isStateValid(const ompl::base::SpaceInformation* si, const ompl::base::Stat
 }
 
 
-ArmPlanningInterface::ArmPlanningInterface(std::string name, std::uint8_t dof, std::vector<double>& start_pos,
-                                           std::vector<double>& goal_pos, double goal_threshold)
+ArmPlanningInterface::ArmPlanningInterface(const std::string name, const std::uint8_t dof,
+                                           const std::vector<double>& start_pos, const std::vector<double>& goal_pos,
+                                           const double goal_threshold)
   : arm_name_(name)
   , arm_dof_(dof)
   , arm_ss_(nullptr)

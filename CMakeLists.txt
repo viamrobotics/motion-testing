@@ -25,3 +25,14 @@ set_target_properties(${PROJECT_NAME}_simplesetup
   PROPERTIES OUTPUT_NAME simplesetup_demo
   PREFIX ""
 )
+
+# Evaluation code
+add_executable(${PROJECT_NAME}_eval_emptyworld src/eval_emptyworld.cpp)
+target_link_libraries(${PROJECT_NAME}_eval_emptyworld
+  ${PROJECT_NAME}_interfaces
+  ${OMPL_LIBRARIES}
+)
+set_target_properties(${PROJECT_NAME}_eval_emptyworld
+  PROPERTIES OUTPUT_NAME eval_emptyworld
+  PREFIX ""
+)

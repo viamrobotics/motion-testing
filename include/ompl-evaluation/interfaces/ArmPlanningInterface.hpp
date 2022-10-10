@@ -1,5 +1,5 @@
-#ifndef OMPL_EVALUATION_INTERFACE_ARM_PLANNING_INTERFACE_H
-#define OMPL_EVALUATION_INTERFACE_ARM_PLANNING_INTERFACE_H
+#ifndef OMPL_EVALUATION_INTERFACES_ARM_PLANNING_INTERFACE_H
+#define OMPL_EVALUATION_INTERFACES_ARM_PLANNING_INTERFACE_H
 
 #include <ompl/base/Planner.h>
 #include <ompl/base/ProblemDefinition.h>
@@ -12,6 +12,8 @@
 
 namespace ompl_evaluation
 {
+namespace interfaces
+{
 //! @brief TODO(wspies)
 class ArmPlanningInterface
 {
@@ -19,30 +21,41 @@ public:
   //! @brief Delete default constructor, must construct with arguments
   ArmPlanningInterface() = delete;
 
-  //! @brief Constructor to just take a few up-front arguments about the robot arm so we can configure
-  ArmPlanningInterface(std::string name, std::uint8_t dof, std::vector<double>& start_pos,
-                       std::vector<double>& goal_pos, double goal_threshold);
+  //! @brief Constructor which takes arguments to configure an arm planning interface
+  ArmPlanningInterface(const std::string name, const std::uint8_t dof, const std::vector<double>& start_pos,
+                       const std::vector<double>& goal_pos, const double goal_threshold);
 
   //! @brief Default empty destructor
   ~ArmPlanningInterface() = default;
 
-  //! @brief TODO(wspies)
+  //! @brief Method to intialize all elements of the OMPL interface. If returning true, user should immediately be able
+  //! to plan motion using this object.
+  //! @param[in] start     Vector of doubles detailing the start position of each arm joint, in radians
+  //! @param[in] goal      Vector of doubles detailing the goal position for each arm joint, in radians
+  //! @param[in] threshold Threshold to consider when checking if the goal has been reached, in radians
   bool configure(const std::vector<double>& start_pos, const std::vector<double>& goal_pos, const double threshold);
 
-  //! @brief TODO(wspies)
+  //! @brief Tell the planner to start generating a plan to reach the goal
+  //! @param[in] solver_time Overall time that the plan solver is allowed to spend on generating a solution, in seconds.
   bool solve(const double solver_time);
 
 private:
-  //! @brief TODO(wspies)
+  //! @brief Sets the starting joint state of the robot arm
+  //! @param[in] joint_pos Vector of doubles detailing the start position of each arm joint, in radians
   void setStartState(const std::vector<double>& joint_pos);
 
-  //! @brief TODO(wspies)
+  //! @brief Sets the target joint state of the robot arm
+  //! @param[in] joint_pos Vector of doubles detailing the goal position for each arm joint, in radians
+  //! @param[in] threshold Threshold to consider when checking if the goal has been reached, in radians
   void setGoalState(const std::vector<double>& joint_pos, const double threshold);
 
-  //! @brief TODO(wspies)
+  //! @brief Initialize the OMPL space information constructs
   bool initSpace();
 
-  //! @brief TODO(wspies)
+  //! @brief Initialize the OMPL planning constructs, which requires information about what the arm is planning to do
+  //! @param[in] start     Vector of doubles detailing the start position of each arm joint, in radians
+  //! @param[in] goal      Vector of doubles detailing the goal position for each arm joint, in radians
+  //! @param[in] threshold Threshold to consider when checking if the goal has been reached, in radians
   bool initPlanning(const std::vector<double>& start, const std::vector<double>& goal,
                     const double threshold);
 
@@ -65,6 +78,7 @@ private:
   ompl::base::PlannerPtr arm_planner_;
 };
 
+}  // namespace interfaces
 }  // namespace ompl_evaluation
 
-#endif  // OMPL_EVALUATION_INTERFACE_ARM_PLANNING_INTERFACE_H
+#endif  // OMPL_EVALUATION_INTERFACES_ARM_PLANNING_INTERFACE_H
