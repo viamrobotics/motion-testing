@@ -1,7 +1,7 @@
 #include "bindings.h"
 #include <stdio.h>
 
-// gcc -pthread foo.c bindings.a -L/home/linuxbrew/.linuxbrew/lib -lnlopt -o foo; ./foo
+// gcc -pthread foo.c bindings -lnlopt -o foo; ./foo
 
 int main(int argc, char **argv) {
     GoString scene = {"scene2", 6};

@@ -43,7 +43,7 @@ bool isStateValidWithGo(const ompl::base::SpaceInformation* si, const ompl::base
   GoString armName = {"arm", 3};
 
   struct pose* p;
-  p = ComputePositions(armName, joints);
+  p = ComputePositions(joints);
 
   std::cout << ">>> FK results for arm at current joint angles:\n";
   std::cout << "X: "     << p->X     << " , "  << "Y: "    << p->Y    << " , " << "Z: "   << p->Z   << " , "
