@@ -4,15 +4,14 @@
 // gcc -pthread foo.c bindings.a -o foo; ./foo
 
 int main(int argc, char **argv) {
-    GoString kinFile = {"/home/peter/Documents/viam/rdk/components/arm/xarm/xarm7_kinematics.json", 72};
-    Init(kinFile);
+    GoString scene = {"scene1", 6};
+    Init(scene);
     GoFloat64 jointData[] = {0, 0, 1, 1, 0, 0, 1};
     GoSlice joints = {jointData, 7, 7};
-    GoString armName = {"arm", 3};
     
     struct pose* p;
     
-     p = ComputePositions(armName, joints);
+     p = ComputePositions(joints);
     
     printf("X: %f, Y: %f, Z: %f\n", p->X, p->Y, p->Z);
     
