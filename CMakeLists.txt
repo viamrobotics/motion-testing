@@ -13,7 +13,7 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME}_interfaces
-  src/interfaces/ArmPlanningInterface.cpp
+  src/interfaces/ArmPlanningEvalInterface.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_interfaces
@@ -23,7 +23,7 @@ target_link_libraries(${PROJECT_NAME}_interfaces
 
 ### Demo code targets ###
 ### Can likely be removed at some point ###
-add_executable(${PROJECT_NAME}_simplesetup src/simplesetup_demo.cpp)
+add_executable(${PROJECT_NAME}_simplesetup src/archive/simplesetup_demo.cpp)
 target_link_libraries(${PROJECT_NAME}_simplesetup
   ${OMPL_LIBRARIES}
 )
@@ -32,13 +32,13 @@ set_target_properties(${PROJECT_NAME}_simplesetup
   PREFIX ""
 )
 
-### Evaluation code targets ###
-add_executable(${PROJECT_NAME}_eval_emptyworld src/eval_emptyworld.cpp)
-target_link_libraries(${PROJECT_NAME}_eval_emptyworld
+### Evaluation targets ###
+add_executable(${PROJECT_NAME}_planning_evaluator src/planning_evaluator.cpp)
+target_link_libraries(${PROJECT_NAME}_planning_evaluator
   ${OMPL_LIBRARIES}
   ${PROJECT_NAME}_interfaces
 )
-set_target_properties(${PROJECT_NAME}_eval_emptyworld
-  PROPERTIES OUTPUT_NAME eval_emptyworld
+set_target_properties(${PROJECT_NAME}_planning_evaluator
+  PROPERTIES OUTPUT_NAME planning_evaluator
   PREFIX ""
 )
