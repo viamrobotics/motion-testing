@@ -26,20 +26,17 @@ enum PlannerChoices : std::uint8_t
 //! TODO(wspies)
 struct PlanEvaluationParams
 {
-  //! Name of the robotic arm component
-  std::string arm_name;
-
-  //! Path to the kinematics file for this robotic arm in the local filesystem
-  std::string arm_kinematics_file;
-
-  //! Degrees of freedom of the selected robotic arm (this assumes the arm is an N-count revolute joint chain)
-  std::uint8_t arm_dof;
+  // Name of the scene used to establish the world when performing evaluations
+  std::string scene_name;
 
   //! Vector of doubles (of length dof) that define the arm's starting joint states, in radians
   std::vector<double> start;
 
   //! Vector of doubles (of length dof) that define the target joint states the arm should move to, in radians
   std::vector<double> goal;
+
+  //! Degrees of freedom of the selected robotic arm (this assumes the arm is an N-count revolute joint chain)
+  std::uint8_t arm_dof;
 
   //! Threshold to consider when checking if the goal has been reached, in radians
   double goal_threshold;

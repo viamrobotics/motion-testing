@@ -9,13 +9,36 @@
 
 int main(int argc, char* argv[])
 {
+  // Initialize a scene based on input arguments, calls Init function from Golang bindings
+  std::string scene_name = "scene1";
+
+  if (argc == 1)
+  {
+    std::cout << "No arguments provided, using scene 1 as default and planning with RRT*..." << std::endl;
+  }
+  else if (argc == 2)
+  {
+    scene_name = std::string(argv[1]);
+
+    std::cout << "Evaluating planner performance with [ " << scene_name << " ] scene selected." << std::endl;
+    std::cout << "No planner argument provided, planning with RRT* as default..." << std::endl;
+  }
+  GoString rdk_scene = {scene_name.c_str(), ptrdiff_t(scene_name.length())};
+  Init(rdk_scene);
+
+  // Getting scene details after initialization
+  uintptr_t resPtr = StartPos();
+  double* start_pos = (double*) resPtr;
+
   // TODO(wspies)
   ompl_evaluation::interfaces::PlanEvaluationParams eval_params;
-  eval_params.arm_name = "arm";
-  eval_params.arm_kinematics_file = "/home/wspies/workspace/rdk/components/arm/xarm/xarm7_kinematics.json";
-  eval_params.arm_dof = 7;
-  eval_params.start = {0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00};
+  eval_params.scene_name = scene_name;
+  for (int j = 0; j < 7; ++j)
+  {
+    eval_params.start.push_back(start_pos[j]);
+  }
   eval_params.goal  = {-M_PI_2, -M_PI, M_PI_2, M_PI, -M_PI_2, M_PI, M_PI_2};
+  eval_params.arm_dof = std::uint8_t(eval_params.start.size());
   eval_params.goal_threshold = 0.01;
   eval_params.planner = ompl_evaluation::interfaces::PlannerChoices::RRTstar;
   eval_params.planner_time = 1.0;
@@ -23,11 +46,7 @@ int main(int argc, char* argv[])
   // TODO(wspies)
   ompl_evaluation::interfaces::ArmPlanningEvalInterface eval_arm_planner(eval_params);
   eval_arm_planner.configure();
-  if (eval_arm_planner.solve())
-  {
-    // eval_arm_planner.exportPlan();
-    ;
-  }
+  eval_arm_planner.solve();
 
   return 0;
 }

@@ -39,11 +39,11 @@ var collision motionplan.Constraint
 //export StartPos
 func StartPos() uintptr {
 	res := make([]float64, len(startPos))
-    for i := 0; i < len(startPos); i++ {
-        res[i] = startPos[i]
-    }
-    hdr := (*reflect.SliceHeader)(unsafe.Pointer(&res))
-    return hdr.Data
+	for i := 0; i < len(startPos); i++ {
+		res[i] = startPos[i]
+	}
+	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&res))
+	return hdr.Data
 }
 
 //export GoalPose
