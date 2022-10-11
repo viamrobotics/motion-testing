@@ -2,3 +2,5 @@ build/
 
 omplbindings/bindings.a
 omplbindings/bindings.h
+
+.vscode
