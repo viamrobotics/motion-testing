@@ -22,14 +22,26 @@ import (
 	"go.viam.com/rdk/spatialmath"
 	"go.viam.com/rdk/components/arm/xarm"
 	"go.viam.com/rdk/components/arm/universalrobots"
-	//~ "go.viam.com/rdk/motionplan"
+	"go.viam.com/rdk/motionplan"
 )
 
 var sceneFS referenceframe.FrameSystem
 var sceneWS *commonpb.WorldState
 
 var startPos []float64
-var goalPose *C.struct_pose
+var goalPoseC *C.struct_pose
+var goalPose spatialmath.Pose
+var collision motionplan.Constraint
+
+//export StartPos
+func StartPos() []float64 {
+	return startPos
+}
+
+//export GoalPose
+func GoalPose() *C.struct_pose {
+	return goalPoseC
+}
 
 //export ComputePositions
 func ComputePositions(pos []float64) *C.struct_pose {
@@ -37,11 +49,17 @@ func ComputePositions(pos []float64) *C.struct_pose {
 	return poseToC(pose)
 }
 
+//export ValidState
+func ValidState(pos []float64) bool {
+	valid, _ := collision(&motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame("arm")})
+	return valid
+}
+
 //export Init
 func Init(scene string) {
 	sceneFS = referenceframe.NewEmptySimpleFrameSystem("")
-	goalPose = (*C.struct_pose)(C.malloc(C.size_t(unsafe.Sizeof(C.struct_pose{}))))
 	
+	// setup scenes in global vars
 	switch scene {
 	case "scene1":
 		setupScene1()
@@ -49,6 +67,18 @@ func Init(scene string) {
 		setupScene2()
 	default:
 	}
+	// generic post-scene setup
+	collision, err = motionplan.NewCollisionConstraintFromWorldState(
+		sceneFS.Frame("arm"),
+		sceneFS,
+		sceneWS,
+		referenceframe.StartPositions(sceneFS),
+	)
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
+	goalPoseC = poseToC(goalPose)
 }
 
 func calcPose(pos []float64) spatialmath.Pose {
@@ -101,7 +131,7 @@ func setupScene1() {
 	goalPt.X += 100
 	goalPt.Y += 100
 	
-	goalPose = poseToC(spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()))
+	goalPose = spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation())
 }
 
 // setup a xArm7 to move in a straight line, adjacent to a large obstacle that should not imede the most efficient path
@@ -137,7 +167,7 @@ func setupScene2() {
 	goalPt.X += 200
 	goalPt.Z += 100
 	
-	goalPose = poseToC(spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()))
+	goalPose = spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation())
 }
 
 func weightedSqNormDist(from, to spatialmath.Pose) float64 {
