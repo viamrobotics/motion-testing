@@ -1,10 +1,10 @@
 #include "bindings.h"
 #include <stdio.h>
 
-// gcc -pthread foo.c bindings.a -o foo; ./foo
+// gcc -pthread foo.c bindings.a -L/home/linuxbrew/.linuxbrew/lib -lnlopt -o foo; ./foo
 
 int main(int argc, char **argv) {
-    GoString scene = {"scene1", 6};
+    GoString scene = {"scene2", 6};
     Init(scene);
     GoFloat64 jointData[] = {0, 0, 1, 1, 0, 0, 1};
     GoSlice joints = {jointData, 7, 7};
