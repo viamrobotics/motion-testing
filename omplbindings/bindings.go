@@ -51,7 +51,8 @@ func ComputePositions(pos []float64) *C.struct_pose {
 
 //export ValidState
 func ValidState(pos []float64) bool {
-	valid, _ := collision(&motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame("arm")})
+	cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame("arm")}
+	valid, _ := collision(cInput)
 	return valid
 }
 
@@ -137,7 +138,7 @@ func setupScene1() {
 
 // setup a xArm7 to move in a straight line, adjacent to a large obstacle that should not imede the most efficient path
 func setupScene2() {
-	arm, _ := xarm.Model("arm", 7)
+	arm, _ := xarm.Model("arm", 6)
 	sceneFS.AddFrame(arm, sceneFS.World())
 	testPose := spatialmath.NewPoseFromOrientation(
 		r3.Vector{X: 1., Y: -100., Z: 3.},
@@ -161,7 +162,7 @@ func setupScene2() {
 		},
 	}
 	sceneWS = &commonpb.WorldState{Obstacles: obsMsgs}
-	startPos = []float64{0,0,0,0,0,0, 0}
+	startPos = []float64{0,0,0,0,0, 0}
 	
 	startPose := calcPose(startPos)
 	goalPt := startPose.Point()
