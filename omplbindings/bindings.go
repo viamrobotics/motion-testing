@@ -15,16 +15,18 @@ import (
 	//~ "os"
 	"fmt"
 	"unsafe"
-	
+
 	"github.com/golang/geo/r3"
+	"github.com/viamrobotics/visualization"
 	commonpb "go.viam.com/api/common/v1"
+	"go.viam.com/rdk/components/arm/universalrobots"
+	"go.viam.com/rdk/components/arm/xarm"
+	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
-	"go.viam.com/rdk/components/arm/xarm"
-	"go.viam.com/rdk/components/arm/universalrobots"
-	"go.viam.com/rdk/motionplan"
 )
 
+var model referenceframe.Frame
 var sceneFS referenceframe.FrameSystem
 var sceneWS *commonpb.WorldState
 
@@ -56,10 +58,19 @@ func ValidState(pos []float64) bool {
 	return valid
 }
 
+//export Visualize
+func Visualize(inputs [][]float64) {
+	plan := make([][]referenceframe.Input, 0)
+	for _, input := range inputs {
+		plan = append(plan, referenceframe.FloatsToInputs(input))
+	}
+	visualization.VisualizePlan(model, plan, sceneWS)
+}
+
 //export Init
 func Init(scene string) {
 	sceneFS = referenceframe.NewEmptySimpleFrameSystem("")
-	
+
 	// setup scenes in global vars
 	switch scene {
 	case "scene1":
@@ -76,7 +87,7 @@ func Init(scene string) {
 		sceneWS,
 		referenceframe.StartPositions(sceneFS),
 	)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -89,7 +100,7 @@ func calcPose(pos []float64) spatialmath.Pose {
 	positions["arm"] = inputs
 	posFrame := referenceframe.NewPoseInFrame("arm", spatialmath.NewZeroPose())
 	tf, err := sceneFS.Transform(positions, posFrame, "world")
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
@@ -97,49 +108,49 @@ func calcPose(pos []float64) spatialmath.Pose {
 	return pose.Pose()
 }
 
-func poseToC(pose spatialmath.Pose) *C.struct_pose{
+func poseToC(pose spatialmath.Pose) *C.struct_pose {
 	eulerPose := (*C.struct_pose)(C.malloc(C.size_t(unsafe.Sizeof(C.struct_pose{}))))
 
 	pt := pose.Point()
 	eulerPose.X = C.double(pt.X)
 	eulerPose.Y = C.double(pt.Y)
 	eulerPose.Z = C.double(pt.Z)
-	
+
 	orient := pose.Orientation().EulerAngles()
 	eulerPose.Pitch = C.double(orient.Pitch)
 	eulerPose.Roll = C.double(orient.Roll)
 	eulerPose.Yaw = C.double(orient.Yaw)
-	
+
 	return eulerPose
 }
 
-func cToPose(cPose *C.struct_pose) spatialmath.Pose{
+func cToPose(cPose *C.struct_pose) spatialmath.Pose {
 	pt := r3.Vector{float64(cPose.X), float64(cPose.Y), float64(cPose.Z)}
 	orient := &spatialmath.EulerAngles{Roll: float64(cPose.Roll), Pitch: float64(cPose.Pitch), Yaw: float64(cPose.Yaw)}
-	
+
 	return spatialmath.NewPoseFromOrientation(pt, orient)
 }
 
 // setup a UR5 moving along a linear path in unrestricted space
 func setupScene1() {
-	arm, _ := universalrobots.Model("arm")
-	sceneFS.AddFrame(arm, sceneFS.World())
+	model, _ = universalrobots.Model("arm")
+	sceneFS.AddFrame(model, sceneFS.World())
 
 	sceneWS = &commonpb.WorldState{}
-	startPos = []float64{0,0,0,0,0,0}
-	
+	startPos = []float64{0, 0, 0, 0, 0, 0}
+
 	startPose := calcPose(startPos)
 	goalPt := startPose.Point()
 	goalPt.X += 100
 	goalPt.Y += 100
-	
+
 	goalPose = spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation())
 }
 
 // setup a xArm7 to move in a straight line, adjacent to a large obstacle that should not imede the most efficient path
 func setupScene2() {
-	arm, _ := xarm.Model("arm", 6)
-	sceneFS.AddFrame(arm, sceneFS.World())
+	model, _ = xarm.Model("arm", 6)
+	sceneFS.AddFrame(model, sceneFS.World())
 	testPose := spatialmath.NewPoseFromOrientation(
 		r3.Vector{X: 1., Y: -100., Z: 3.},
 		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
@@ -162,13 +173,13 @@ func setupScene2() {
 		},
 	}
 	sceneWS = &commonpb.WorldState{Obstacles: obsMsgs}
-	startPos = []float64{0,0,0,0,0, 0}
-	
+	startPos = []float64{0, 0, 0, 0, 0, 0}
+
 	startPose := calcPose(startPos)
 	goalPt := startPose.Point()
 	goalPt.X += 200
 	goalPt.Z += 100
-	
+
 	goalPose = spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation())
 }
 
