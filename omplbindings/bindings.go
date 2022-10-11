@@ -22,7 +22,6 @@ import (
 	"go.viam.com/rdk/spatialmath"
 	"go.viam.com/rdk/components/arm/xarm"
 	"go.viam.com/rdk/components/arm/universalrobots"
-	//~ "go.viam.com/rdk/motionplan"
 )
 
 var sceneFS referenceframe.FrameSystem
@@ -30,8 +29,6 @@ var sceneWS *commonpb.WorldState
 
 var startPos []float64
 var goalPose *C.struct_pose
-
-
 
 //export ComputePositions
 func ComputePositions(pos []float64) *C.struct_pose {
