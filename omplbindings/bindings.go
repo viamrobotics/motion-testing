@@ -15,6 +15,7 @@ import (
 	//~ "os"
 	"fmt"
 	"unsafe"
+	"reflect"
 
 	"github.com/golang/geo/r3"
 	"github.com/viamrobotics/visualization"
@@ -36,8 +37,13 @@ var goalPose spatialmath.Pose
 var collision motionplan.Constraint
 
 //export StartPos
-func StartPos() []float64 {
-	return startPos
+func StartPos() uintptr {
+	res := make([]float64, len(startPos))
+    for i := 0; i < len(startPos); i++ {
+        res[i] = startPos[i]
+    }
+    hdr := (*reflect.SliceHeader)(unsafe.Pointer(&res))
+    return hdr.Data
 }
 
 //export GoalPose
@@ -137,7 +143,7 @@ func setupScene1() {
 	sceneFS.AddFrame(model, sceneFS.World())
 
 	sceneWS = &commonpb.WorldState{}
-	startPos = []float64{0, 0, 0, 0, 0, 0}
+	startPos = []float64{1, 0, 0, 0, 0, 0}
 
 	startPose := calcPose(startPos)
 	goalPt := startPose.Point()
@@ -173,7 +179,7 @@ func setupScene2() {
 		},
 	}
 	sceneWS = &commonpb.WorldState{Obstacles: obsMsgs}
-	startPos = []float64{0, 0, 0, 0, 0, 0}
+	startPos = []float64{0, 0, 0, 0.1, 2, 0}
 
 	startPose := calcPose(startPos)
 	goalPt := startPose.Point()
