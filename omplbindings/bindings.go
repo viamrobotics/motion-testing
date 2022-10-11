@@ -67,6 +67,7 @@ func Init(scene string) {
 		setupScene2()
 	default:
 	}
+	var err error
 	// generic post-scene setup
 	collision, err = motionplan.NewCollisionConstraintFromWorldState(
 		sceneFS.Frame("arm"),
