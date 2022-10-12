@@ -46,11 +46,12 @@ int main(int argc, char* argv[])
   // TODO(wspies)
   ompl_evaluation::interfaces::ArmPlanningEvalInterface eval_arm_planner(eval_params);
   eval_arm_planner.configure();
-  ompl::geometric::PathGeometric* path;
-  path = eval_arm_planner.solve();
+  
+  ompl::geometric::PathGeometric* path = eval_arm_planner.solve();
   if (path != NULL) {
     std::cout << "Found solution:" << std::endl;
     path->printAsMatrix(std::cout);
+    eval_arm_planner.visualize(path);
   } else {
     std::cout << "No solution found." << std::endl;
   }

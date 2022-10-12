@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd omplbindings
-sh makelib.sh
+go build -buildmode=c-shared bindings.go
 cd ../build 
 cmake .. 
 make

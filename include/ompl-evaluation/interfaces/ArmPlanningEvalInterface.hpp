@@ -73,6 +73,10 @@ public:
   //! @return The path found by the planner, or NULL if none was found
   ompl::geometric::PathGeometric* solve();
 
+  //! @brief Display a matplotlib rendering of the specified path
+  //! @param[in] path Path to visualize
+  void visualize(ompl::geometric::PathGeometric* path);
+
 private:
   //! @brief Sets the starting joint state of the robot arm
   //! @param[in] joint_pos Vector of doubles detailing the start position of each arm joint, in radians

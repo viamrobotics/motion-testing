@@ -176,3 +176,23 @@ ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
   }
   return NULL;
 }
+
+void ArmPlanningEvalInterface::visualize(ompl::geometric::PathGeometric* path) 
+{
+  // get states that constitute the path
+  const ompl::base::StateSpace *space(arm_si_->getStateSpace().get());
+  std::vector<ompl::base::State*> states = path->getStates();
+  
+  // convert to a 2D slice
+  std::vector<GoSlice> slices;
+  std::vector<std::vector<double>> reals(states.size());
+  for (int i = 0; i < states.size(); i++)
+  {
+    space->copyToReals(reals[i], states[i]);
+    GoSlice input = {static_cast<GoFloat64*>(reals[i].data()), static_cast<GoInt>(reals[i].size()), static_cast<GoInt>(reals[i].size())};
+    slices.push_back(input);
+  }
+  GoSlice inputs = {static_cast<GoSlice*>(slices.data()), static_cast<GoInt>(slices.size()), static_cast<GoInt>(slices.size())};
+
+  Visualize(inputs);
+}

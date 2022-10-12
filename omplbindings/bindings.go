@@ -67,6 +67,7 @@ func ValidState(pos []float64) bool {
 func Visualize(inputs [][]float64) {
 	plan := make([][]referenceframe.Input, 0)
 	for _, input := range inputs {
+		fmt.Println(input)
 		plan = append(plan, referenceframe.FloatsToInputs(input))
 	}
 	visualization.VisualizePlan(model, plan, sceneWS)
