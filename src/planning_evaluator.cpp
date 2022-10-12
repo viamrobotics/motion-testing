@@ -33,11 +33,11 @@ int main(int argc, char* argv[])
   // TODO(wspies)
   ompl_evaluation::interfaces::PlanEvaluationParams eval_params;
   eval_params.scene_name = scene_name;
-  for (int j = 0; j < 7; ++j)
+  for (int j = 0; j < 6; ++j)
   {
     eval_params.start.push_back(start_pos[j]);
   }
-  eval_params.goal  = {-M_PI_2, -M_PI, M_PI_2, M_PI, -M_PI_2, M_PI, M_PI_2};
+  eval_params.goal  = {-M_PI_2, -M_PI, M_PI_2, M_PI, -M_PI_2, M_PI};
   eval_params.arm_dof = std::uint8_t(eval_params.start.size());
   eval_params.goal_threshold = 0.01;
   eval_params.planner = ompl_evaluation::interfaces::PlannerChoices::RRTstar;

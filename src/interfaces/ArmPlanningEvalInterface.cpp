@@ -21,38 +21,23 @@ using namespace ompl_evaluation::interfaces;
 
 bool isStateValid(const ompl::base::SpaceInformation* si, const ompl::base::State* joints_state)
 {
-  // TODO(viam): Need some Go bindings here I think. At a minimum, ComputePosition -> CheckCollisions. If no collisions,
-  //             state is valid.
+  // This is using RDK to determine whether or not a state is valid. Sampled joint positions are passed to RDK functions
+  // that perform FK, collision checking, and other state validity checks.
 
-  return si->satisfiesBounds(joints_state);
-}
+  bool is_satisfied = true;
 
-bool isStateValidWithGo(const ompl::base::SpaceInformation* si, const ompl::base::State* joints_state)
-{
-  GoString kinFile = {"/home/wspies/workspace/rdk/components/arm/xarm/xarm7_kinematics.json", 68};
-  Init(kinFile);
-
+  // Check joint positions against the RDK scene
   double *joint_angles = joints_state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-
-  std::cout << "\n>>> Joint angles at current state:\n";
-  std::cout << "J1: " << joint_angles[0] << " , " << "J2: " << joint_angles[1] << " , "
-            << "J3: " << joint_angles[2] << " , " << "J4: " << joint_angles[3] << " , "
-            << "J5: " << joint_angles[4] << " , " << "J6: " << joint_angles[5] << " , "
-            << "J7: " << joint_angles[6] << std::endl;
-
   GoFloat64 jointData[] = {joint_angles[0], joint_angles[1], joint_angles[2], joint_angles[3], joint_angles[4],
-                           joint_angles[5], joint_angles[6]};
-  GoSlice joints = {jointData, 7, 7};
-  GoString armName = {"arm", 3};
+                           joint_angles[5]};
+  GoSlice joints = {jointData, 6, 6};
+  const int valid = ValidState(joints);
+  is_satisfied &= (bool) valid;
 
-  struct pose* p;
-  p = ComputePositions(joints);
+  // Check joint positions against bounds we set when setting up the OMPL StateSpace
+  is_satisfied &= si->satisfiesBounds(joints_state);
 
-  std::cout << ">>> FK results for arm at current joint angles:\n";
-  std::cout << "X: "     << p->X     << " , "  << "Y: "    << p->Y    << " , " << "Z: "   << p->Z   << " , "
-            << "Pitch: " << p->Pitch << " , "  << "Roll: " << p->Roll << " , " << "Yaw: " << p->Yaw << std::endl;
-
-  return si->satisfiesBounds(joints_state);
+  return is_satisfied;
 }
 
 ArmPlanningEvalInterface::ArmPlanningEvalInterface(const PlanEvaluationParams params)
