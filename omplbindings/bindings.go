@@ -152,7 +152,7 @@ func setupScene1() {
 	goalPose = spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation())
 }
 
-// setup a xArm7 to move in a straight line, adjacent to a large obstacle that should not imede the most efficient path
+// setup a xArm6 to move in a straight line, adjacent to a large obstacle that should not imede the most efficient path
 func setupScene2() {
 	model, _ = xarm.Model("arm", 6)
 	sceneFS.AddFrame(model, sceneFS.World())
@@ -178,7 +178,7 @@ func setupScene2() {
 		},
 	}
 	sceneWS = &commonpb.WorldState{Obstacles: obsMsgs}
-	startPos = []float64{0, 0, 0, 0.1, 2, 0}
+	startPos = []float64{0, 0, 0, 0, 0, 0}
 
 	startPose := calcPose(startPos)
 	goalPt := startPose.Point()
