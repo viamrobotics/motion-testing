@@ -180,22 +180,14 @@ bool ArmPlanningEvalInterface::configure()
   return arm_configured;
 }
 
-bool ArmPlanningEvalInterface::solve()
+ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
 {
   ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(eval_params_.planner_time);
 
   if (status == ompl::base::PlannerStatus::EXACT_SOLUTION || status == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
   {
     ompl::base::PathPtr arm_path = arm_pdef_->getSolutionPath();
-    ompl::geometric::PathGeometric& arm_path_geo = *static_cast<ompl::geometric::PathGeometric *>(arm_path.get());
-
-    std::cout << "Found solution:" << std::endl;
-    arm_path_geo.printAsMatrix(std::cout);
-    return true;
+    return static_cast<ompl::geometric::PathGeometric *>(arm_path.get());
   }
-  else
-  {
-    std::cout << "No solution found." << std::endl;
-    return false;
-  }
+  return NULL;
 }

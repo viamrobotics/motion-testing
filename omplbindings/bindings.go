@@ -12,10 +12,9 @@ package main
 */
 import "C"
 import (
-	//~ "os"
 	"fmt"
-	"unsafe"
 	"reflect"
+	"unsafe"
 
 	"github.com/golang/geo/r3"
 	"github.com/viamrobotics/visualization"

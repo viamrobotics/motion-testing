@@ -5,6 +5,7 @@
 #include <ompl/base/ProblemDefinition.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/StateSpace.h>
+#include <ompl/geometric/PathGeometric.h>
 
 #include <string>
 #include <memory>
@@ -69,11 +70,8 @@ public:
   bool configure();
 
   //! @brief Tell the planner to start generating a plan to reach the goal
-  //! @return True if planner was able to generate a valid path given the problem definition; False otherwise
-  bool solve();
-
-  //! @brief TODO(wspies)
-  /* ??? */ //exportPlan();
+  //! @return The path found by the planner, or NULL if none was found
+  ompl::geometric::PathGeometric* solve();
 
 private:
   //! @brief Sets the starting joint state of the robot arm
