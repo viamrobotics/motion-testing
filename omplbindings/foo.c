@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-// gcc -pthread foo.c bindings -lnlopt -o foo; ./foo
+// gcc -pthread foo.c ./bindings -lnlopt -o foo; ./foo
 
 int main(int argc, char **argv) {
     GoString scene = {"scene2", 6};
@@ -19,13 +19,17 @@ int main(int argc, char **argv) {
     int valid = ValidState(joints);
     printf("valid? %d\n", valid);
     
-    uintptr_t resPtr = StartPos();
-    double *res = (double*)resPtr;
-
-    for (int i = 0; i < 7; i++){
+    double *res = StartPos();
+    for (int i = 0; i < 6; i++){
         printf("%f\n", res[i]);
     }
     
+    //p->X += 100;
+    //p->Y += 100;
+    //double *ik_joints = ComputePose(p);
+    //for (int i = 0; i < 6; i++){
+    //    printf("%f\n", ik_joints[i]);
+    //}
     
     return 0;
 }

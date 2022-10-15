@@ -27,8 +27,7 @@ int main(int argc, char* argv[])
   Init(rdk_scene);
 
   // Getting scene details after initialization
-  uintptr_t resPtr = StartPos();
-  double* start_pos = (double*) resPtr;
+  double* start_pos = StartPos();
 
   // TODO(wspies)
   ompl_evaluation::interfaces::PlanEvaluationParams eval_params;

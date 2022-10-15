@@ -194,5 +194,5 @@ void ArmPlanningEvalInterface::visualize(ompl::geometric::PathGeometric* path)
   }
   GoSlice inputs = {static_cast<GoSlice*>(slices.data()), static_cast<GoInt>(slices.size()), static_cast<GoInt>(slices.size())};
 
-  Visualize(inputs);
+  VisualizeOMPL(inputs);
 }
