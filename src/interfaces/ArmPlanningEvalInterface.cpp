@@ -5,6 +5,7 @@
 #include <ompl/base/spaces/RealVectorBounds.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/Path.h>
+#include <ompl/base/terminationconditions/CostConvergenceTerminationCondition.h>
 #include <ompl/geometric/PathGeometric.h>
 
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
@@ -12,8 +13,11 @@
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
+#include <chrono>
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -167,7 +171,23 @@ bool ArmPlanningEvalInterface::configure()
 
 ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
 {
-  ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(eval_params_.planner_time);
+  // Set up planner termination conditions to reflect the desired behavior for one run of the evaluation interface
+  TerminalCondition terminate_on_time = ompl::base::timedPlannerTerminationCondition(eval_params_.planner_time);
+  TerminalCondition terminate_on_cost = ompl::base::CostConvergenceTerminationCondition(arm_pdef_, 1, 0.1);
+  TerminalCondition conditions = ompl::base::plannerOrTerminationCondition(terminate_on_time, terminate_on_cost);
+
+  // When calling to solve, capture some data about the evaluation, incl. time to solve (in milliseconds)
+  auto start = std::chrono::high_resolution_clock::now();
+
+  ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(conditions, eval_params_.check_time);
+
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+
+  std::stringstream ss;
+  ss << std::setprecision(3) << std::fixed << ">> Time to plan : "  << elapsed.count() * 1e-6 << " milliseconds"
+     << std::endl;
+  std::cout << ss.str();
 
   if (status == ompl::base::PlannerStatus::EXACT_SOLUTION || status == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
   {

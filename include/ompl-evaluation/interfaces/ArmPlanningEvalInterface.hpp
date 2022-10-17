@@ -2,6 +2,7 @@
 #define OMPL_EVALUATION_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
 
 #include <ompl/base/Planner.h>
+#include <ompl/base/PlannerTerminationCondition.h>
 #include <ompl/base/ProblemDefinition.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/StateSpace.h>
@@ -45,14 +46,20 @@ struct PlanEvaluationParams
   //! Which planner should we use when evaluating planner performance?
   PlannerChoices planner;
 
-  //! How much time is the planner allowed to spend planning for this evaluation?
+  //! How much time (in seconds) is the planner allowed to spend planning for this evaluation?
   double planner_time;
+
+  //! What is the time interval (in seconds) for checking the designated conditions for planning to terminate?
+  double check_time;
 };
 
 //! @brief TODO(wspies)
 class ArmPlanningEvalInterface
 {
 public:
+  //! Alias for @p ompl::base::PlannerTerminationCondition function return signature
+  using TerminalCondition = ompl::base::PlannerTerminationCondition;
+
   //! @brief Delete default constructor, must construct with arguments
   ArmPlanningEvalInterface() = delete;
 

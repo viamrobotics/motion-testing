@@ -70,16 +70,14 @@ func ComputePose(targetPoseC *C.struct_pose) *C.double {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(solutions)
 
-	test_vals := []float64{ 1, 2, 3, 4, 5, 6 }
-	val_len := len(test_vals)
-	val_ptr := C.malloc(C.size_t(val_len) * C.size_t(unsafe.Sizeof(C.double(0))))
-	values := (*[1<<30 - 1]C.double)(val_ptr)[:val_len:val_len]
-	for i := 0; i < val_len; i++ {
-		values[i] = C.double(test_vals[i])
+	ik_sol_len := len(solutions[0].Q())
+	ik_sol_ptr := C.malloc(C.size_t(ik_sol_len) * C.size_t(unsafe.Sizeof(C.double(0))))
+	ik_solution := (*[1<<30]C.double)(ik_sol_ptr)[:ik_sol_len:ik_sol_len]
+	for i := 0; i < ik_sol_len; i++ {
+		ik_solution[i] = C.double(solutions[0].Q()[i].Value)
 	}
-	return (*C.double)(val_ptr)
+	return (*C.double)(ik_sol_ptr)
 }
 
 //export ValidState
@@ -93,7 +91,6 @@ func ValidState(pos []float64) bool {
 func VisualizeOMPL(inputs [][]float64) {
 	plan := make([][]referenceframe.Input, 0)
 	for _, input := range inputs {
-		fmt.Println(input)
 		plan = append(plan, referenceframe.FloatsToInputs(input))
 	}
 	visualization.VisualizePlan(scene.RobotFrame, plan, scene.WorldState)
@@ -127,7 +124,7 @@ func Init(name string) {
 	}
 
 	// Setup PlanOptions for eventual IK solvers
-	scenePlanOpts := motionplan.NewBasicPlannerOptions()
+	scenePlanOpts = motionplan.NewBasicPlannerOptions()
 	scenePlanOpts.AddConstraint("collision", collision)
 
 	// Setup IK solver after scene buildup
@@ -226,9 +223,9 @@ func getIKSolutions(ctx context.Context,
 	seed []referenceframe.Input,
 	frm referenceframe.Frame,
 ) ([]*costNode, error) {
-	nSolutions := 0 // planOpts.MaxSolutions was causing a panic here
+	nSolutions := planOpts.MaxSolutions
 	if nSolutions == 0 {
-		nSolutions = 50  // motionplan.defaultSolutionsToSeed uses this value
+		nSolutions = 50  // motionplan.defaultSolutionsToSeed has this value
 	}
 
 	seedPos, err := frm.Transform(seed)

@@ -24,12 +24,12 @@ int main(int argc, char **argv) {
         printf("%f\n", res[i]);
     }
     
-    //p->X += 100;
-    //p->Y += 100;
-    //double *ik_joints = ComputePose(p);
-    //for (int i = 0; i < 6; i++){
-    //    printf("%f\n", ik_joints[i]);
-    //}
+    p->X += 100;
+    p->Y += 100;
+    double *ik_joints = ComputePose(p);
+    for (int i = 0; i < 6; i++){
+        printf("%f\n", ik_joints[i]);
+    }
     
     return 0;
 }
