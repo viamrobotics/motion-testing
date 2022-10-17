@@ -43,7 +43,7 @@ var ik *motionplan.CombinedIK
 func StartPos() *C.double {
 	val_len := len(scene.Start)
 	val_ptr := C.malloc(C.size_t(val_len) * C.size_t(unsafe.Sizeof(C.double(0))))
-	values := (*[1<<30 - 1]C.double)(val_ptr)[:val_len:val_len]
+	values := (*[1<<30]C.double)(val_ptr)[:val_len:val_len]
 	for i := 0; i < val_len; i++ {
 		values[i] = C.double(scene.Start[i].Value)
 	}
