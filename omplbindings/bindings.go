@@ -41,9 +41,11 @@ var goalPoseC *C.struct_pose
 var collision motionplan.Constraint
 var ik *motionplan.CombinedIK
 
+const testArmFrame = "arm"
+
 //export Limits
 func Limits() *C.struct_limits {
-	arm_limits := sceneFS.Frame("arm").DoF()
+	arm_limits := sceneFS.Frame(testArmFrame).DoF()
 
 	limits_len := len(arm_limits)
 	limits_ptr := C.malloc(C.size_t(limits_len) * C.size_t(unsafe.Sizeof(C.struct_limits{})))
@@ -84,7 +86,7 @@ func ComputePose(targetPoseC *C.struct_pose) *C.double {
 	spatial_pose := cToPose(targetPoseC)
 	pb_pose := spatialmath.PoseToProtobuf(spatial_pose)
 
-	solutions, err := getIKSolutions(context.Background(), scenePlanOpts, ik, pb_pose, referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0}), sceneFS.Frame("arm"))
+	solutions, err := getIKSolutions(context.Background(), scenePlanOpts, ik, pb_pose, referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0}), sceneFS.Frame(testArmFrame))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -100,7 +102,7 @@ func ComputePose(targetPoseC *C.struct_pose) *C.double {
 
 //export ValidState
 func ValidState(pos []float64) bool {
-	cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame("arm")}
+	cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame(testArmFrame)}
 	valid, _ := collision(cInput)
 	return valid
 }
@@ -131,7 +133,7 @@ func Init(name string) {
 	// generic post-scene setup
 	var err error
 	collision, err = motionplan.NewCollisionConstraintFromWorldState(
-		sceneFS.Frame("arm"),
+		sceneFS.Frame(testArmFrame),
 		sceneFS,
 		scene.WorldState,
 		referenceframe.StartPositions(sceneFS),
