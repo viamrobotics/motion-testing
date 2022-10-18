@@ -10,6 +10,12 @@ package main
 		double Yaw;
 	};
 */
+/*
+	struct limits {
+		double Min;
+		double Max;
+	};
+*/
 import "C"
 import (
 	"context"
@@ -38,6 +44,22 @@ var scenePlanOpts *motionplan.PlannerOptions
 var goalPoseC *C.struct_pose
 var collision motionplan.Constraint
 var ik *motionplan.CombinedIK
+
+//export Limits
+func Limits() *C.struct_limits {
+	arm_limits := sceneFS.Frame("arm").DoF()
+
+	limits_len := len(arm_limits)
+	limits_ptr := C.malloc(C.size_t(limits_len) * C.size_t(unsafe.Sizeof(C.struct_limits{})))
+	limits := (*[1<<30]C.struct_limits)(limits_ptr)[:limits_len:limits_len]
+
+	for i := 0; i < limits_len; i++ {
+		limits[i].Min = C.double(arm_limits[i].Min)
+		limits[i].Max = C.double(arm_limits[i].Max)
+	}
+
+	return (*C.struct_limits)(limits_ptr)
+}
 
 //export StartPos
 func StartPos() *C.double {

@@ -1,7 +1,5 @@
 #include <ompl-evaluation/interfaces/ArmPlanningEvalInterface.hpp>
 
-#include "bindings.h"
-
 #include <ompl/base/spaces/RealVectorBounds.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/Path.h>
@@ -87,17 +85,14 @@ void ArmPlanningEvalInterface::setGoalState(const std::vector<double>& joint_pos
 
 bool ArmPlanningEvalInterface::initSpace(const PlanEvaluationParams& params)
 {
-  // TODO(viam): Eventually need some Go bindings here I think
-
   // Set up real vector bounds equal to number of arm joints
-  // TODO(wspies): Set this with real arm joint limits after we parse ModelJSON?
   // TODO(wspies): Continuous joints need to have a different representation of their bounds or else you get
   //               a joint wrapping issue similar to what Peter and Ray have already seen.
   ompl::base::RealVectorBounds arm_bounds(params.arm_dof);
   for (size_t k = 0; k < params.arm_dof; ++k)
   {
-    arm_bounds.setLow(k, (-3 * M_PI));
-    arm_bounds.setHigh(k, (3 * M_PI));
+    arm_bounds.setLow(k, params.arm_limits[k].Min);
+    arm_bounds.setHigh(k, params.arm_limits[k].Max);
   }
 
   // Set up real vector state space based on the previously established arm bounds

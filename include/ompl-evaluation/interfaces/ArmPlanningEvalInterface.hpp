@@ -1,6 +1,8 @@
 #ifndef OMPL_EVALUATION_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
 #define OMPL_EVALUATION_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
 
+#include "bindings.h"
+
 #include <ompl/base/Planner.h>
 #include <ompl/base/PlannerTerminationCondition.h>
 #include <ompl/base/ProblemDefinition.h>
@@ -26,19 +28,25 @@ enum PlannerChoices : std::uint8_t
 };
 
 //! TODO(wspies)
+using LimitsVec = std::vector<limits>;
+
+//! TODO(wspies)
 struct PlanEvaluationParams
 {
   // Name of the scene used to establish the world when performing evaluations
   std::string scene_name;
 
-  //! Vector of doubles (of length dof) that define the arm's starting joint states, in radians
+  //! Vector of doubles (of length arm_dof) that define the arm's starting joint states, in radians
   std::vector<double> start;
 
-  //! Vector of doubles (of length dof) that define the target joint states the arm should move to, in radians
+  //! Vector of doubles (of length arm_dof) that define the target joint states the arm should move to, in radians
   std::vector<double> goal;
 
   //! Degrees of freedom of the selected robotic arm (this assumes the arm is an N-count revolute joint chain)
   std::uint8_t arm_dof;
+
+  //! Joint limits for all joints on the selected robotic arm
+  LimitsVec arm_limits;
 
   //! Threshold to consider when checking if the goal has been reached, in radians
   double goal_threshold;
@@ -46,10 +54,10 @@ struct PlanEvaluationParams
   //! Which planner should we use when evaluating planner performance?
   PlannerChoices planner;
 
-  //! How much time (in seconds) is the planner allowed to spend planning for this evaluation?
+  //! How much time is the planner allowed to spend planning for this evaluation, in seconds?
   double planner_time;
 
-  //! What is the time interval (in seconds) for checking the designated conditions for planning to terminate?
+  //! What is the time interval for checking the designated conditions for planning to terminate, in seconds?
   double check_time;
 };
 

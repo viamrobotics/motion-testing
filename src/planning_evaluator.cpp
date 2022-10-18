@@ -1,8 +1,6 @@
 
 #include <ompl-evaluation/interfaces/ArmPlanningEvalInterface.hpp>
 
-#include "bindings.h"
-
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -29,9 +27,11 @@ int main(int argc, char* argv[])
 
   // Getting scene details after initialization
   double* start_pos = StartPos();
+
   struct pose* goal_pose = GoalPose();
   double* goal_pos = ComputePose(goal_pose);
 
+  struct limits* joint_limits = Limits();
   // TODO(wspies): Any assertions on sizes needed here?
 
   // Setting up evaluation parameters
@@ -43,6 +43,10 @@ int main(int argc, char* argv[])
     eval_params.goal.push_back(goal_pos[j]);
   }
   eval_params.arm_dof = std::uint8_t(scene_dof);
+  for (int k = 0; k < scene_dof; ++k)
+  {
+    eval_params.arm_limits.push_back(joint_limits[k]);
+  }
   eval_params.goal_threshold = 1e-6;
   eval_params.planner = ompl_evaluation::interfaces::PlannerChoices::RRTstar;
   eval_params.planner_time = 1.0;
@@ -51,7 +55,7 @@ int main(int argc, char* argv[])
   // TODO(wspies)
   ompl_evaluation::interfaces::ArmPlanningEvalInterface eval_arm_planner(eval_params);
   eval_arm_planner.configure();
-  
+
   ompl::geometric::PathGeometric* path = eval_arm_planner.solve();
   if (path != NULL) {
     std::cout << "Found solution:" << std::endl;
