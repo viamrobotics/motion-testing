@@ -100,6 +100,12 @@ func ComputePose(targetPoseC *C.struct_pose) *C.double {
 	return (*C.double)(ik_sol_ptr)
 }
 
+//func ValidState(cur_pos, next_pos []float64) bool {
+//	cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(cur_pos), EndInput: referenceframe.FloatsToInputs(next_pos), Frame: sceneFS.Frame(testArmFrame)}
+//	valid, _ := scenePlanOpts.CheckConstraintPath(cInput, scenePlanOpts.Resolution)
+//	return valid
+//}
+
 //export ValidState
 func ValidState(pos []float64) bool {
 	cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame(testArmFrame)}

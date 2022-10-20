@@ -26,7 +26,7 @@ type config struct {
 // setup a UR5 moving along a linear path in unrestricted space
 func scene1() *config {
 	model, _ := universalrobots.Model("arm")
-	startInput := referenceframe.FloatsToInputs([]float64{1, 0, 0, 0, 0, 0})
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 	goalPt := startPose.Point()
 	goalPt.X += 100

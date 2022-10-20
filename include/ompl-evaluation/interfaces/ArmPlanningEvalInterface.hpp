@@ -89,8 +89,14 @@ public:
   ompl::geometric::PathGeometric* solve();
 
   //! @brief Display a matplotlib rendering of the specified path
-  //! @param[in] path Path to visualize
-  void visualize(ompl::geometric::PathGeometric* path);
+  //! @param[in] path Planned path to visualize
+  void visualizePath(ompl::geometric::PathGeometric* path);
+
+  //! @brief Export the specified path to a CSV file with the given filename
+  //! @param[in] path     Planned path to export
+  //! @param[in] filename Name of the CSV 
+  //! @note One line per joint state (incl. start and goal state), with each joint value separated by a comma
+  void exportPathAsCSV(ompl::geometric::PathGeometric* path, const std::string& filename);
 
 private:
   //! @brief Sets the starting joint state of the robot arm

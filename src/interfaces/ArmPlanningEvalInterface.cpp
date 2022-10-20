@@ -11,9 +11,11 @@
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
-#include <chrono>
+#include <chrono
 #include <cstdint>
 #include <functional>
+#include <iostream>
+#include <fstream>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -180,34 +182,61 @@ ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
   auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
 
   std::stringstream ss;
-  ss << std::setprecision(3) << std::fixed << ">> Time to plan : "  << elapsed.count() * 1e-6 << " milliseconds"
+  ss << std::setprecision(3) << std::fixed << "Time spend on plan : "  << elapsed.count() * 1e-6 << " milliseconds"
      << std::endl;
   std::cout << ss.str();
 
   if (status == ompl::base::PlannerStatus::EXACT_SOLUTION || status == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
   {
     ompl::base::PathPtr arm_path = arm_pdef_->getSolutionPath();
+    arm_path->as<ompl::geometric::PathGeometric>()->interpolate(100);
     return static_cast<ompl::geometric::PathGeometric *>(arm_path.get());
   }
-  return NULL;
+  return nullptr;
 }
 
-void ArmPlanningEvalInterface::visualize(ompl::geometric::PathGeometric* path) 
+void ArmPlanningEvalInterface::visualizePath(ompl::geometric::PathGeometric* path)
 {
-  // get states that constitute the path
+  // Get states that constitute the path
   const ompl::base::StateSpace *space(arm_si_->getStateSpace().get());
   std::vector<ompl::base::State*> states = path->getStates();
-  
-  // convert to a 2D slice
+
+  // Convert to a 2D slice
   std::vector<GoSlice> slices;
   std::vector<std::vector<double>> reals(states.size());
-  for (int i = 0; i < states.size(); i++)
+  for (int i = 0; i < states.size(); ++i)
   {
     space->copyToReals(reals[i], states[i]);
-    GoSlice input = {static_cast<GoFloat64*>(reals[i].data()), static_cast<GoInt>(reals[i].size()), static_cast<GoInt>(reals[i].size())};
+    GoSlice input = {static_cast<GoFloat64*>(reals[i].data()), static_cast<GoInt>(reals[i].size()),
+                     static_cast<GoInt>(reals[i].size())};
     slices.push_back(input);
   }
-  GoSlice inputs = {static_cast<GoSlice*>(slices.data()), static_cast<GoInt>(slices.size()), static_cast<GoInt>(slices.size())};
+  GoSlice inputs = {static_cast<GoSlice*>(slices.data()), static_cast<GoInt>(slices.size()),
+                    static_cast<GoInt>(slices.size())};
 
   VisualizeOMPL(inputs);
+}
+
+void ArmPlanningEvalInterface::exportPathAsCSV(ompl::geometric::PathGeometric* path, const std::string& filename)
+{
+  // Get states that constitute the path
+  const std::vector<ompl::base::State*> states = path->getStates();
+
+  // Open an filestream for the designated filename
+  std::fstream plan_file;
+  plan_file.open(filename, std::ios::out);
+
+  // Write joint states values to the designated file
+  for (int j = 0; j < states.size(); ++j)
+  {
+    double *state_joint_values = states[j]->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+    for (int k = 0; k < eval_params_.arm_dof; ++k)
+    {
+      plan_file << state_joint_values[k];
+      plan_file << (k + 1 == eval_params_.arm_dof ? "\n" : ",");
+    }
+  }
+
+  plan_file.close();
+  std::cout << "Planned path file written to [ " << filename << " ]" << std::endl;
 }

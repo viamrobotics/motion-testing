@@ -25,6 +25,8 @@ int main(int argc, char* argv[])
   GoString rdk_scene = {scene_name.c_str(), ptrdiff_t(scene_name.length())};
   Init(rdk_scene);
 
+  const std::string scene_path_filename = scene_name + ".csv";  // Update this after the args checks for another scene
+
   // Getting scene details after initialization
   double* start_pos = StartPos();
 
@@ -57,11 +59,14 @@ int main(int argc, char* argv[])
   eval_arm_planner.configure();
 
   ompl::geometric::PathGeometric* path = eval_arm_planner.solve();
-  if (path != NULL) {
-    std::cout << "Found solution:" << std::endl;
-    path->printAsMatrix(std::cout);
-    eval_arm_planner.visualize(path);
-  } else {
+  if (path != NULL)
+  {
+    std::cout << "Found solution, writing to [ " << scene_path_filename << " ]" << std::endl;
+    eval_arm_planner.exportPathAsCSV(path, scene_path_filename);
+    eval_arm_planner.visualizePath(path);
+  }
+  else
+  {
     std::cout << "No solution found." << std::endl;
   }
 }

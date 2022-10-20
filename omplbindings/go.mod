@@ -61,7 +61,7 @@ require (
 	github.com/pion/turn/v2 v2.0.8 // indirect
 	github.com/pion/udp v0.1.1 // indirect
 	github.com/pion/webrtc/v3 v3.1.43 // indirect
-	github.com/pkg/errors v0.9.1
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect
 	github.com/rs/cors v1.8.2 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
