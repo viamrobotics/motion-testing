@@ -11,7 +11,6 @@
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
-#include <chrono
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -46,6 +45,7 @@ bool isStateValid(const ompl::base::SpaceInformation* si, const ompl::base::Stat
 
 ArmPlanningEvalInterface::ArmPlanningEvalInterface(const PlanEvaluationParams params)
   : eval_params_(params)
+  , eval_results_()
   , arm_ss_(nullptr)
   , arm_si_(nullptr)
   , arm_pdef_(nullptr)
@@ -179,19 +179,26 @@ ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
   ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(conditions, eval_params_.check_time);
 
   auto stop = std::chrono::high_resolution_clock::now();
-  auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+  eval_results_.actual_time = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
 
   std::stringstream ss;
-  ss << std::setprecision(3) << std::fixed << "Time spend on plan : "  << elapsed.count() * 1e-6 << " milliseconds"
-     << std::endl;
+  ss << std::setprecision(3) << std::fixed << "Time spent on planning : "  << eval_results_.actual_time.count() * 1e-6
+     << " milliseconds" << std::endl;
   std::cout << ss.str();
 
   if (status == ompl::base::PlannerStatus::EXACT_SOLUTION || status == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
   {
+    eval_results_.available = true;
+
     ompl::base::PathPtr arm_path = arm_pdef_->getSolutionPath();
     arm_path->as<ompl::geometric::PathGeometric>()->interpolate(100);
     return static_cast<ompl::geometric::PathGeometric *>(arm_path.get());
   }
+  else
+  {
+    eval_results_.available = false;
+  }
+  
   return nullptr;
 }
 
@@ -219,12 +226,14 @@ void ArmPlanningEvalInterface::visualizePath(ompl::geometric::PathGeometric* pat
 
 void ArmPlanningEvalInterface::exportPathAsCSV(ompl::geometric::PathGeometric* path, const std::string& filename)
 {
+  const std::string filename_csv = filename + ".csv";
+
   // Get states that constitute the path
   const std::vector<ompl::base::State*> states = path->getStates();
 
   // Open an filestream for the designated filename
   std::fstream plan_file;
-  plan_file.open(filename, std::ios::out);
+  plan_file.open(filename_csv, std::ios::out);
 
   // Write joint states values to the designated file
   for (int j = 0; j < states.size(); ++j)
@@ -238,5 +247,34 @@ void ArmPlanningEvalInterface::exportPathAsCSV(ompl::geometric::PathGeometric* p
   }
 
   plan_file.close();
-  std::cout << "Planned path file written to [ " << filename << " ]" << std::endl;
+  std::cout << "Planned path file written to [ " << filename_csv << " ]" << std::endl;
+}
+
+void ArmPlanningEvalInterface::printResults()
+{
+  std::cout << std::endl;
+  std::stringstream results_ss;
+  results_ss << std::setprecision(3) << std::fixed;
+  results_ss << "Evaluation Results for [ " << eval_params_.scene_name << " ]:\n";
+  results_ss << "Plan Availability\t: "    << std::boolalpha << eval_results_.available << "\n";
+  results_ss << "Plan Quality\t\t: "       << eval_results_.quality << "\n";
+  results_ss << "Planner Performance\t: "  << eval_results_.performance << "\n";
+  results_ss << "Actual Planning Time\t: " << eval_results_.actual_time.count() << "\n";
+  std::cout << results_ss.str() << std::endl;
+}
+
+void ArmPlanningEvalInterface::exportResultsAsCSV(const std::string& filename)
+{
+  const std::string filename_csv = filename + "_results.csv";
+
+  // Open an filestream for the designated filename
+  std::fstream results_file;
+  results_file.open(filename_csv, std::ios::out);
+
+  // Write results data to the designated file
+  results_file << eval_results_.available << "," << eval_results_.actual_time.count() << ","
+               << eval_results_.quality   << "," << eval_results_.performance << "\n";
+
+  results_file.close();
+  std::cout << "Evaluation results file written to [ " << filename_csv << " ]" << std::endl;
 }

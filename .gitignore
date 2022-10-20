@@ -1,6 +1,5 @@
 build/
 
-omplbindings/bindings.a
-omplbindings/bindings.h
+*.csv
 
 .vscode

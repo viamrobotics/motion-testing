@@ -10,6 +10,7 @@
 #include <ompl/base/StateSpace.h>
 #include <ompl/geometric/PathGeometric.h>
 
+#include <chrono>
 #include <string>
 #include <memory>
 #include <vector>
@@ -27,10 +28,10 @@ enum PlannerChoices : std::uint8_t
   BITstar = 3
 };
 
-//! TODO(wspies)
+//! Alias for a vector of C-struct joint limits, which are defined in the @p omplbindings::bindings library
 using LimitsVec = std::vector<limits>;
 
-//! TODO(wspies)
+//! This struct captupres a specific scene and planning parameters used when a ArmPlanningEvalInterface is instantiated
 struct PlanEvaluationParams
 {
   // Name of the scene used to establish the world when performing evaluations
@@ -59,6 +60,27 @@ struct PlanEvaluationParams
 
   //! What is the time interval for checking the designated conditions for planning to terminate, in seconds?
   double check_time;
+};
+
+//! This struct contains our calculated Motion Planning Effectiveness metrics
+struct PlanEvaluationResults
+{
+  //! Is the planner able to return a valid plan in the allowed planner time?
+  //! Per scope doc... For availability, we’ll capture if the planner was able to create a path in RT (0 or 1).
+  bool available;
+
+  //! In nanoseconds, how long did it take for the planner @p solve() method to return a valid plan?
+  std::chrono::nanoseconds actual_time;
+
+  //! TODO(wspies)
+  //! Per scope doc... For quality we will run the planner for RT, and capture the delta between the optimal path and RT
+  //! generated path as a ratio between 0 and 1.
+  double quality;
+
+  //! TODO(wspies)
+  //! Per scope doc... For performance, we’ll limit the planner to RT, and score as a ratio based on the percentage of
+  //! RT taken to return a path (1 - (time spent/RT)).
+  double performance;
 };
 
 //! @brief TODO(wspies)
@@ -92,11 +114,19 @@ public:
   //! @param[in] path Planned path to visualize
   void visualizePath(ompl::geometric::PathGeometric* path);
 
-  //! @brief Export the specified path to a CSV file with the given filename
+  //! @brief Export the specified path to a CSV file
   //! @param[in] path     Planned path to export
-  //! @param[in] filename Name of the CSV 
+  //! @param[in] filename Name of the CSV file to generate, will have '.csv' appended at the end
   //! @note One line per joint state (incl. start and goal state), with each joint value separated by a comma
   void exportPathAsCSV(ompl::geometric::PathGeometric* path, const std::string& filename);
+
+  //! @brief Prints the calculated results in a visually appealing format
+  void printResults();
+
+  //! @brief Export the calculated results from the last use of this evaluator to a CSV file
+  //! @param[in] filename Name of the CSV file to generate, will have '_results.csv' appended at the end
+  //! @note One line per result, with each element in the result struct separated by a comma
+  void exportResultsAsCSV(const std::string& filename);
 
 private:
   //! @brief Sets the starting joint state of the robot arm
@@ -120,6 +150,9 @@ private:
 
   //! Parameters detailing what and how this object will evaluate planning with the RDK and the OMPL
   PlanEvaluationParams eval_params_;
+
+  //! Results of running a given planner and planning parameters against a given scene
+  PlanEvaluationResults eval_results_;
 
   //! OMPL's StateSpace construct for the arm
   ompl::base::StateSpacePtr arm_ss_;
