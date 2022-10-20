@@ -39,10 +39,10 @@ func scene1() *config {
 	}
 }
 
-// setup a xArm6 to move in a straight line, adjacent to a large obstacle that should not imede the most efficient path
+// setup a xArm7 to move in a straight line, adjacent to a large obstacle that should not imede the most efficient path
 func scene2() *config {
-	model, _ := xarm.Model("arm", 6)
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	model, _ := xarm.Model("arm", 7)
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 	goalPt := startPose.Point()
 	goalPt.X += 200
@@ -66,6 +66,41 @@ func scene2() *config {
 								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
 									X: 2000,
 									Y: 2000,
+									Z: 20,
+								}},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+// setup a UR5 to move to the other side of an obstacle that obstructs the direct path
+func scene3() *config {
+	model, _ := universalrobots.Model("arm")
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startPose, _ := model.Transform(startInput)
+	goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
+	testPose := spatialmath.NewPoseFromOrientation(
+		r3.Vector{X: 0., Y: 150., Z: 0.},
+		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
+	)
+	return &config{
+		Start:      startInput,
+		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{
+			Obstacles: []*commonpb.GeometriesInFrame{
+				{
+					ReferenceFrame: "world",
+					Geometries: []*commonpb.Geometry{
+						{
+							Center: spatialmath.PoseToProtobuf(testPose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 2000,
+									Y: 20,
 									Z: 20,
 								}},
 							},
