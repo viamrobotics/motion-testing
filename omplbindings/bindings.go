@@ -40,6 +40,7 @@ var scenePlanOpts *motionplan.PlannerOptions
 var goalPoseC *C.struct_pose
 var collision motionplan.Constraint
 var ik *motionplan.CombinedIK
+var logger golog.Logger
 
 const testArmFrame = "arm"
 
@@ -155,7 +156,7 @@ func Init(name string) {
 
 	// Setup IK solver after scene buildup
 	nCPU := int(math.Max(1.0, float64(runtime.NumCPU()/4)))
-	logger := golog.NewLogger("omplbindings")
+	logger = golog.NewLogger("omplbindings")
 	ik, err = motionplan.CreateCombinedIKSolver(scene.RobotFrame, logger, nCPU)
 	if err != nil {
 		fmt.Println(err)
@@ -186,4 +187,8 @@ func cToPose(cPose *C.struct_pose) spatialmath.Pose {
 	orient := &spatialmath.EulerAngles{Roll: float64(cPose.Roll), Pitch: float64(cPose.Pitch), Yaw: float64(cPose.Yaw)}
 
 	return spatialmath.NewPoseFromOrientation(pt, orient)
+}
+
+// Needed for C export
+func main() {
 }
