@@ -17,11 +17,11 @@ type plannerConstructor func(frame referenceframe.Frame, nCPU int, logger golog.
 
 func TestPlanners(t *testing.T) {
 	planners := []plannerConstructor{
-		motionplan.NewRRTStarConnectMotionPlanner,
+		//~ motionplan.NewRRTStarConnectMotionPlanner,
 		motionplan.NewCBiRRTMotionPlanner,
 	}
 	
-	sceneName := "scene1"
+	sceneName := "scene4"
 	for _, planner := range planners {
 		
 		Init(sceneName)

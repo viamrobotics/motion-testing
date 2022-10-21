@@ -133,6 +133,10 @@ func Init(name string) {
 		scene = scene1()
 	case "scene2":
 		scene = scene2()
+	case "scene3":
+		scene = scene3()
+	case "scene4":
+		scene = scene4()
 	default:
 	}
 	sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())

@@ -77,41 +77,76 @@ func scene2() *config {
 	}
 }
 
-//~ // setup a UR5 to move to the other side of an obstacle that obstructs the direct path
-//~ func scene3() *config {
-	//~ model, _ := universalrobots.Model("arm")
-	//~ startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
-	//~ startPose, _ := model.Transform(startInput)
-	//~ goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
-	//~ testPose := spatialmath.NewPoseFromOrientation(
-		//~ r3.Vector{X: 0., Y: 150., Z: 0.},
-		//~ &spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
-	//~ )
-	//~ return &config{
-		//~ Start:      startInput,
-		//~ Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
-		//~ RobotFrame: model,
-		//~ WorldState: &commonpb.WorldState{
-			//~ Obstacles: []*commonpb.GeometriesInFrame{
-				//~ {
-					//~ ReferenceFrame: "world",
-					//~ Geometries: []*commonpb.Geometry{
-						//~ {
-							//~ Center: spatialmath.PoseToProtobuf(testPose),
-							//~ GeometryType: &commonpb.Geometry_Box{
-								//~ Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-									//~ X: 2000,
-									//~ Y: 20,
-									//~ Z: 20,
-								//~ }},
-							//~ },
-						//~ },
-					//~ },
-				//~ },
-			//~ },
-		//~ },
-	//~ }
-//~ }
+// setup a UR5 to move to the other side of an obstacle that obstructs the direct path
+func scene3() *config {
+	model, _ := universalrobots.Model("arm")
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startPose, _ := model.Transform(startInput)
+	goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
+	testPose := spatialmath.NewPoseFromOrientation(
+		r3.Vector{X: 0., Y: 150., Z: 0.},
+		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
+	)
+	return &config{
+		Start:      startInput,
+		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{
+			Obstacles: []*commonpb.GeometriesInFrame{
+				{
+					ReferenceFrame: "world",
+					Geometries: []*commonpb.Geometry{
+						{
+							Center: spatialmath.PoseToProtobuf(testPose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 2000,
+									Y: 20,
+									Z: 20,
+								}},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func scene4() *config {
+	model, _ := xarm.Model("arm", 6)
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startPose, _ := model.Transform(startInput)
+	goalPt := startPose.Point()
+	goalPt.X += 300
+	testPt := startPose.Point()
+	testPt.X += 150
+	testPose := spatialmath.NewPoseFromOrientation(testPt, startPose.Orientation())
+	return &config{
+		Start:      startInput,
+		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{
+			Obstacles: []*commonpb.GeometriesInFrame{
+				{
+					ReferenceFrame: "world",
+					Geometries: []*commonpb.Geometry{
+						{
+							Center: spatialmath.PoseToProtobuf(testPose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 20,
+									Y: 2000,
+									Z: 60,
+								}},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
 
 func calcPose(pos []float64) spatialmath.Pose {
 	positions := map[string][]referenceframe.Input{}
