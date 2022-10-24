@@ -9,6 +9,15 @@ require (
 )
 
 require (
+	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
+	github.com/fullstorydev/grpcurl v1.8.6 // indirect
+	github.com/kellydunn/golang-geo v0.7.0 // indirect
+	github.com/kylelemons/go-gypsy v1.0.0 // indirect
+	github.com/lib/pq v1.10.6 // indirect
+	github.com/ziutek/mymysql v1.5.4 // indirect
+)
+
+require (
 	cloud.google.com/go v0.104.0 // indirect
 	cloud.google.com/go/compute v1.10.0 // indirect
 	cloud.google.com/go/iam v0.5.0 // indirect
@@ -78,7 +87,7 @@ require (
 	go.uber.org/goleak v1.2.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
-	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2 // indirect
+	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2
 	go.viam.com/utils v0.0.6
 	golang.org/x/crypto v0.0.0-20221010152910-d6f0a8c073c2 // indirect
 	golang.org/x/exp v0.0.0-20221011111909-0220f59fc3e4 // indirect
