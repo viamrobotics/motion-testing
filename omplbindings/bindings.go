@@ -44,6 +44,12 @@ var logger golog.Logger
 
 const testArmFrame = "arm"
 
+
+//export NumJoints
+func NumJoints() C.int {
+	return C.int(len(sceneFS.Frame(testArmFrame).DoF()))
+}
+
 //export Limits
 func Limits() *C.struct_limits {
 	arm_limits := sceneFS.Frame(testArmFrame).DoF()

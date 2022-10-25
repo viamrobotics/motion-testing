@@ -245,11 +245,11 @@ void ArmPlanningEvalInterface::printResults()
   std::cout << std::endl;
   std::stringstream results_ss;
   results_ss << std::setprecision(3) << std::fixed;
-  results_ss << "Evaluation Results for [ "     << eval_params_.scene_name << " ]:\n";
-  results_ss << "Plan Availability\t: "         << std::boolalpha << eval_results_.available << "\n";
-  results_ss << "Plan Quality\t\t: "            << eval_results_.quality << "\n";
-  results_ss << "Planner Performance\t: "       << eval_results_.performance << "\n";
-  results_ss << "Actual Planning Time (ns)\t: " << eval_results_.actual_time.count() << "\n";
+  results_ss << "Evaluation Results for [ " << eval_params_.scene_name << " ]:\n";
+  results_ss << "Plan Availability\t: "     << std::boolalpha << eval_results_.available << "\n";
+  results_ss << "Plan Quality\t\t: "        << eval_results_.quality << "\n";
+  results_ss << "Planner Performance\t: "   << eval_results_.performance << "\n";
+  results_ss << "Actual Plan Time (ns)\t: " << eval_results_.actual_time.count() << "\n";
   std::cout << results_ss.str() << std::endl;
 }
 

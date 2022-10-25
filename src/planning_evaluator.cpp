@@ -102,11 +102,8 @@ int main(int argc, char* argv[])
     }
 
     // Setting up evaluation parameters
-    const int scene_dof = 6;  // TODO(wspies): Still have to deal with this not being defaulted to 6    
-
     ompl_evaluation::interfaces::PlanEvaluationParams eval_params;
     eval_params.scene_name = scene_name;
-    eval_params.arm_dof = std::uint8_t(scene_dof);
     eval_params.goal_threshold = 1e-6;
     eval_params.planner = planner_choice;
     eval_params.planner_time = user_settings.time;
@@ -122,21 +119,22 @@ int main(int argc, char* argv[])
     Init(rdk_scene);
 
     // Getting scene details after initialization
+    eval_params.arm_dof = NumJoints();
+
     double* start_pos = StartPos();
 
     struct pose* goal_pose = GoalPose();
     double* goal_pos = ComputePose(goal_pose);
 
     struct limits* joint_limits = Limits();
-    // TODO(wspies): Any assertions on sizes needed here?
 
-    for (int j = 0; j < scene_dof; ++j)
+    for (int j = 0; j < eval_params.arm_dof; ++j)
     {
       eval_params.start.push_back(start_pos[j]);
       eval_params.goal.push_back(goal_pos[j]);
     }
 
-    for (int k = 0; k < scene_dof; ++k)
+    for (int k = 0; k < eval_params.arm_dof; ++k)
     {
       eval_params.arm_limits.push_back(joint_limits[k]);
     }
