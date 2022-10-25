@@ -23,9 +23,7 @@ namespace interfaces
 enum PlannerChoices : std::uint8_t
 {
   RRTstar = 0,
-  InformedRRTstar = 1,
-  FMT = 2,
-  BITstar = 3
+  InformedRRTstar = 1
 };
 
 //! Alias for a vector of C-struct joint limits, which are defined in the @p omplbindings::bindings library

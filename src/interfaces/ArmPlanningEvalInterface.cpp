@@ -6,8 +6,6 @@
 #include <ompl/base/terminationconditions/CostConvergenceTerminationCondition.h>
 #include <ompl/geometric/PathGeometric.h>
 
-#include <ompl/geometric/planners/informedtrees/BITstar.h>
-#include <ompl/geometric/planners/fmt/FMT.h>
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
@@ -126,16 +124,6 @@ bool ArmPlanningEvalInterface::initPlanning(const PlanEvaluationParams& params)
   // TODO(wspies): Future options can be added here as additional cases, if we want to do that
   switch (params.planner)
   {
-    case (PlannerChoices::BITstar):
-    {
-      arm_planner_= std::make_shared<ompl::geometric::BITstar>(arm_si_);
-      break;
-    }
-    case (PlannerChoices::FMT):
-    {
-      arm_planner_= std::make_shared<ompl::geometric::FMT>(arm_si_);
-      break;
-    }
     case (PlannerChoices::InformedRRTstar):
     {
       arm_planner_= std::make_shared<ompl::geometric::InformedRRTstar>(arm_si_);
@@ -168,15 +156,18 @@ bool ArmPlanningEvalInterface::configure()
 
 ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
 {
+  // NOTE(wspies): Disabled for now, need tuning on cost convergence or exact solution use as a sentinel
   // Set up planner termination conditions to reflect the desired behavior for one run of the evaluation interface
-  TerminalCondition terminate_on_time = ompl::base::timedPlannerTerminationCondition(eval_params_.planner_time);
-  TerminalCondition terminate_on_cost = ompl::base::CostConvergenceTerminationCondition(arm_pdef_, 1, 0.1);
-  TerminalCondition conditions = ompl::base::plannerOrTerminationCondition(terminate_on_time, terminate_on_cost);
+  //TerminalCondition terminate_on_time = ompl::base::timedPlannerTerminationCondition(eval_params_.planner_time);
+  //TerminalCondition terminate_on_cost = ompl::base::CostConvergenceTerminationCondition(arm_pdef_, 1, 0.1);
+  //TerminalCondition conditions = ompl::base::plannerOrTerminationCondition(terminate_on_time, terminate_on_cost);
 
   // When calling to solve, capture some data about the evaluation, incl. time to solve (in milliseconds)
   auto start = std::chrono::high_resolution_clock::now();
 
-  ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(conditions, eval_params_.check_time);
+  // NOTE(wspies): Former statement leverages commented TerminalConditions above
+  //ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(conditions, eval_params_.check_time);
+  ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(eval_params_.planner_time);
 
   auto stop = std::chrono::high_resolution_clock::now();
   eval_results_.actual_time = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
@@ -191,7 +182,6 @@ ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
     eval_results_.available = true;
 
     ompl::base::PathPtr arm_path = arm_pdef_->getSolutionPath();
-    arm_path->as<ompl::geometric::PathGeometric>()->interpolate(100);
     return static_cast<ompl::geometric::PathGeometric *>(arm_path.get());
   }
   else
@@ -255,11 +245,11 @@ void ArmPlanningEvalInterface::printResults()
   std::cout << std::endl;
   std::stringstream results_ss;
   results_ss << std::setprecision(3) << std::fixed;
-  results_ss << "Evaluation Results for [ " << eval_params_.scene_name << " ]:\n";
-  results_ss << "Plan Availability\t: "    << std::boolalpha << eval_results_.available << "\n";
-  results_ss << "Plan Quality\t\t: "       << eval_results_.quality << "\n";
-  results_ss << "Planner Performance\t: "  << eval_results_.performance << "\n";
-  results_ss << "Actual Planning Time\t: " << eval_results_.actual_time.count() << "\n";
+  results_ss << "Evaluation Results for [ "     << eval_params_.scene_name << " ]:\n";
+  results_ss << "Plan Availability\t: "         << std::boolalpha << eval_results_.available << "\n";
+  results_ss << "Plan Quality\t\t: "            << eval_results_.quality << "\n";
+  results_ss << "Planner Performance\t: "       << eval_results_.performance << "\n";
+  results_ss << "Actual Planning Time (ns)\t: " << eval_results_.actual_time.count() << "\n";
   std::cout << results_ss.str() << std::endl;
 }
 
