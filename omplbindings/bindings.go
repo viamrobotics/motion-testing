@@ -128,17 +128,12 @@ func Init(name string) {
 	sceneFS = referenceframe.NewEmptySimpleFrameSystem("")
 
 	// setup scenes in global vars
-	switch name {
-	case "scene1":
-		scene = scene1()
-	case "scene2":
-		scene = scene2()
-	case "scene3":
-		scene = scene3()
-	case "scene4":
-		scene = scene4()
-	default:
+	initFunc, ok := allScenes[name]
+	if !ok {
+		fmt.Println("Scene '", name, "'does not exist!")
+		return
 	}
+	scene = initFunc()
 	sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
 
 	// generic post-scene setup

@@ -23,6 +23,13 @@ type config struct {
 	WorldState *commonpb.WorldState
 }
 
+var allScenes = map[string]func() *config {
+	"scene1": scene1,
+	"scene2": scene2,
+	"scene3": scene3,
+	"scene4": scene4,
+}
+
 // setup a UR5 moving along a linear path in unrestricted space
 func scene1() *config {
 	model, _ := universalrobots.Model("arm")
