@@ -1,6 +1,7 @@
 
 #include <ompl-evaluation/interfaces/ArmPlanningEvalInterface.hpp>
 
+#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 
@@ -8,25 +9,24 @@
 #include <string>
 #include <vector>
 
-//! TODO(wspies)
+//! Cut down on those massive boost::program_options paths
 namespace bpo = boost::program_options;
 
 //! Convenience alias to shortcut getting to the PlannerChoices namespace
 using PlannerChoices = ompl_evaluation::interfaces::PlannerChoices;
 
-//! TODO(wspies)
+//! This will help handle passing user configuration details back and forth between @p main() and @p parseArgs()
 struct ArgStruct
 {
-  //! TODO(wspies)
+  //! User's choice of scene
   std::string scene;
   
-  //! TODO(wspies)
+  //! User's choice of motion planning algorithm, see ArmPlanningEvalInterface.hpp for valid options
   int planner;
   
-  //! TODO(wspies)
+  //! User's specification for allowed planning time
   double time;
 };
-
 
 bool parseArgs(int argc, char* argv[], ArgStruct& settings)
 {
@@ -68,6 +68,50 @@ bool parseArgs(int argc, char* argv[], ArgStruct& settings)
     std::cout << "Error loading parameters: " << ex.what() << std::endl;
     return false;
   }
+}
+
+std::string getResultsPathPrefix(const PlannerChoices& choice)
+{
+  // This script will need a little filesystem exploration to find the results directory, use . as default otherwise
+  std::string path_prefix = ".";
+  const auto invoc_path = boost::filesystem::current_path();
+  if (invoc_path.stem().string() == "build")
+  {
+    path_prefix = invoc_path.parent_path().string();
+  }
+  else if (invoc_path.stem().string() == "ompl-evaluation")
+  {
+    path_prefix = invoc_path.string();
+  }
+
+  path_prefix += "/results/ompl";
+
+  // Also use the planner choice to decide how to name the containment directory, no default (should stick out)
+  std::string planner_code = "";
+  switch (choice)
+  {
+    case (PlannerChoices::RRTstar):
+    {
+      planner_code = "-RRTstar";
+      break;
+    }
+    case (PlannerChoices::InformedRRTstar):
+    {
+      planner_code = "-InfRRTstar";
+      break;
+    }
+  }
+  path_prefix += planner_code + "/";
+
+  // If we generate a path and find the folder does not exist, filestreaming will have trouble unless we make it
+  if (!boost::filesystem::exists(path_prefix))
+  {
+    std::cout << "Results directory for given planner not found, creating new directory at [ " << path_prefix << " ]..."
+              << std::endl;
+    boost::filesystem::create_directory(path_prefix);
+  }
+
+  return path_prefix;
 }
 
 int main(int argc, char* argv[])
@@ -139,7 +183,11 @@ int main(int argc, char* argv[])
       eval_params.arm_limits.push_back(joint_limits[k]);
     }
 
-    // TODO(wspies)
+    // Get the path prefix for the files we are going to generate
+    const std::string fs_prefix = getResultsPathPrefix(planner_choice);
+    const std::string results_fs_path = fs_prefix + scene_name;
+
+    // This creates, configures, and uses the ArmPlanningEvalInterface to generate motion plans
     ompl_evaluation::interfaces::ArmPlanningEvalInterface eval_arm_planner(eval_params);
     eval_arm_planner.configure();
 
@@ -149,7 +197,7 @@ int main(int argc, char* argv[])
       std::cout << "Found solution. Generating evaluation data..." << std::endl;
 
       eval_arm_planner.visualizePath(path);
-      eval_arm_planner.exportPathAsCSV(path, user_settings.scene);
+      eval_arm_planner.exportPathAsCSV(path, results_fs_path);
     }
     else
     {
@@ -157,7 +205,7 @@ int main(int argc, char* argv[])
     }
 
     eval_arm_planner.printResults();
-    eval_arm_planner.exportResultsAsCSV(user_settings.scene);
+    eval_arm_planner.exportResultsAsCSV(results_fs_path);
     return EXIT_SUCCESS;
   }
   else

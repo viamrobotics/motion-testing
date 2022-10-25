@@ -5,7 +5,7 @@ project(ompl-evaluation)
 add_compile_options(-std=c++11)
 
 find_package(ompl REQUIRED)
-find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(Boost REQUIRED COMPONENTS filesystem program_options)
 
 include_directories(
   include
