@@ -120,6 +120,7 @@ func scene3() *config {
 	}
 }
 
+// a xarm6 moving to the other side of an obstacle that obstructs its path
 func scene4() *config {
 	model, _ := xarm.Model("arm", 6)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
