@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 	"testing"
@@ -43,9 +44,16 @@ type seededPlannerConstructor func(frame referenceframe.Frame, nCPU int, seed *r
 //~ }
 
 func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName string) {
+	outputFolder := "../results/" + plannerName + "/"
+	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
+		err := os.MkdirAll(outputFolder, os.ModePerm)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 	
 	for sceneName, _ := range allScenes {
-		for i := 1; i <= 10; i++{
+		for i := 1; i <= 2; i++{
 			fmt.Println(sceneName)
 			Init(sceneName)
 			cfg := scene
@@ -53,25 +61,39 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 			test.That(t, err, test.ShouldBeNil)
 			start := time.Now()
 			path, err := mp.Plan(context.Background(), spatialmath.PoseToProtobuf(cfg.Goal), cfg.Start, scenePlanOpts)
-			test.That(t, err, test.ShouldBeNil)
+			//~ test.That(t, err, test.ShouldBeNil)
+			success := "true"
+			if err != nil {
+				success = "false"
+			}
 			took := time.Since(start)
 			
 			//~ visualization.VisualizePlan(scene.RobotFrame, path, scene.WorldState)
 			
-			fmt.Println("took", took)
+			//~ fmt.Println("took", took)
 			//~ fmt.Println(path)
-			f, err := os.Create("results/" + plannerName + "/" + sceneName + "_" + strconv.Itoa(i) + ".csv")
+			f, err := os.Create(outputFolder + sceneName + "_" + strconv.Itoa(i) + ".csv")
 			test.That(t, err, test.ShouldBeNil)
-			w := csv.NewWriter(f)
-			for _, step := range path {
-				stepStr := make([]string, 0, len(path))
-				for _, joint := range step {
-					stepStr = append(stepStr, fmt.Sprintf("%f", joint.Value))
-				}
-				w.Write(stepStr)
-			}
+			f2, err := os.Create(outputFolder + sceneName + "_" + strconv.Itoa(i) + "_stats.txt")
+			test.That(t, err, test.ShouldBeNil)
+			
+			w := csv.NewWriter(f2)
+			w.Write([]string{success, fmt.Sprintf("%f", float64(took) / float64(time.Second))})
 			w.Flush()
+			
+			if success == "true" {
+				w = csv.NewWriter(f)
+				for _, step := range path {
+					stepStr := make([]string, 0, len(path))
+					for _, joint := range step {
+						stepStr = append(stepStr, fmt.Sprintf("%f", joint.Value))
+					}
+					w.Write(stepStr)
+				}
+				w.Flush()
+			}
 			f.Close()
+			f2.Close()
 		}
 	}
 }
