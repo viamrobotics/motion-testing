@@ -20,12 +20,10 @@ namespace ompl_evaluation
 namespace interfaces
 {
 //! TODO(wspies)
-enum PlannerChoices : std::uint8_t
+enum PlannerChoices : int
 {
   RRTstar = 0,
-  InformedRRTstar = 1,
-  FMT = 2,
-  BITstar = 3
+  InformedRRTstar = 1
 };
 
 //! Alias for a vector of C-struct joint limits, which are defined in the @p omplbindings::bindings library
@@ -44,7 +42,7 @@ struct PlanEvaluationParams
   std::vector<double> goal;
 
   //! Degrees of freedom of the selected robotic arm (this assumes the arm is an N-count revolute joint chain)
-  std::uint8_t arm_dof;
+  int arm_dof;
 
   //! Joint limits for all joints on the selected robotic arm
   LimitsVec arm_limits;

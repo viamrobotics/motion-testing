@@ -43,6 +43,12 @@ var logger golog.Logger
 
 const testArmFrame = "arm"
 
+
+//export NumJoints
+func NumJoints() C.int {
+	return C.int(len(sceneFS.Frame(testArmFrame).DoF()))
+}
+
 //export Limits
 func Limits() *C.struct_limits {
 	arm_limits := sceneFS.Frame(testArmFrame).DoF()
@@ -103,7 +109,7 @@ func ComputePose(targetPoseC *C.struct_pose) *C.double {
 	spatial_pose := cToPose(targetPoseC)
 	pb_pose := spatialmath.PoseToProtobuf(spatial_pose)
 
-	solutions, err := getIKSolutions(context.Background(), scenePlanOpts, ik, pb_pose, referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0}), sceneFS.Frame(testArmFrame))
+	solutions, err := getIKSolutions(context.Background(), scenePlanOpts, ik, pb_pose, scene.Start, sceneFS.Frame(testArmFrame))
 	if err != nil {
 		fmt.Println(err)
 	}

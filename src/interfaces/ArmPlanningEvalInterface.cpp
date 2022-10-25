@@ -6,8 +6,6 @@
 #include <ompl/base/terminationconditions/CostConvergenceTerminationCondition.h>
 #include <ompl/geometric/PathGeometric.h>
 
-#include <ompl/geometric/planners/informedtrees/BITstar.h>
-#include <ompl/geometric/planners/fmt/FMT.h>
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 
@@ -36,18 +34,15 @@ bool isPathValid(ompl::geometric::PathGeometric* path)
   return is_satisfied;
 }
 
-bool isStateValid(const ompl::base::SpaceInformation* si, const ompl::base::State* joints_state)
+bool isStateValid(const ompl::base::SpaceInformation* si, const ompl::base::State* joints_state, int joint_count)
 {
   // This is using RDK to determine whether or not a state is valid. Sampled joint positions are passed to RDK functions
   // that perform FK, collision checking, and other state validity checks.
-
+  bool is_satisfied = true;
 
   // Check joint positions against the RDK scene
   double *joint_angles = joints_state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-  GoFloat64 jointData[] = {joint_angles[0], joint_angles[1], joint_angles[2], joint_angles[3], joint_angles[4], joint_angles[5]};
-  GoSlice joints = {jointData, 6, 6};
-  
-  bool is_satisfied = true;
+  GoSlice joints = {joint_angles, joint_count, joint_count};
   const int valid = ValidState(joints);
   is_satisfied &= (bool) valid;
 
@@ -104,6 +99,9 @@ bool ArmPlanningEvalInterface::initSpace(const PlanEvaluationParams& params)
   // Set up real vector bounds equal to number of arm joints
   // TODO(wspies): Continuous joints need to have a different representation of their bounds or else you get
   //               a joint wrapping issue similar to what Peter and Ray have already seen.
+  std::cout << "[APEI] Initializing space for joint-space planning for an arm with [ " << params.arm_dof
+            << " ] degrees of freedom." << std::endl;
+
   ompl::base::RealVectorBounds arm_bounds(params.arm_dof);
   for (size_t k = 0; k < params.arm_dof; ++k)
   {
@@ -118,7 +116,9 @@ bool ArmPlanningEvalInterface::initSpace(const PlanEvaluationParams& params)
   // Finally, construct an instance of SpaceInformation from the arm state space
   arm_si_ = std::make_shared<ompl::base::SpaceInformation>(arm_ss_);
   arm_si_->setStateValidityChecker(
-    [this](const ompl::base::State* joints_state) { return isStateValid(this->arm_si_.get(), joints_state); }
+    [this, params](const ompl::base::State* joints_state) {
+      return isStateValid(this->arm_si_.get(), joints_state, params.arm_dof);
+    }
   );
 
   // Call SpaceInformation setup method
@@ -140,16 +140,6 @@ bool ArmPlanningEvalInterface::initPlanning(const PlanEvaluationParams& params)
   // TODO(wspies): Future options can be added here as additional cases, if we want to do that
   switch (params.planner)
   {
-    case (PlannerChoices::BITstar):
-    {
-      arm_planner_= std::make_shared<ompl::geometric::BITstar>(arm_si_);
-      break;
-    }
-    case (PlannerChoices::FMT):
-    {
-      arm_planner_= std::make_shared<ompl::geometric::FMT>(arm_si_);
-      break;
-    }
     case (PlannerChoices::InformedRRTstar):
     {
       arm_planner_= std::make_shared<ompl::geometric::InformedRRTstar>(arm_si_);
@@ -182,22 +172,25 @@ bool ArmPlanningEvalInterface::configure()
 
 ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
 {
+  // NOTE(wspies): Disabled for now, need tuning on cost convergence or exact solution use as a sentinel
   // Set up planner termination conditions to reflect the desired behavior for one run of the evaluation interface
-  TerminalCondition terminate_on_time = ompl::base::timedPlannerTerminationCondition(eval_params_.planner_time);
-  TerminalCondition terminate_on_cost = ompl::base::CostConvergenceTerminationCondition(arm_pdef_, 1, 0.1);
-  TerminalCondition conditions = ompl::base::plannerOrTerminationCondition(terminate_on_time, terminate_on_cost);
+  //TerminalCondition terminate_on_time = ompl::base::timedPlannerTerminationCondition(eval_params_.planner_time);
+  //TerminalCondition terminate_on_cost = ompl::base::CostConvergenceTerminationCondition(arm_pdef_, 1, 0.1);
+  //TerminalCondition conditions = ompl::base::plannerOrTerminationCondition(terminate_on_time, terminate_on_cost);
 
   // When calling to solve, capture some data about the evaluation, incl. time to solve (in milliseconds)
   auto start = std::chrono::high_resolution_clock::now();
 
-  ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(conditions, eval_params_.check_time);
+  // NOTE(wspies): Former statement leverages commented TerminalConditions above
+  //ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(conditions, eval_params_.check_time);
+  ompl::base::PlannerStatus status = arm_planner_->ompl::base::Planner::solve(eval_params_.planner_time);
 
   auto stop = std::chrono::high_resolution_clock::now();
   eval_results_.actual_time = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
 
   std::stringstream ss;
-  ss << std::setprecision(3) << std::fixed << "Time spent on planning : "  << eval_results_.actual_time.count() * 1e-6
-     << " milliseconds" << std::endl;
+  ss << std::setprecision(3) << std::fixed << "[APEI] Time spent on planning : "
+     << eval_results_.actual_time.count() * 1e-6 << " milliseconds" << std::endl;
   std::cout << ss.str();
 
   eval_results_.available = false;
@@ -256,7 +249,7 @@ void ArmPlanningEvalInterface::exportPathAsCSV(ompl::geometric::PathGeometric* p
   }
 
   plan_file.close();
-  std::cout << "Planned path file written to [ " << filename_csv << " ]" << std::endl;
+  std::cout << "[APEI] Planned path file written to [ " << filename_csv << " ]" << std::endl;
 }
 
 void ArmPlanningEvalInterface::printResults()
@@ -264,11 +257,11 @@ void ArmPlanningEvalInterface::printResults()
   std::cout << std::endl;
   std::stringstream results_ss;
   results_ss << std::setprecision(3) << std::fixed;
-  results_ss << "Evaluation Results for [ " << eval_params_.scene_name << " ]:\n";
-  results_ss << "Plan Availability\t: "    << std::boolalpha << eval_results_.available << "\n";
-  results_ss << "Plan Quality\t\t: "       << eval_results_.quality << "\n";
-  results_ss << "Planner Performance\t: "  << eval_results_.performance << "\n";
-  results_ss << "Actual Planning Time\t: " << eval_results_.actual_time.count() << "\n";
+  results_ss << "[APEI] Evaluation Results for [ " << eval_params_.scene_name << " ]:\n";
+  results_ss << "[APEI] Plan Availability\t: "     << std::boolalpha << eval_results_.available << "\n";
+  results_ss << "[APEI] Plan Quality\t\t: "        << eval_results_.quality << "\n";
+  results_ss << "[APEI] Planner Performance\t: "   << eval_results_.performance << "\n";
+  results_ss << "[APEI] Actual Plan Time (ns)\t: " << eval_results_.actual_time.count() << "\n";
   std::cout << results_ss.str() << std::endl;
 }
 
@@ -285,6 +278,6 @@ void ArmPlanningEvalInterface::exportResultsAsCSV(const std::string& filename)
                << eval_results_.quality   << "," << eval_results_.performance << "\n";
 
   results_file.close();
-  std::cout << "Evaluation results file written to [ " << filename_csv << " ]" << std::endl;
+  std::cout << "[APEI] Evaluation results file written to [ " << filename_csv << " ]" << std::endl;
 }
 
