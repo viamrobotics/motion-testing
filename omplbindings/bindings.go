@@ -9,8 +9,7 @@ package main
 		double Roll;
 		double Yaw;
 	};
-*/
-/*
+
 	struct limits {
 		double Min;
 		double Max;
@@ -50,7 +49,7 @@ func Limits() *C.struct_limits {
 
 	limits_len := len(arm_limits)
 	limits_ptr := C.malloc(C.size_t(limits_len) * C.size_t(unsafe.Sizeof(C.struct_limits{})))
-	limits := (*[1<<30]C.struct_limits)(limits_ptr)[:limits_len:limits_len]
+	limits := (*[1 << 30]C.struct_limits)(limits_ptr)[:limits_len:limits_len]
 
 	for i := 0; i < limits_len; i++ {
 		limits[i].Min = C.double(arm_limits[i].Min)
@@ -64,7 +63,7 @@ func Limits() *C.struct_limits {
 func StartPos() *C.double {
 	val_len := len(scene.Start)
 	val_ptr := C.malloc(C.size_t(val_len) * C.size_t(unsafe.Sizeof(C.double(0))))
-	values := (*[1<<30]C.double)(val_ptr)[:val_len:val_len]
+	values := (*[1 << 30]C.double)(val_ptr)[:val_len:val_len]
 	for i := 0; i < val_len; i++ {
 		values[i] = C.double(scene.Start[i].Value)
 	}
@@ -76,10 +75,27 @@ func GoalPose() *C.struct_pose {
 	return goalPoseC
 }
 
+//export NearGoal
+func NearGoal(pos []float64) bool {
+	fmt.Printf("pos: %v\n", pos)
+
+	actual := calcPose(pos)
+	fmt.Printf("actual.Point().X: %v\n", actual.Point().X)
+	fmt.Printf("actual.Point().Y: %v\n", actual.Point().Y)
+	fmt.Printf("actual.Point().Z: %v\n", actual.Point().Z)
+
+	expected := cToPose(goalPoseC)
+	fmt.Printf("goal.Point().X: %v\n", expected.Point().X)
+	fmt.Printf("goal.Point().Y: %v\n", expected.Point().Y)
+	fmt.Printf("goal.Point().Z: %v\n", expected.Point().Z)
+
+	// TODO(rb): tie the epsilon to the resolution
+	return spatialmath.PoseAlmostCoincidentEps(actual, expected, 1e-3)
+}
+
 //export ComputePositions
 func ComputePositions(pos []float64) *C.struct_pose {
-	pose := calcPose(pos)
-	return poseToC(pose)
+	return poseToC(calcPose(pos))
 }
 
 //export ComputePose
@@ -94,18 +110,12 @@ func ComputePose(targetPoseC *C.struct_pose) *C.double {
 
 	ik_sol_len := len(solutions[0].Q())
 	ik_sol_ptr := C.malloc(C.size_t(ik_sol_len) * C.size_t(unsafe.Sizeof(C.double(0))))
-	ik_solution := (*[1<<30]C.double)(ik_sol_ptr)[:ik_sol_len:ik_sol_len]
+	ik_solution := (*[1 << 30]C.double)(ik_sol_ptr)[:ik_sol_len:ik_sol_len]
 	for i := 0; i < ik_sol_len; i++ {
 		ik_solution[i] = C.double(solutions[0].Q()[i].Value)
 	}
 	return (*C.double)(ik_sol_ptr)
 }
-
-//func ValidState(cur_pos, next_pos []float64) bool {
-//	cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(cur_pos), EndInput: referenceframe.FloatsToInputs(next_pos), Frame: sceneFS.Frame(testArmFrame)}
-//	valid, _ := scenePlanOpts.CheckConstraintPath(cInput, scenePlanOpts.Resolution)
-//	return valid
-//}
 
 //export ValidState
 func ValidState(pos []float64) bool {
@@ -119,6 +129,7 @@ func VisualizeOMPL(inputs [][]float64) {
 	plan := make([][]referenceframe.Input, 0)
 	for _, input := range inputs {
 		plan = append(plan, referenceframe.FloatsToInputs(input))
+		fmt.Printf("referenceframe.FloatsToInputs(input): %v\n", referenceframe.FloatsToInputs(input))
 	}
 	visualization.VisualizePlan(scene.RobotFrame, plan, scene.WorldState)
 }

@@ -22,18 +22,32 @@
 
 using namespace ompl_evaluation::interfaces;
 
+bool isPathValid(ompl::geometric::PathGeometric* path)
+{
+  // Ensure that path has an end pose that corresponds to the desired pose, discard if it does not
+  ompl::base::State* end_state = path->getState(path->length());
+  double *joint_angles = end_state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+  GoFloat64 jointData[] = {joint_angles[0], joint_angles[1], joint_angles[2], joint_angles[3], joint_angles[4], joint_angles[5]};
+  GoSlice joints = {jointData, 6, 6};
+
+  bool is_satisfied = true;
+  const int valid = NearGoal(joints);
+  is_satisfied &= (bool) valid;
+  return is_satisfied;
+}
+
 bool isStateValid(const ompl::base::SpaceInformation* si, const ompl::base::State* joints_state)
 {
   // This is using RDK to determine whether or not a state is valid. Sampled joint positions are passed to RDK functions
   // that perform FK, collision checking, and other state validity checks.
 
-  bool is_satisfied = true;
 
   // Check joint positions against the RDK scene
   double *joint_angles = joints_state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-  GoFloat64 jointData[] = {joint_angles[0], joint_angles[1], joint_angles[2], joint_angles[3], joint_angles[4],
-                           joint_angles[5]};
+  GoFloat64 jointData[] = {joint_angles[0], joint_angles[1], joint_angles[2], joint_angles[3], joint_angles[4], joint_angles[5]};
   GoSlice joints = {jointData, 6, 6};
+  
+  bool is_satisfied = true;
   const int valid = ValidState(joints);
   is_satisfied &= (bool) valid;
 
@@ -186,19 +200,16 @@ ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
      << " milliseconds" << std::endl;
   std::cout << ss.str();
 
+  eval_results_.available = false;
   if (status == ompl::base::PlannerStatus::EXACT_SOLUTION || status == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
   {
-    eval_results_.available = true;
-
-    ompl::base::PathPtr arm_path = arm_pdef_->getSolutionPath();
-    arm_path->as<ompl::geometric::PathGeometric>()->interpolate(100);
-    return static_cast<ompl::geometric::PathGeometric *>(arm_path.get());
+    ompl::geometric::PathGeometric* arm_path = arm_pdef_->getSolutionPath()->as<ompl::geometric::PathGeometric>();
+    if (arm_path && isPathValid(arm_path)) 
+    {
+      eval_results_.available = true;
+      return arm_path;
+    }
   }
-  else
-  {
-    eval_results_.available = false;
-  }
-  
   return nullptr;
 }
 
@@ -214,12 +225,10 @@ void ArmPlanningEvalInterface::visualizePath(ompl::geometric::PathGeometric* pat
   for (int i = 0; i < states.size(); ++i)
   {
     space->copyToReals(reals[i], states[i]);
-    GoSlice input = {static_cast<GoFloat64*>(reals[i].data()), static_cast<GoInt>(reals[i].size()),
-                     static_cast<GoInt>(reals[i].size())};
+    GoSlice input = {static_cast<GoFloat64*>(reals[i].data()), static_cast<GoInt>(reals[i].size()), static_cast<GoInt>(reals[i].size())};
     slices.push_back(input);
   }
-  GoSlice inputs = {static_cast<GoSlice*>(slices.data()), static_cast<GoInt>(slices.size()),
-                    static_cast<GoInt>(slices.size())};
+  GoSlice inputs = {static_cast<GoSlice*>(slices.data()), static_cast<GoInt>(slices.size()), static_cast<GoInt>(slices.size())};
 
   VisualizeOMPL(inputs);
 }
@@ -278,3 +287,4 @@ void ArmPlanningEvalInterface::exportResultsAsCSV(const std::string& filename)
   results_file.close();
   std::cout << "Evaluation results file written to [ " << filename_csv << " ]" << std::endl;
 }
+
