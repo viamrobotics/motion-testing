@@ -201,6 +201,7 @@ ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
     if (arm_path && isPathValid(arm_path, eval_params_.arm_dof)) 
     {
       eval_results_.available = true;
+      arm_path->as<ompl::geometric::PathGeometric>()->interpolate();
       return arm_path;
     }
   }
