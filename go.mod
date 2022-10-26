@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
-	go.viam.com/api v0.1.1
-	go.viam.com/rdk v0.1.3-0.20221011152340-e20e3782a432
+	go.viam.com/api v0.1.2-0.20221012153305-0001bbc7a700
+	go.viam.com/rdk v0.1.5
 )
 
 require (
@@ -88,7 +88,7 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
 	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2
-	go.viam.com/utils v0.0.6
+	go.viam.com/utils v0.1.1-0.20221018163750-1e19aa44e6b2
 	golang.org/x/crypto v0.0.0-20221010152910-d6f0a8c073c2 // indirect
 	golang.org/x/exp v0.0.0-20221011111909-0220f59fc3e4 // indirect
 	golang.org/x/image v0.0.0-20220902085622-e7cb96979f69 // indirect

@@ -161,6 +161,7 @@ func Init(name string) {
 		scene.WorldState,
 		referenceframe.StartPositions(sceneFS),
 	)
+	fmt.Println(scene.WorldState)
 	if err != nil {
 		fmt.Println(err)
 		return

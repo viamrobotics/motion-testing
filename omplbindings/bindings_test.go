@@ -16,7 +16,7 @@ import (
 	"go.viam.com/rdk/spatialmath"
 	"go.viam.com/test"
 	"github.com/edaniels/golog"
-	//~ "github.com/viamrobotics/visualization"
+	"github.com/viamrobotics/visualization"
 	//~ commonpb "go.viam.com/api/common/v1"
 )
 
@@ -25,11 +25,11 @@ type seededPlannerConstructor func(frame referenceframe.Frame, nCPU int, seed *r
 
 //~ func TestPlanners(t *testing.T) {
 	//~ planners := []plannerConstructor{
-		//~ motionplan.NewRRTStarConnectMotionPlanner,
+		//motionplan.NewRRTStarConnectMotionPlanner,
 		//~ motionplan.NewCBiRRTMotionPlanner,
 	//~ }
 	
-	//~ sceneName := "scene4"
+	//~ sceneName := "scene9"
 	//~ for _, planner := range planners {
 		
 		//~ Init(sceneName)
@@ -53,7 +53,7 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 	}
 	
 	for sceneName, _ := range allScenes {
-		for i := 1; i <= 2; i++{
+		for i := 1; i <= 10; i++{
 			fmt.Println(sceneName)
 			Init(sceneName)
 			cfg := scene
@@ -61,17 +61,12 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 			test.That(t, err, test.ShouldBeNil)
 			start := time.Now()
 			path, err := mp.Plan(context.Background(), spatialmath.PoseToProtobuf(cfg.Goal), cfg.Start, scenePlanOpts)
-			//~ test.That(t, err, test.ShouldBeNil)
 			success := "true"
 			if err != nil {
 				success = "false"
 			}
 			took := time.Since(start)
 			
-			//~ visualization.VisualizePlan(scene.RobotFrame, path, scene.WorldState)
-			
-			//~ fmt.Println("took", took)
-			//~ fmt.Println(path)
 			f, err := os.Create(outputFolder + sceneName + "_" + strconv.Itoa(i) + ".csv")
 			test.That(t, err, test.ShouldBeNil)
 			f2, err := os.Create(outputFolder + sceneName + "_" + strconv.Itoa(i) + "_stats.txt")

@@ -5,7 +5,9 @@ import (
 	"errors"
 	"sort"
 	"math"
+	"math/rand"
 	"context"
+	
 	"go.viam.com/utils"
 	"go.viam.com/rdk/motionplan"
 	"github.com/golang/geo/r3"
@@ -28,6 +30,11 @@ var allScenes = map[string]func() *config {
 	"scene2": scene2,
 	"scene3": scene3,
 	"scene4": scene4,
+	"scene5": scene5,
+	"scene6": scene6,
+	"scene7": scene7,
+	"scene8": scene8,
+	"scene9": scene9,
 }
 
 // setup a UR5 moving along a linear path in unrestricted space
@@ -46,7 +53,7 @@ func scene1() *config {
 	}
 }
 
-// setup a xArm7 to move in a straight line, adjacent to a large obstacle that should not imede the most efficient path
+// setup a xArm7 to move in a straight line, adjacent to two large obstacles that should not impede the most efficient path
 func scene2() *config {
 	model, _ := xarm.Model("arm", 7)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
@@ -55,7 +62,7 @@ func scene2() *config {
 	goalPt.X += 200
 	goalPt.Z += 100
 	testPose := spatialmath.NewPoseFromOrientation(
-		r3.Vector{X: 1., Y: -100., Z: 3.},
+		r3.Vector{X: 1., Y: -200., Z: 3.},
 		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
 	)
 	return &config{
@@ -74,6 +81,16 @@ func scene2() *config {
 									X: 2000,
 									Y: 2000,
 									Z: 20,
+								}},
+							},
+						},
+						{
+							Center: spatialmath.PoseToProtobuf(testPose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 2000,
+									Y: 20,
+									Z: 2000,
 								}},
 							},
 						},
@@ -109,7 +126,7 @@ func scene3() *config {
 								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
 									X: 2000,
 									Y: 20,
-									Z: 20,
+									Z: 120,
 								}},
 							},
 						},
@@ -154,6 +171,161 @@ func scene4() *config {
 			},
 		},
 	}
+}
+
+// a xarm7 moving in a fairly constrained space
+func scene5() *config {
+	model, _ := xarm.Model("arm", 7)
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
+	startPose, _ := model.Transform(startInput)
+	goalPt := startPose.Point()
+	goalPt.X += 400
+	wallPose := spatialmath.NewPoseFromPoint(r3.Vector{0, -200, 0})
+	obs1Pose := spatialmath.NewPoseFromPoint(r3.Vector{300, 0, 0})
+	obs2Pose := spatialmath.NewPoseFromPoint(r3.Vector{300, 0, 500})
+	return &config{
+		Start:      startInput,
+		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{
+			Obstacles: []*commonpb.GeometriesInFrame{
+				{
+					ReferenceFrame: "world",
+					Geometries: []*commonpb.Geometry{
+						{
+							Center: spatialmath.PoseToProtobuf(wallPose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 2000,
+									Y: 50,
+									Z: 2000,
+								}},
+							},
+						},
+						{
+							Center: spatialmath.PoseToProtobuf(obs1Pose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 50,
+									Y: 1250,
+									Z: 200,
+								}},
+							},
+						},
+						{
+							Center: spatialmath.PoseToProtobuf(obs2Pose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 50,
+									Y: 1250,
+									Z: 200,
+								}},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+// scene 5 but with a bonus obstacle
+func scene6() *config {
+	cfg :=  scene5()
+	wall2Pose := spatialmath.NewPoseFromPoint(r3.Vector{-150, 0, 0})
+	geom := &commonpb.Geometry{
+		Center: spatialmath.PoseToProtobuf(wall2Pose),
+		GeometryType: &commonpb.Geometry_Box{
+			Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+				X: 20,
+				Y: 2000,
+				Z: 2000,
+			}},
+		},
+	}
+	cfg.WorldState.Obstacles[0].Geometries = append(cfg.WorldState.Obstacles[0].Geometries, geom)
+	return cfg
+}
+
+// Scene 4 but with a narrow interaction space
+func scene7() *config {
+	cfg :=  scene4()
+	ispacePose := spatialmath.NewPoseFromPoint(r3.Vector{0, 0, 0})
+	ispace := []*commonpb.GeometriesInFrame{
+		{
+			ReferenceFrame: "world",
+			Geometries: []*commonpb.Geometry{
+				{
+					Center: spatialmath.PoseToProtobuf(ispacePose),
+					GeometryType: &commonpb.Geometry_Box{
+						Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+							X: 2000,
+							Y: 260,
+							Z: 2000,
+						}},
+					},
+				},
+			},
+		},
+	}
+	cfg.WorldState.InteractionSpaces = ispace
+	return cfg
+}
+
+// Scene 2 but with an orientation change for the goal
+func scene8() *config {
+	cfg :=  scene2()
+	newGoal := spatialmath.NewPoseFromOrientation(cfg.Goal.Point(), &spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.})
+	cfg.Goal = newGoal
+	return cfg
+}
+
+// setup a UR5 moving a big movement with random obstacles
+func scene9() *config {
+	model, _ := universalrobots.Model("arm")
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startPose, _ := model.Transform(startInput)
+	goalPt := startPose.Point()
+	goalPt.X += 1100
+	goalPt.Y += 600
+	
+	cube :=  &commonpb.Geometry_Box{
+		Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+			X: 1,
+			Y: 1,
+			Z: 1,
+		}},
+	}
+	
+	cfg := &config{
+		Start:      startInput,
+		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{
+			Obstacles: []*commonpb.GeometriesInFrame{
+				{
+					ReferenceFrame: "world",
+					Geometries: []*commonpb.Geometry{},
+				},
+			},
+		},
+	}
+	
+	rGen := rand.New(rand.NewSource(int64(1)))
+	for i := 0; i < 100; i++ {
+		cubePose := spatialmath.NewPoseFromPoint(r3.Vector{
+			X: 2000 * (rGen.Float64()- 0.5),
+			Y: 2000 * (rGen.Float64()- 0.5),
+			Z: 2000 * (rGen.Float64()- 0.5),
+		})
+		
+		geom := &commonpb.Geometry{
+			Center: spatialmath.PoseToProtobuf(cubePose),
+			GeometryType: cube,
+		}
+		cfg.WorldState.Obstacles[0].Geometries = append(cfg.WorldState.Obstacles[0].Geometries, geom)
+	}
+	return cfg
 }
 
 func calcPose(pos []float64) spatialmath.Pose {
