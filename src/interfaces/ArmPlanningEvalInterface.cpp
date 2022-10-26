@@ -20,17 +20,17 @@
 
 using namespace ompl_evaluation::interfaces;
 
-bool isPathValid(ompl::geometric::PathGeometric* path)
+bool isPathValid(ompl::geometric::PathGeometric* path,  int joint_count)
 {
   // Ensure that path has an end pose that corresponds to the desired pose, discard if it does not
-  ompl::base::State* end_state = path->getState(path->length());
-  double *joint_angles = end_state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-  GoFloat64 jointData[] = {joint_angles[0], joint_angles[1], joint_angles[2], joint_angles[3], joint_angles[4], joint_angles[5]};
-  GoSlice joints = {jointData, 6, 6};
-
   bool is_satisfied = true;
+
+  ompl::base::State* end_state = path->getState(path->getStateCount()-1);
+  double *joint_angles = end_state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+  GoSlice joints = {joint_angles, joint_count, joint_count};
   const int valid = NearGoal(joints);
   is_satisfied &= (bool) valid;
+
   return is_satisfied;
 }
 
@@ -197,7 +197,8 @@ ompl::geometric::PathGeometric* ArmPlanningEvalInterface::solve()
   if (status == ompl::base::PlannerStatus::EXACT_SOLUTION || status == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
   {
     ompl::geometric::PathGeometric* arm_path = arm_pdef_->getSolutionPath()->as<ompl::geometric::PathGeometric>();
-    if (arm_path && isPathValid(arm_path)) 
+
+    if (arm_path && isPathValid(arm_path, eval_params_.arm_dof)) 
     {
       eval_results_.available = true;
       return arm_path;
@@ -218,10 +219,12 @@ void ArmPlanningEvalInterface::visualizePath(ompl::geometric::PathGeometric* pat
   for (int i = 0; i < states.size(); ++i)
   {
     space->copyToReals(reals[i], states[i]);
-    GoSlice input = {static_cast<GoFloat64*>(reals[i].data()), static_cast<GoInt>(reals[i].size()), static_cast<GoInt>(reals[i].size())};
+    GoSlice input = {static_cast<GoFloat64*>(reals[i].data()), static_cast<GoInt>(reals[i].size()),
+                     static_cast<GoInt>(reals[i].size())};
     slices.push_back(input);
   }
-  GoSlice inputs = {static_cast<GoSlice*>(slices.data()), static_cast<GoInt>(slices.size()), static_cast<GoInt>(slices.size())};
+  GoSlice inputs = {static_cast<GoSlice*>(slices.data()), static_cast<GoInt>(slices.size()),
+                    static_cast<GoInt>(slices.size())};
 
   VisualizeOMPL(inputs);
 }
