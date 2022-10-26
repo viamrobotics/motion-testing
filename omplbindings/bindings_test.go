@@ -98,5 +98,5 @@ func TestCBiRRT(t *testing.T) {
 }
 
 func TestRRTStar(t *testing.T) {
-	plannerRun(t, motionplan.NewRRTStarConnectMotionPlannerWithSeed, "cbirrt")
+	plannerRun(t, motionplan.NewRRTStarConnectMotionPlannerWithSeed, "rdk_rrtstar")
 }
