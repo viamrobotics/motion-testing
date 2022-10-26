@@ -16,7 +16,7 @@ import (
 	"go.viam.com/rdk/spatialmath"
 	"go.viam.com/test"
 	"github.com/edaniels/golog"
-	"github.com/viamrobotics/visualization"
+	//~ "github.com/viamrobotics/visualization"
 	//~ commonpb "go.viam.com/api/common/v1"
 )
 
@@ -95,4 +95,8 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 
 func TestCBiRRT(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt")
+}
+
+func TestRRTStar(t *testing.T) {
+	plannerRun(t, motionplan.NewRRTStarConnectMotionPlannerWithSeed, "cbirrt")
 }
