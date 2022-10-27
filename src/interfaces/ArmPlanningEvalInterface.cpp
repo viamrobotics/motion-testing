@@ -263,25 +263,21 @@ void ArmPlanningEvalInterface::printResults()
   results_ss << std::setprecision(3) << std::fixed;
   results_ss << "[APEI] Evaluation Results for [ " << eval_params_.scene_name << " ]:\n";
   results_ss << "[APEI] Plan Availability\t: "     << std::boolalpha << eval_results_.available << "\n";
-  results_ss << "[APEI] Plan Quality\t\t: "        << eval_results_.quality << "\n";
-  results_ss << "[APEI] Planner Performance\t: "   << eval_results_.performance << "\n";
   results_ss << "[APEI] Actual Plan Time (ns)\t: " << eval_results_.actual_time.count() << "\n";
   std::cout << results_ss.str() << std::endl;
 }
 
-void ArmPlanningEvalInterface::exportResultsAsCSV(const std::string& filename)
+void ArmPlanningEvalInterface::exportStatsAsTXT(const std::string& filename)
 {
-  const std::string filename_csv = filename + "_results.csv";
+  const std::string filename_txt = filename + "_stats.txt";
 
   // Open an filestream for the designated filename
-  std::fstream results_file;
-  results_file.open(filename_csv, std::ios::out);
+  std::fstream stats_file;
+  stats_file.open(filename_txt, std::ios::out);
 
-  // Write results data to the designated file
-  results_file << eval_results_.available << "," << eval_results_.actual_time.count() << ","
-               << eval_results_.quality   << "," << eval_results_.performance << "\n";
+  // Write evaluation statistics to the designated file
+  stats_file << (eval_results_.available ? "true," : "false,") << eval_results_.actual_time.count() * 1e-9 << "\n";
 
-  results_file.close();
-  std::cout << "[APEI] Evaluation results file written to [ " << filename_csv << " ]" << std::endl;
+  stats_file.close();
+  std::cout << "[APEI] Evaluation statistics file written to [ " << filename_txt << " ]" << std::endl;
 }
-

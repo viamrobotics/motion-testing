@@ -26,6 +26,9 @@ struct ArgStruct
   
   //! User's specification for allowed planning time
   double time;
+
+  //! If set, string that will be used (instead of scene name) for generated files
+  std::string title;
 };
 
 bool parseArgs(int argc, char* argv[], ArgStruct& settings)
@@ -33,8 +36,8 @@ bool parseArgs(int argc, char* argv[], ArgStruct& settings)
   try
   {
     bpo::options_description desc("OMPL w/ RDK Planning Evaluator\n\n"
-      "Invocation: <program> <scene> <time> <planner(int)>\n"
-      "Invocation: <program> --scene <scene> --time <time> --planner <planner(int)>\n\n"
+      "Invocation: <program> <scene> <time> <planner(int)> <title>\n"
+      "Invocation: <program> --scene <scene> --time <time> --planner <planner(int)> --title <title>\n\n"
       "Arguments");
 
     desc.add_options()
@@ -44,12 +47,15 @@ bool parseArgs(int argc, char* argv[], ArgStruct& settings)
       ("time", bpo::value<double>(&settings.time)->default_value(5.0),
         "Specifies how long an OMPL planner should be allowed to plan, in seconds")
       ("planner", bpo::value<int>(&settings.planner)->default_value(0),
-        "Specifies which OMPL planner should be used when planning");
+        "Specifies which OMPL planner should be used when planning")
+      ("title", bpo::value<std::string>(&settings.title)->default_value(""),
+        "If set, will override the title of any plan and statistics files generated during runtime");
 
     bpo::positional_options_description pos_desc;
     pos_desc.add("scene", 1);
     pos_desc.add("time", 1);
     pos_desc.add("planner", 1);
+    pos_desc.add("title", 1);
 
     bpo::variables_map var_map;
     bpo::store(bpo::command_line_parser(argc, argv).options(desc).positional(pos_desc).run(), var_map);
@@ -86,7 +92,7 @@ std::string getResultsPathPrefix(const PlannerChoices& choice)
 
   path_prefix += "/results/ompl";
 
-  // Also use the planner choice to decide how to name the containment directory, no default (should stick out)
+  // Also use the planner choice to decide how to name the containment directory, no default (which should stick out)
   std::string planner_code = "";
   switch (choice)
   {
@@ -122,6 +128,7 @@ int main(int argc, char* argv[])
   if (is_ok)
   {
     const std::string scene_name = user_settings.scene;
+    const std::string title_override = user_settings.title;
 
     PlannerChoices planner_choice;
     std::string planner_name;
@@ -158,6 +165,11 @@ int main(int argc, char* argv[])
     std::cout << "Planning with OMPL's [ " << planner_name << " ] planner..." << std::endl;
     std::cout << std::setprecision(2.0) << std::fixed << "Evaluating planner performance when given [ "
               << user_settings.time << " ] seconds to plan...\n" << std::endl;
+    if (!title_override.empty())
+    {
+      std::cout << "Title override specified, files generated for this evaluation will be prefixed with [ "
+                << title_override << " ]...\n" << std::endl;
+    }
   
     GoString rdk_scene = {scene_name.c_str(), ptrdiff_t(scene_name.length())};
     Init(rdk_scene);
@@ -183,9 +195,9 @@ int main(int argc, char* argv[])
       eval_params.arm_limits.push_back(joint_limits[k]);
     }
 
-    // Get the path prefix for the files we are going to generate
+    // Get the path prefix for the files we are going to generate, then decide which filename to use
     const std::string fs_prefix = getResultsPathPrefix(planner_choice);
-    const std::string results_fs_path = fs_prefix + scene_name;
+    const std::string results_fs_path = fs_prefix + (title_override.empty() ? scene_name : title_override);
 
     // This creates, configures, and uses the ArmPlanningEvalInterface to generate motion plans
     ompl_evaluation::interfaces::ArmPlanningEvalInterface eval_arm_planner(eval_params);
@@ -205,7 +217,7 @@ int main(int argc, char* argv[])
     }
 
     eval_arm_planner.printResults();
-    eval_arm_planner.exportResultsAsCSV(results_fs_path);
+    eval_arm_planner.exportStatsAsTXT(results_fs_path);
     return EXIT_SUCCESS;
   }
   else

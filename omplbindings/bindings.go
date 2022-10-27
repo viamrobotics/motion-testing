@@ -83,18 +83,8 @@ func GoalPose() *C.struct_pose {
 
 //export NearGoal
 func NearGoal(pos []float64) bool {
-	fmt.Printf("pos: %v\n", pos)
-
 	actual := calcPose(pos)
-	fmt.Printf("actual.Point().X: %v\n", actual.Point().X)
-	fmt.Printf("actual.Point().Y: %v\n", actual.Point().Y)
-	fmt.Printf("actual.Point().Z: %v\n", actual.Point().Z)
-
 	expected := cToPose(goalPoseC)
-	fmt.Printf("goal.Point().X: %v\n", expected.Point().X)
-	fmt.Printf("goal.Point().Y: %v\n", expected.Point().Y)
-	fmt.Printf("goal.Point().Z: %v\n", expected.Point().Z)
-
 	// TODO(rb): tie the epsilon to the resolution
 	return spatialmath.PoseAlmostCoincidentEps(actual, expected, 1e-3)
 }
@@ -144,7 +134,6 @@ func VisualizeOMPL(inputs [][]float64) {
 				plan = append(plan, step)
 			}
 		}
-		fmt.Printf("referenceframe.FloatsToInputs(input): %v\n", referenceframe.FloatsToInputs(input))
 	}
 	visualization.VisualizePlan(scene.RobotFrame, plan, scene.WorldState)
 }
@@ -170,7 +159,6 @@ func Init(name string) {
 		scene.WorldState,
 		referenceframe.StartPositions(sceneFS),
 	)
-	//~ fmt.Println(scene.WorldState)
 	if err != nil {
 		fmt.Println(err)
 		return

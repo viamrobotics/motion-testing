@@ -70,15 +70,15 @@ struct PlanEvaluationResults
   //! In nanoseconds, how long did it take for the planner @p solve() method to return a valid plan?
   std::chrono::nanoseconds actual_time;
 
-  //! TODO(wspies)
+  //! TODO(wspies): Not currently calculable without external input
   //! Per scope doc... For quality we will run the planner for RT, and capture the delta between the optimal path and RT
   //! generated path as a ratio between 0 and 1.
-  double quality;
+  //double quality;
 
-  //! TODO(wspies)
+  //! TODO(wspies): Not currently calculable without external input
   //! Per scope doc... For performance, we’ll limit the planner to RT, and score as a ratio based on the percentage of
   //! RT taken to return a path (1 - (time spent/RT)).
-  double performance;
+  //double performance;
 };
 
 //! @brief TODO(wspies)
@@ -121,10 +121,10 @@ public:
   //! @brief Prints the calculated results in a visually appealing format
   void printResults();
 
-  //! @brief Export the calculated results from the last use of this evaluator to a CSV file
-  //! @param[in] filename Name of the CSV file to generate, will have '_results.csv' appended at the end
+  //! @brief Export the evaluation statistics from the last use of this evaluator to a TXT file
+  //! @param[in] filename Name of the TXT file to generate, will have '_stats.txt' appended at the end
   //! @note One line per result, with each element in the result struct separated by a comma
-  void exportResultsAsCSV(const std::string& filename);
+  void exportStatsAsTXT(const std::string& filename);
 
 private:
   //! @brief Sets the starting joint state of the robot arm
