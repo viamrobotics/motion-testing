@@ -133,8 +133,17 @@ func ValidState(pos []float64) bool {
 //export VisualizeOMPL
 func VisualizeOMPL(inputs [][]float64) {
 	plan := make([][]referenceframe.Input, 0)
-	for _, input := range inputs {
-		plan = append(plan, referenceframe.FloatsToInputs(input))
+	nSteps := 1
+	for i, input := range inputs {
+		pStep := referenceframe.FloatsToInputs(input)
+		plan = append(plan, pStep)
+		if i < len(inputs) - 1 {
+			nextStep := referenceframe.FloatsToInputs(inputs[i+1])
+			for j := 1; j <= nSteps; j++ {
+				step := referenceframe.InterpolateInputs(pStep, nextStep, float64(j)/float64(nSteps))
+				plan = append(plan, step)
+			}
+		}
 		fmt.Printf("referenceframe.FloatsToInputs(input): %v\n", referenceframe.FloatsToInputs(input))
 	}
 	visualization.VisualizePlan(scene.RobotFrame, plan, scene.WorldState)
@@ -161,7 +170,7 @@ func Init(name string) {
 		scene.WorldState,
 		referenceframe.StartPositions(sceneFS),
 	)
-	fmt.Println(scene.WorldState)
+	//~ fmt.Println(scene.WorldState)
 	if err != nil {
 		fmt.Println(err)
 		return
