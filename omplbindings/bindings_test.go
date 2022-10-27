@@ -221,7 +221,7 @@ func processPath(data [][]float64, scene string) error {
 	
 	fmt.Println("l2Score", l2Score)
 	
-	totalLineDist := poseStart.Point().Sub(poseEnd.Point()).Norm2()
+	totalLineDist := poseStart.Point().Sub(poseEnd.Point()).Norm()
 	fmt.Println("translation score", lineScore/totalLineDist)
 	
 	fmt.Println("orientation score", oScore, "\n", "")
