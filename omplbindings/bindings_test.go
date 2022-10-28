@@ -98,12 +98,14 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 		}
 	}
 	for sceneName, _ := range allScenes {
-		for i := 1; i <= 10; i++{
+		for i := 1; i <= 100; i++{
 			fmt.Println(sceneName)
 			fmt.Println("j", i)
 			Init(sceneName)
 			
 			start := time.Now()
+			
+			option["rseed"] = i
 			
 			planMap, err := motionplan.PlanMotion(
 				context.Background(),
@@ -115,7 +117,6 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 				scene.WorldState,
 				option,
 			)
-			//~ test.That(t, err, test.ShouldBeNil)
 			
 			success := "true"
 			if err != nil {
@@ -155,37 +156,29 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 }
 
 func TestCBiRRT(t *testing.T) {
-	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbrt_fb_200", map[string]interface{}{"fallback_iter": 200})
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt", map[string]interface{}{"motion_profile": motionplan.FreeMotionProfile})
+}
+
+
+// Note that these rely on custom changes to cbirrt that are not in RDK yet
+func TestCBiRRTFallback(t *testing.T) {
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
+		"cbrt_fb20", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 20.})
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
+		"cbrt_fb200", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 200.})
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
+		"cbrt_fb", map[string]interface{}{"smooth_iter": 200})
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
+		"cbrt_fbfs20", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 20., "frame_step": 0.03})
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
+		"cbrt_fbfs10", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 10., "frame_step": 0.03})
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
+		"cbrt_fbfs", map[string]interface{}{"smooth_iter": 200, "frame_step": 0.03})
 }
 
 func TestCBiRRTPseudo(t *testing.T) {
-	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt_pseudo_1_5", map[string]interface{}{"motion_profile": motionplan.PseudolinearMotionProfile, "tolerance":1.5})
-	//~ plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt_pseudo_2_5", map[string]interface{}{})
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,"cbrt_ps", map[string]interface{}{"motion_profile": motionplan.PseudolinearMotionProfile})
 }
-
-func TestCBiRRTLinear(t *testing.T) {
-	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt_linear", map[string]interface{}{"motion_profile": motionplan.LinearMotionProfile})
-}
-
-
-
-//~ func TestCBiRRTOrient(t *testing.T) {
-	//~ plannerRun(t, cbirrtOrient, "cbirrt_orientation")
-//~ }
-
-//~ func cbirrtOrient(frame referenceframe.Frame, nCPU int, seed *rand.Rand, logger golog.Logger) (motionplan.MotionPlanner, error){
-	//~ tolerance := 0.05
-	//~ from, _ := sceneFS.Frame(testArmFrame).Transform(scene.Start)
-	//~ constraint, pathDist := motionplan.NewSlerpOrientationConstraint(from, scene.Goal, tolerance)
-	//~ scenePlanOpts.AddConstraint("pseudo", constraint)
-	//~ scenePlanOpts.SetPathDist(pathDist)
-	//~ return motionplan.NewCBiRRTMotionPlannerWithSeed(frame, nCPU, seed, logger)
-//~ }
-
-
-//~ func TestRRTStar(t *testing.T) {
-	//~ plannerRun(t, motionplan.NewRRTStarConnectMotionPlannerWithSeed, "rdk_rrtstar")
-//~ }
 
 func TestPlanScoring(t *testing.T) {
 	outputFolder := "../results/"
@@ -197,7 +190,7 @@ func TestPlanScoring(t *testing.T) {
 	w := csv.NewWriter(f)
 	w.Write([]string{"alg", "scene", "seed", "success", "time", "total_score", "joint_score", "line_score", "orient_score"})
 	for _, alg := range folders {
-		if alg.IsDir() {
+		if alg.IsDir() && alg.Name() != "archive" {
 			runs, err := os.ReadDir(outputFolder + alg.Name())
 			test.That(t, err, test.ShouldBeNil)
 			for _, run := range runs {
@@ -269,8 +262,8 @@ func TestPlanScoring(t *testing.T) {
 }
 
 func TestVizPlan(t *testing.T) {
-	Init("scene3")
-	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbirrt_pseudolinear/scene3_4.csv"
+	Init("scene7")
+	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_ps/scene7_4.csv"
 	data, err := readCSV(file)
 	test.That(t, err, test.ShouldBeNil)
 	VisualizeOMPL(data)

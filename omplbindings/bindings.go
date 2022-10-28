@@ -37,7 +37,7 @@ var sceneFS referenceframe.FrameSystem
 var scenePlanOpts *motionplan.PlannerOptions
 
 var goalPoseC *C.struct_pose
-var collision motionplan.Constraint
+var constraints []motionplan.Constraint
 var ik *motionplan.CombinedIK
 var logger golog.Logger
 
@@ -116,8 +116,13 @@ func ComputePose(targetPoseC *C.struct_pose) *C.double {
 //export ValidState
 func ValidState(pos []float64) bool {
 	cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame(testArmFrame)}
-	valid, _ := collision(cInput)
-	return valid
+	for _, cons := range constraints {
+		pass, _ := cons(cInput)
+		if !pass {
+			return false
+		}
+	}
+	return true
 }
 
 //export VisualizeOMPL
@@ -153,7 +158,7 @@ func Init(name string) {
 
 	// generic post-scene setup
 	var err error
-	collision, err = motionplan.NewCollisionConstraintFromWorldState(
+	collision, err := motionplan.NewCollisionConstraintFromWorldState(
 		sceneFS.Frame(testArmFrame),
 		sceneFS,
 		scene.WorldState,
@@ -167,6 +172,9 @@ func Init(name string) {
 	// Setup PlanOptions for eventual IK solvers
 	scenePlanOpts = motionplan.NewBasicPlannerOptions()
 	scenePlanOpts.AddConstraint("collision", collision)
+	
+	constraints = append(constraints, collision)
+	
 
 	// Setup IK solver after scene buildup
 	nCPU := int(math.Max(1.0, float64(runtime.NumCPU()/4)))
