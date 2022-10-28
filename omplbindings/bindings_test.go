@@ -50,18 +50,10 @@ type seededPlannerConstructor func(frame referenceframe.Frame, nCPU int, seed *r
 	//~ }
 //~ }
 
-func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName string) {
-	outputFolder := "../results/" + plannerName + "/"
-	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
-		err := os.MkdirAll(outputFolder, os.ModePerm)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-	
-	for sceneName, _ := range allScenes {
-		for i := 1; i <= 10; i++{
+func oldplannerRun(t *testing.T, plannerFunc seededPlannerConstructor, outputFolder, sceneName string, i int) {
+
 			fmt.Println(sceneName)
+			fmt.Println("j", i)
 			Init(sceneName)
 			cfg := scene
 			mp, err := plannerFunc(cfg.RobotFrame, 4, rand.New(rand.NewSource(int64(i))), logger)
@@ -96,58 +88,189 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 			}
 			f.Close()
 			f2.Close()
+}
+func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName string, option map[string]interface{}) {
+	outputFolder := "../results/" + plannerName + "/"
+	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
+		err := os.MkdirAll(outputFolder, os.ModePerm)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	for sceneName, _ := range allScenes {
+		for i := 1; i <= 10; i++{
+			fmt.Println(sceneName)
+			fmt.Println("j", i)
+			Init(sceneName)
+			
+			start := time.Now()
+			
+			planMap, err := motionplan.PlanMotion(
+				context.Background(),
+				logger,
+				referenceframe.NewPoseInFrame("world", scene.Goal),
+				sceneFS.Frame(testArmFrame),
+				referenceframe.StartPositions(sceneFS),
+				sceneFS,
+				scene.WorldState,
+				option,
+			)
+			//~ test.That(t, err, test.ShouldBeNil)
+			
+			success := "true"
+			if err != nil {
+				success = "false"
+			}
+			took := time.Since(start)
+			
+			path := [][]referenceframe.Input{}
+			for _, step := range planMap {
+				path = append(path, step[testArmFrame])
+			}
+			
+			f, err := os.Create(outputFolder + sceneName + "_" + strconv.Itoa(i) + ".csv")
+			test.That(t, err, test.ShouldBeNil)
+			f2, err := os.Create(outputFolder + sceneName + "_" + strconv.Itoa(i) + "_stats.txt")
+			test.That(t, err, test.ShouldBeNil)
+			
+			w := csv.NewWriter(f2)
+			w.Write([]string{success, fmt.Sprintf("%f", float64(took) / float64(time.Second))})
+			w.Flush()
+			
+			if success == "true" {
+				w = csv.NewWriter(f)
+				for _, step := range path {
+					stepStr := make([]string, 0, len(path))
+					for _, joint := range step {
+						stepStr = append(stepStr, fmt.Sprintf("%f", joint.Value))
+					}
+					w.Write(stepStr)
+				}
+				w.Flush()
+			}
+			f.Close()
+			f2.Close()
 		}
 	}
 }
 
 func TestCBiRRT(t *testing.T) {
-	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt")
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbrt_fb_200", map[string]interface{}{"fallback_iter": 200})
 }
 
-func TestRRTStar(t *testing.T) {
-	plannerRun(t, motionplan.NewRRTStarConnectMotionPlannerWithSeed, "rdk_rrtstar")
+func TestCBiRRTPseudo(t *testing.T) {
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt_pseudo_1_5", map[string]interface{}{"motion_profile": motionplan.PseudolinearMotionProfile, "tolerance":1.5})
+	//~ plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt_pseudo_2_5", map[string]interface{}{})
 }
+
+func TestCBiRRTLinear(t *testing.T) {
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt_linear", map[string]interface{}{"motion_profile": motionplan.LinearMotionProfile})
+}
+
+
+
+//~ func TestCBiRRTOrient(t *testing.T) {
+	//~ plannerRun(t, cbirrtOrient, "cbirrt_orientation")
+//~ }
+
+//~ func cbirrtOrient(frame referenceframe.Frame, nCPU int, seed *rand.Rand, logger golog.Logger) (motionplan.MotionPlanner, error){
+	//~ tolerance := 0.05
+	//~ from, _ := sceneFS.Frame(testArmFrame).Transform(scene.Start)
+	//~ constraint, pathDist := motionplan.NewSlerpOrientationConstraint(from, scene.Goal, tolerance)
+	//~ scenePlanOpts.AddConstraint("pseudo", constraint)
+	//~ scenePlanOpts.SetPathDist(pathDist)
+	//~ return motionplan.NewCBiRRTMotionPlannerWithSeed(frame, nCPU, seed, logger)
+//~ }
+
+
+//~ func TestRRTStar(t *testing.T) {
+	//~ plannerRun(t, motionplan.NewRRTStarConnectMotionPlannerWithSeed, "rdk_rrtstar")
+//~ }
 
 func TestPlanScoring(t *testing.T) {
 	outputFolder := "../results/"
 	folders, err := os.ReadDir(outputFolder)
 	test.That(t, err, test.ShouldBeNil)
+	
+	f, err := os.Create(outputFolder + "results.csv")
+	test.That(t, err, test.ShouldBeNil)
+	w := csv.NewWriter(f)
+	w.Write([]string{"alg", "scene", "seed", "success", "time", "total_score", "joint_score", "line_score", "orient_score"})
 	for _, alg := range folders {
-		runs, err := os.ReadDir(outputFolder + alg.Name())
-		test.That(t, err, test.ShouldBeNil)
-		for _, run := range runs {
-			sceneNum := ""
-			seed := ""
-			
-			if path.Ext(run.Name()) == ".txt" {
-				fmt.Println(run.Name())
-				res := strings.Split(run.Name(), "_")
-				sceneNum = res[0]
-				seed = res[1]
+		if alg.IsDir() {
+			runs, err := os.ReadDir(outputFolder + alg.Name())
+			test.That(t, err, test.ShouldBeNil)
+			for _, run := range runs {
+				sceneNum := ""
+				seed := ""
 				
-				b, err := os.ReadFile(outputFolder + alg.Name() + "/" + run.Name())
-				test.That(t, err, test.ShouldBeNil)
-				rundata := string(b)
-				res = strings.Split(rundata, ",")
-				pass := res[0]
-				time := res[1]
-				fmt.Println(sceneNum, seed, pass, time)
-				if pass == "true" {
-					// Only process paths that are valid.
-					//~ fmt.Println(run.Name())
-					data, err := readCSV(outputFolder + alg.Name() + "/" + sceneNum + "_" + seed + ".csv")
+				if path.Ext(run.Name()) == ".txt" {
+					fmt.Println(run.Name())
+					res := strings.Split(run.Name(), "_")
+					sceneNum = res[0]
+					seed = res[1]
+					
+					b, err := os.ReadFile(outputFolder + alg.Name() + "/" + run.Name())
 					test.That(t, err, test.ShouldBeNil)
-					err = processPath(data, sceneNum)
+					rundata := string(b)
+					res = strings.Split(rundata, ",")
+					pass := res[0]
+					
+					time, err := strconv.ParseFloat(strings.TrimSpace(res[1]), 64)
 					test.That(t, err, test.ShouldBeNil)
+					
+					// Fix ompl
+					if pass == "1" {
+						pass = "true"
+						time /= 1e9
+					}
+					if pass == "0" {
+						pass = "false"
+						time /= 1e9
+					}
+					//~ fmt.Println(sceneNum, seed, pass, time)
+					jscore := -1.
+					tscore := -1.
+					oscore := -1.
+					if pass == "true" {
+						// Only process paths that are valid.
+						data, err := readCSV(outputFolder + alg.Name() + "/" + sceneNum + "_" + seed + ".csv")
+						test.That(t, err, test.ShouldBeNil)
+						jscore, tscore, oscore, err = processPath(data, sceneNum)
+						test.That(t, err, test.ShouldBeNil)
+						w.Write([]string{
+							alg.Name(),
+							sceneNum,
+							seed,
+							pass,
+							fmt.Sprintf("%f", time),
+							fmt.Sprintf("%f", jscore + tscore + oscore),
+							fmt.Sprintf("%f", jscore),
+							fmt.Sprintf("%f", tscore),
+							fmt.Sprintf("%f", oscore)})
+					}else{
+						w.Write([]string{
+							alg.Name(),
+							sceneNum,
+							seed,
+							pass,
+							fmt.Sprintf("%f", -1.),
+							fmt.Sprintf("%f", -1.),
+							fmt.Sprintf("%f", jscore),
+							fmt.Sprintf("%f", tscore),
+							fmt.Sprintf("%f", oscore)})
+					}
 				}
 			}
 		}
 	}
+	w.Flush()
+	f.Close()
 }
 
 func TestVizPlan(t *testing.T) {
-	Init("scene9")
-	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbirrt/scene9_7.csv"
+	Init("scene3")
+	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbirrt_pseudolinear/scene3_4.csv"
 	data, err := readCSV(file)
 	test.That(t, err, test.ShouldBeNil)
 	VisualizeOMPL(data)
@@ -184,7 +307,7 @@ func readCSV(filepath string) ([][]float64, error) {
 	return path, nil
 }
 
-func processPath(data [][]float64, scene string) error {
+func processPath(data [][]float64, scene string) (float64, float64, float64, error) {
 	// First, calculate L2 joint score
 	l2Score := 0.
 	lineScore := 0.
@@ -194,12 +317,12 @@ func processPath(data [][]float64, scene string) error {
 	thisFrame := sceneFS.Frame(testArmFrame)
 	
 	poseStart, err := thisFrame.Transform(referenceframe.FloatsToInputs(data[0]))
-	if err != nil {
-		return err
+	if poseStart == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
+		return -1, -1, -1, err
 	}
 	poseEnd, err := thisFrame.Transform(referenceframe.FloatsToInputs(data[len(data)-1]))
-	if err != nil {
-		return err
+	if poseEnd == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
+		return -1, -1, -1, err
 	}
 	
 	// For each step
@@ -211,22 +334,22 @@ func processPath(data [][]float64, scene string) error {
 		for j := 1; j <= nSteps; j++ {
 			step := referenceframe.InterpolateInputs(referenceframe.FloatsToInputs(data[i]), referenceframe.FloatsToInputs(data[i+1]), float64(j)/float64(nSteps))
 			pose, err := thisFrame.Transform(step)
-			if err != nil {
-				return err
+			if pose == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
+				return -1, -1, -1, err
 			}
 			lineScore += distToLine(poseStart.Point(), poseEnd.Point(), pose.Point())
 			oScore += orientScore(poseStart.Orientation(), poseEnd.Orientation(), pose.Orientation())
 		}
 	}
 	
-	fmt.Println("l2Score", l2Score)
+	//~ fmt.Println("joint_score", l2Score)
 	
 	totalLineDist := poseStart.Point().Sub(poseEnd.Point()).Norm()
-	fmt.Println("translation score", lineScore/totalLineDist)
+	//~ fmt.Println("translation_score", lineScore/totalLineDist)
 	
-	fmt.Println("orientation score", oScore, "\n", "")
+	//~ fmt.Println("orientation_score", oScore, "\n", "")
 	
-	return nil
+	return l2Score, lineScore/totalLineDist, oScore, nil
 }
 
 // L2Distance returns the L2 normalized difference between two equal length arrays.

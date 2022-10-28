@@ -37,7 +37,7 @@ var allScenes = map[string]func() *config {
 	"scene9": scene9,
 }
 
-// setup a UR5 moving along a linear path in unrestricted space
+// scene1: setup a UR5 moving along a linear path in unrestricted space
 func scene1() *config {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
@@ -53,7 +53,7 @@ func scene1() *config {
 	}
 }
 
-// setup a xArm7 to move in a straight line, adjacent to two large obstacles that should not impede the most efficient path
+// scene2: setup a xArm7 to move in a straight line, adjacent to two large obstacles that should not impede the most efficient path
 func scene2() *config {
 	model, _ := xarm.Model("arm", 7)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
@@ -101,7 +101,7 @@ func scene2() *config {
 	}
 }
 
-// setup a UR5 to move to the other side of an obstacle that obstructs the direct path
+// scene3: setup a UR5 to move to the other side of an obstacle that obstructs the direct path
 func scene3() *config {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
@@ -137,7 +137,7 @@ func scene3() *config {
 	}
 }
 
-// a xarm6 moving to the other side of an obstacle that obstructs its path
+// scene4: a xarm6 moving to the other side of an obstacle that obstructs its path
 func scene4() *config {
 	model, _ := xarm.Model("arm", 6)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
@@ -173,7 +173,7 @@ func scene4() *config {
 	}
 }
 
-// a xarm7 moving in a fairly constrained space
+// scene5: a xarm7 moving in a fairly constrained space
 func scene5() *config {
 	model, _ := xarm.Model("arm", 7)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
@@ -229,7 +229,7 @@ func scene5() *config {
 	}
 }
 
-// scene 5 but with a bonus obstacle
+// scene6: scene 5 but with a bonus obstacle
 func scene6() *config {
 	cfg :=  scene5()
 	wall2Pose := spatialmath.NewPoseFromPoint(r3.Vector{-150, 0, 0})
@@ -247,7 +247,7 @@ func scene6() *config {
 	return cfg
 }
 
-// Scene 4 but with a narrow interaction space
+// scene7: scene 4 but with a narrow interaction space
 func scene7() *config {
 	cfg :=  scene4()
 	ispacePose := spatialmath.NewPoseFromPoint(r3.Vector{0, 0, 0})
@@ -272,7 +272,7 @@ func scene7() *config {
 	return cfg
 }
 
-// Scene 2 but with an orientation change for the goal
+// scene8: scene 2 but with an orientation change for the goal
 func scene8() *config {
 	cfg :=  scene2()
 	newGoal := spatialmath.NewPoseFromOrientation(cfg.Goal.Point(), &spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.})
@@ -280,7 +280,7 @@ func scene8() *config {
 	return cfg
 }
 
-// setup a UR5 moving a big movement with random obstacles
+// scene9: setup a UR5 moving a big movement with 100 random obstacles
 func scene9() *config {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
