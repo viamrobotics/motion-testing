@@ -161,17 +161,27 @@ func TestCBiRRT(t *testing.T) {
 
 
 // Note that these rely on custom changes to cbirrt that are not in RDK yet
-func TestCBiRRTFallback(t *testing.T) {
+func TestCBiRRTFallback1(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
 		"cbrt_fb20", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 20.})
+}
+func TestCBiRRTFallback2(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
 		"cbrt_fb200", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 200.})
+}
+func TestCBiRRTFallback3(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
 		"cbrt_fb", map[string]interface{}{"smooth_iter": 200})
+}
+func TestCBiRRTFallback4(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
 		"cbrt_fbfs20", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 20., "frame_step": 0.03})
+}
+func TestCBiRRTFallback5(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
 		"cbrt_fbfs10", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 10., "frame_step": 0.03})
+}
+func TestCBiRRTFallback6(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
 		"cbrt_fbfs", map[string]interface{}{"smooth_iter": 200, "frame_step": 0.03})
 }
@@ -262,8 +272,9 @@ func TestPlanScoring(t *testing.T) {
 }
 
 func TestVizPlan(t *testing.T) {
-	Init("scene7")
-	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_ps/scene7_4.csv"
+	Init("scene4")
+	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/ompl5/scene3_4.csv"
+	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_fbfs20/scene4_19.csv"
 	data, err := readCSV(file)
 	test.That(t, err, test.ShouldBeNil)
 	VisualizeOMPL(data)
