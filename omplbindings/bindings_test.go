@@ -97,8 +97,15 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 			fmt.Println(err)
 		}
 	}
+	//~ sceneName := "scene1"
 	for sceneName, _ := range allScenes {
+		
 		for i := 1; i <= 100; i++{
+			
+			if sceneName == "scene10" {
+				option["motion_profile"] = motionplan.LinearMotionProfile
+			}
+			
 			fmt.Println(sceneName)
 			fmt.Println("j", i)
 			Init(sceneName)
@@ -107,12 +114,15 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 			
 			option["rseed"] = i
 			
+			startMap := referenceframe.StartPositions(sceneFS)
+			startMap[testArmFrame] = scene.Start
+			
 			planMap, err := motionplan.PlanMotion(
 				context.Background(),
 				logger,
 				referenceframe.NewPoseInFrame("world", scene.Goal),
 				sceneFS.Frame(testArmFrame),
-				referenceframe.StartPositions(sceneFS),
+				startMap,
 				sceneFS,
 				scene.WorldState,
 				option,
@@ -163,7 +173,7 @@ func TestCBiRRT(t *testing.T) {
 // Note that these rely on custom changes to cbirrt that are not in RDK yet
 func TestCBiRRTFallback1(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
-		"cbrt_fb20", map[string]interface{}{"smooth_iter": 200, "fallback_iter": 20.})
+		"cbrt_fast", map[string]interface{}{"smooth_iter": 50, "max_ik_solutions": 10})
 }
 func TestCBiRRTFallback2(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
@@ -184,6 +194,11 @@ func TestCBiRRTFallback5(t *testing.T) {
 func TestCBiRRTFallback6(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
 		"cbrt_fbfs", map[string]interface{}{"smooth_iter": 200, "frame_step": 0.03})
+}
+
+func TestCBiRRTFallback7(t *testing.T) {
+	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
+		"cbrt_lin", map[string]interface{}{})
 }
 
 func TestCBiRRTPseudo(t *testing.T) {
@@ -272,9 +287,12 @@ func TestPlanScoring(t *testing.T) {
 }
 
 func TestVizPlan(t *testing.T) {
-	Init("scene4")
+	Init("scene1")
 	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/ompl5/scene3_4.csv"
-	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_fbfs20/scene4_19.csv"
+	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_ps/scene6_25.csv"
+	
+	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_fb20_fast/scene1_5.csv"
+	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/cbirrt_impr/scene8_25.csv"
 	data, err := readCSV(file)
 	test.That(t, err, test.ShouldBeNil)
 	VisualizeOMPL(data)

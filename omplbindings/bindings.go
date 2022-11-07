@@ -128,7 +128,7 @@ func ValidState(pos []float64) bool {
 //export VisualizeOMPL
 func VisualizeOMPL(inputs [][]float64) {
 	plan := make([][]referenceframe.Input, 0)
-	nSteps := 1
+	nSteps := 2
 	for i, input := range inputs {
 		pStep := referenceframe.FloatsToInputs(input)
 		plan = append(plan, pStep)
@@ -175,6 +175,13 @@ func Init(name string) {
 	
 	constraints = append(constraints, collision)
 	
+	if name == "scene10" {
+		from, _ := scene.RobotFrame.Transform(scene.Start)
+		
+		constraint, pathDist := motionplan.NewAbsoluteLinearInterpolatingConstraint(from, scene.Goal, 0.1, 0.05)
+		scenePlanOpts.AddConstraint("linear", constraint)
+		scenePlanOpts.SetPathDist(pathDist)
+	}
 
 	// Setup IK solver after scene buildup
 	nCPU := int(math.Max(1.0, float64(runtime.NumCPU()/4)))

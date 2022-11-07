@@ -35,11 +35,13 @@ var allScenes = map[string]func() *config {
 	"scene7": scene7,
 	"scene8": scene8,
 	"scene9": scene9,
+	//~ "scene10": scene10,
 }
 
 // scene1: setup a UR5 moving along a linear path in unrestricted space
 func scene1() *config {
 	model, _ := universalrobots.Model("arm")
+	//~ startInput := referenceframe.FloatsToInputs([]float64{-0.14,-0.5,1.,-0.5,-0.14,0.})
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 	goalPt := startPose.Point()
@@ -328,6 +330,22 @@ func scene9() *config {
 	return cfg
 }
 
+// scene2: setup a xArm7 to move in a straight line, adjacent to two large obstacles that should not impede the most efficient path
+func scene10() *config {
+	model, _ := universalrobots.Model("arm")
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startPose, _ := model.Transform(startInput)
+	goalPt := startPose.Point()
+	goalPt.X += 100
+	goalPt.Y += 100
+	return &config{
+		Start:      startInput,
+		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{},
+	}
+}
+
 func calcPose(pos []float64) spatialmath.Pose {
 	positions := map[string][]referenceframe.Input{}
 	inputs := referenceframe.FloatsToInputs(pos)
@@ -433,7 +451,7 @@ func getIKSolutions(ctx context.Context,
 	// Spawn the IK solver to generate solutions until done
 	utils.PanicCapturingGo(func() {
 		defer close(ikErr)
-		ikErr <- solver.Solve(ctxWithCancel, solutionGen, goalPos, seed, motionplan.NewSquaredNormMetric())  // Not sure if this is copasetic
+		ikErr <- solver.Solve(ctxWithCancel, solutionGen, goalPos, seed, motionplan.NewSquaredNormMetric(), 1)  // Not sure if this is copasetic
 	})
 
 	solutions := map[float64][]referenceframe.Input{}
