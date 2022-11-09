@@ -451,7 +451,7 @@ func getIKSolutions(ctx context.Context,
 	// Spawn the IK solver to generate solutions until done
 	utils.PanicCapturingGo(func() {
 		defer close(ikErr)
-		ikErr <- solver.Solve(ctxWithCancel, solutionGen, goalPos, seed, motionplan.NewSquaredNormMetric(), 1)  // Not sure if this is copasetic
+		ikErr <- solver.Solve(ctxWithCancel, solutionGen, goalPos, seed, motionplan.NewSquaredNormMetric())  // Not sure if this is copasetic
 	})
 
 	solutions := map[float64][]referenceframe.Input{}
