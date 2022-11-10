@@ -36,6 +36,7 @@ var allScenes = map[string]func() *config {
 	"scene8": scene8,
 	"scene9": scene9,
 	"scene10": scene10,
+	"scene11": scene11,
 }
 
 // scene1: setup a UR5 moving along a linear path in unrestricted space
@@ -335,6 +336,7 @@ func scene10() *config {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi/4, math.Pi/2, 3*math.Pi/4, -math.Pi/2, 0})
 	startPose, _ := model.Transform(startInput)
+
 	goalPt := startPose.Point()
 	goalPt.X += 1200
 	goalPt.Y += 600
@@ -342,6 +344,29 @@ func scene10() *config {
 	return &config{
 		Start:      startInput,
 		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{},
+	}
+}
+
+// scene11: Move a UR5 that has been tangled up within itself across the workspace
+func scene11() *config {
+	model, _ := universalrobots.Model("arm")
+	startInput := referenceframe.FloatsToInputs([]float64{0, -3*math.Pi/8, 3*math.Pi/4, 0, -math.Pi/2, 0})
+	startPose, _ := model.Transform(startInput)
+
+	goalPos := startPose.Point()
+	goalPos.X += 500
+	goalPos.Z += 500
+
+	goalQuat := NewZeroOrientation()  // TODO(wspies): Meaningful orientation change goes here
+
+	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalQuat)
+
+
+	return &config{
+		Start:      startInput,
+		Goal:       goalPose,
 		RobotFrame: model,
 		WorldState: &commonpb.WorldState{},
 	}
