@@ -35,7 +35,7 @@ var allScenes = map[string]func() *config {
 	"scene7": scene7,
 	"scene8": scene8,
 	"scene9": scene9,
-	//~ "scene10": scene10,
+	"scene10": scene10,
 }
 
 // scene1: setup a UR5 moving along a linear path in unrestricted space
@@ -330,14 +330,15 @@ func scene9() *config {
 	return cfg
 }
 
-// scene2: setup a xArm7 to move in a straight line, adjacent to two large obstacles that should not impede the most efficient path
+// scene10: Move a UR5 a large distance around the base
 func scene10() *config {
 	model, _ := universalrobots.Model("arm")
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi/4, math.Pi/2, 3*math.Pi/4, -math.Pi/2, 0})
 	startPose, _ := model.Transform(startInput)
 	goalPt := startPose.Point()
-	goalPt.X += 100
-	goalPt.Y += 100
+	goalPt.X += 1200
+	goalPt.Y += 600
+
 	return &config{
 		Start:      startInput,
 		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
