@@ -37,6 +37,8 @@ var allScenes = map[string]func() *config {
 	"scene9": scene9,
 	"scene10": scene10,
 	"scene11": scene11,
+	"scene12": scene12,
+	"scene13": scene13,
 }
 
 // scene1: setup a UR5 moving along a linear path in unrestricted space
@@ -349,20 +351,53 @@ func scene10() *config {
 	}
 }
 
-// scene11: Move a UR5 that has been tangled up within itself across the workspace
+// scene11: Move a UR5 across itself within the workspace
 func scene11() *config {
 	model, _ := universalrobots.Model("arm")
-	startInput := referenceframe.FloatsToInputs([]float64{0, -3*math.Pi/8, 3*math.Pi/4, 0, -math.Pi/2, 0})
-	startPose, _ := model.Transform(startInput)
+	// Joint state inputs correspond to an IK solution for (X: -115, Y: 885, Z: 50, RX: 1.053, RY: 2.933, RZ: -0.09)
+	startInput := referenceframe.FloatsToInputs([]float64{-1.59101, 0.260531, -0.525213, -1.24371, -1.57513, -2.4723})
 
-	goalPos := startPose.Point()
-	goalPos.X += 500
-	goalPos.Z += 500
+	// Goal pose
+	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
+	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
+	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
 
-	goalQuat := NewZeroOrientation()  // TODO(wspies): Meaningful orientation change goes here
+	return &config{
+		Start:      startInput,
+		Goal:       goalPose,
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{},
+	}
+}
 
-	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalQuat)
+// scene12: Move a UR5 that has been tangled up with itself through the workspace
+func scene12() *config {
+	model, _ := universalrobots.Model("arm")
+	// Joint state inputs correspond to an IK solution for (X: 228, Y: 291, Z: -189, RX: 2.528, RY: 0.0, RZ: 0.0)
+	startInput := referenceframe.FloatsToInputs([]float64{-2.47626, -0.180939, 1.57803, 0.583807, 2.04089, 2.33566})
 
+	// Goal pose
+	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
+	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
+	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
+
+	return &config{
+		Start:      startInput,
+		Goal:       goalPose,
+		RobotFrame: model,
+		WorldState: &commonpb.WorldState{},
+	}
+}
+
+// super secret scene13: Get the UR5 to hit itself when this set of start and goal data is used for motion planning
+func scene13() *config {
+	model, _ := universalrobots.Model("arm")
+	startInput := referenceframe.FloatsToInputs([]float64{-0.465305, -1.450194, 2.536312, 0.695514, 4.496841, 1.214051})
+
+	// Goal pose
+	goalPos := r3.Vector{X: 189.45, Y: 29.67, Z: 353.02}
+	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.124966, Y: 0.270701, Z: 2.315877})
+	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
 
 	return &config{
 		Start:      startInput,
