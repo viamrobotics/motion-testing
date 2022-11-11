@@ -351,15 +351,15 @@ func scene10() *config {
 	}
 }
 
-// scene11: Move a UR5 across itself within the workspace
+// scene 11: Get the UR5 to hit itself when this set of start and goal data is used for motion planning
 func scene11() *config {
 	model, _ := universalrobots.Model("arm")
-	// Joint state inputs correspond to an IK solution for (X: -115, Y: 885, Z: 50, RX: 1.053, RY: 2.933, RZ: -0.09)
-	startInput := referenceframe.FloatsToInputs([]float64{-1.59101, 0.260531, -0.525213, -1.24371, -1.57513, -2.4723})
+	startInput := referenceframe.FloatsToInputs([]float64{-0.465305, -1.450194, 2.536312, 0.695514, 4.496841, 1.214051})
 
 	// Goal pose
-	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
-	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
+	// TODO(wspies): Get real goal pose from Rand, not self colliding one (verify this is the case)
+	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04} 
+	goalRot := &spatialmath.EulerAngles{Roll: ?, Pitch: ?, Yaw: ?}
 	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
 
 	return &config{
@@ -371,32 +371,14 @@ func scene11() *config {
 }
 
 // scene12: Move a UR5 that has been tangled up with itself through the workspace
+// Corresponds to move that only works with MoveJ from Rand's move set
 func scene12() *config {
 	model, _ := universalrobots.Model("arm")
-	// Joint state inputs correspond to an IK solution for (X: 228, Y: 291, Z: -189, RX: 2.528, RY: 0.0, RZ: 0.0)
-	startInput := referenceframe.FloatsToInputs([]float64{-2.47626, -0.180939, 1.57803, 0.583807, 2.04089, 2.33566})
+	startInput := referenceframe.FloatsToInputs([]float64{?, ?, ?, ?, ?, ?})  // TODO(wspies): Get joint positions from Rand
 
 	// Goal pose
 	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
-	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
-	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
-
-	return &config{
-		Start:      startInput,
-		Goal:       goalPose,
-		RobotFrame: model,
-		WorldState: &commonpb.WorldState{},
-	}
-}
-
-// super secret scene13: Get the UR5 to hit itself when this set of start and goal data is used for motion planning
-func scene13() *config {
-	model, _ := universalrobots.Model("arm")
-	startInput := referenceframe.FloatsToInputs([]float64{-0.465305, -1.450194, 2.536312, 0.695514, 4.496841, 1.214051})
-
-	// Goal pose
-	goalPos := r3.Vector{X: 189.45, Y: 29.67, Z: 353.02}
-	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.124966, Y: 0.270701, Z: 2.315877})
+	goalRot := &spatialmath.EulerAngles{Roll: 0.808, Pitch: 2.168, Yaw: 2.916}
 	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
 
 	return &config{
