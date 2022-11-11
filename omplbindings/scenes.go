@@ -38,7 +38,6 @@ var allScenes = map[string]func() *config {
 	"scene10": scene10,
 	"scene11": scene11,
 	"scene12": scene12,
-	"scene13": scene13,
 }
 
 // scene1: setup a UR5 moving along a linear path in unrestricted space
@@ -339,53 +338,126 @@ func scene10() *config {
 	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi/4, math.Pi/2, 3*math.Pi/4, -math.Pi/2, 0})
 	startPose, _ := model.Transform(startInput)
 
+	// Goal pose
 	goalPt := startPose.Point()
 	goalPt.X += 1200
 	goalPt.Y += 600
+
+	// Pose of UR5 mount pillar
+	pillarPose := spatialmath.NewPoseFromOrientation(
+		r3.Vector{X: 0., Y: 0., Z: -1000.},
+		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
+	)
 
 	return &config{
 		Start:      startInput,
 		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
 		RobotFrame: model,
-		WorldState: &commonpb.WorldState{},
+		WorldState: &commonpb.WorldState{
+			Obstacles: []*commonpb.GeometriesInFrame{
+				{
+					ReferenceFrame: "world",
+					Geometries: []*commonpb.Geometry{
+						{
+							Center: spatialmath.PoseToProtobuf(pillarPose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 130,
+									Y: 130,
+									Z: 2000,
+								}},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
 // scene 11: Get the UR5 to hit itself when this set of start and goal data is used for motion planning
+// Corresponds to move that can cause a self-collision on the UR5 from Rand's move set
 func scene11() *config {
 	model, _ := universalrobots.Model("arm")
-	startInput := referenceframe.FloatsToInputs([]float64{-0.465305, -1.450194, 2.536312, 0.695514, 4.496841, 1.214051})
+	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
 
 	// Goal pose
-	// TODO(wspies): Get real goal pose from Rand, not self colliding one (verify this is the case)
-	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04} 
-	goalRot := &spatialmath.EulerAngles{Roll: ?, Pitch: ?, Yaw: ?}
+	goalPos := r3.Vector{X: -244.43, Y: -255.12, Z: 676.97} 
+	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.233, Y: -1.637, Z: 1.224})
 	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
+
+	// Pose of UR5 mount pillar
+	pillarPose := spatialmath.NewPoseFromOrientation(
+		r3.Vector{X: 0., Y: 0., Z: -1000.},
+		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
+	)
 
 	return &config{
 		Start:      startInput,
 		Goal:       goalPose,
 		RobotFrame: model,
-		WorldState: &commonpb.WorldState{},
+		WorldState: &commonpb.WorldState{
+			Obstacles: []*commonpb.GeometriesInFrame{
+				{
+					ReferenceFrame: "world",
+					Geometries: []*commonpb.Geometry{
+						{
+							Center: spatialmath.PoseToProtobuf(pillarPose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 130,
+									Y: 130,
+									Z: 2000,
+								}},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
-// scene12: Move a UR5 that has been tangled up with itself through the workspace
+// scene12: Move a UR5 that has been tangled up with itself through the workspace across octents
 // Corresponds to move that only works with MoveJ from Rand's move set
 func scene12() *config {
 	model, _ := universalrobots.Model("arm")
-	startInput := referenceframe.FloatsToInputs([]float64{?, ?, ?, ?, ?, ?})  // TODO(wspies): Get joint positions from Rand
+	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
 
 	// Goal pose
 	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
-	goalRot := &spatialmath.EulerAngles{Roll: 0.808, Pitch: 2.168, Yaw: 2.916}
+	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
 	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
+
+	// Pose of UR5 mount pillar
+	pillarPose := spatialmath.NewPoseFromOrientation(
+		r3.Vector{X: 0., Y: 0., Z: -1000.},
+		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
+	)
 
 	return &config{
 		Start:      startInput,
 		Goal:       goalPose,
 		RobotFrame: model,
-		WorldState: &commonpb.WorldState{},
+		WorldState: &commonpb.WorldState{
+			Obstacles: []*commonpb.GeometriesInFrame{
+				{
+					ReferenceFrame: "world",
+					Geometries: []*commonpb.Geometry{
+						{
+							Center: spatialmath.PoseToProtobuf(pillarPose),
+							GeometryType: &commonpb.Geometry_Box{
+								Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+									X: 130,
+									Y: 130,
+									Z: 2000,
+								}},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
