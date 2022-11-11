@@ -8,9 +8,10 @@ algs <- algs[!grepl("cbrt_lin", algs, fixed = TRUE)]
 #~ algs <- c("ompl2", "ompl5", "ompl10", "ompl20","ompl120" )
 scenes <- unique(results$scene)
 scenes <- scenes[!grepl("scene10", scenes, fixed = TRUE)]
+scenes <- scenes[!grepl("scene11", scenes, fixed = TRUE)]
 seeds <- unique(results$seed)
 
-algs <- c("cbirrt", "cbirrt_impr", "cbrt_t40_fast", "cbirrt_pi", "cbrt_pi_fast")
+algs <- c("cbrt_fast_impr", "rrt*_1s", "rrt*_1.5s", "rrt*_5s", "ompl5")
 
 rnum <- 3
 cnum <- 1
@@ -46,7 +47,7 @@ for (scene in scenes) {
 	passPct <- c()
 	total <- c()
 	
-	sceneBestQual <- min(results[results$success == "true" & results$scene == scene,"total_score"])
+	sceneBestQual <- min(results[results$success == "true" & results$scene == scene,"joint_score"])
 	
 	for (alg in algs) {
 		runSet <- results[results$alg == alg & results$scene == scene,]
@@ -62,7 +63,7 @@ for (scene in scenes) {
 			timeMax <- c(timeMax, summary(passSet$time)[["Max."]])
 			timeMin <- c(timeMin, summary(passSet$time)[["Min."]])
 			
-			invScore <- sceneBestQual/passSet$total_score
+			invScore <- sceneBestQual/passSet$joint_score
 			
 			qual <- c(qual, summary(invScore)[["Median"]])
 			qualMax <- c(qualMax, summary(invScore)[["Max."]])

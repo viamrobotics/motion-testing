@@ -50,8 +50,14 @@ type seededPlannerConstructor func(frame referenceframe.Frame, nCPU int, seed *r
 	//~ }
 //~ }
 
-func oldplannerRun(t *testing.T, plannerFunc seededPlannerConstructor, outputFolder, sceneName string, i int) {
-
+func oldplannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName, sceneName string, i int) {
+	outputFolder := "../results/" + plannerName + "/"
+	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
+		err := os.MkdirAll(outputFolder, os.ModePerm)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 			fmt.Println(sceneName)
 			fmt.Println("j", i)
 			Init(sceneName)
@@ -97,14 +103,11 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 			fmt.Println(err)
 		}
 	}
-	//~ sceneName := "scene1"
-	for sceneName, _ := range allScenes {
+	sceneName := "scene1"
+	//~ for sceneName, _ := range allScenes {
 		
-		for i := 1; i <= 100; i++{
-			
-			if sceneName == "scene10" {
-				option["motion_profile"] = motionplan.LinearMotionProfile
-			}
+		for i := 1; i <= 10; i++{
+			//~ i := 1
 			
 			fmt.Println(sceneName)
 			fmt.Println("j", i)
@@ -161,19 +164,38 @@ func plannerRun(t *testing.T, plannerFunc seededPlannerConstructor, plannerName 
 			}
 			f.Close()
 			f2.Close()
-		}
+		//~ }
 	}
+}
+
+func TestVizPlan(t *testing.T) {
+	Init("scene7")
+	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/ompl5/scene3_4.csv"
+	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_ps/scene6_25.csv"
+	
+	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/rrtStarConnect_parcol/scene8_3.csv"
+	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_fast_impr/scene7_3.csv"
+	data, err := readCSV(file)
+	test.That(t, err, test.ShouldBeNil)
+	VisualizeOMPL(data)
 }
 
 func TestCBiRRT(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed, "cbirrt", map[string]interface{}{"motion_profile": motionplan.FreeMotionProfile})
 }
 
+func TestRRTStar(t *testing.T) {
+	for sceneName, _ := range allScenes {
+		for i := 1; i <= 10; i++{
+			oldplannerRun(t, motionplan.NewRRTStarConnectMotionPlannerWithSeed, "rrt*_1.5s", sceneName, i)
+		}
+	}
+}
 
 // Note that these rely on custom changes to cbirrt that are not in RDK yet
 func TestCBiRRTFallback1(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
-		"cbrt_fast", map[string]interface{}{"smooth_iter": 50, "max_ik_solutions": 10})
+		"cbrt_fast_impr", map[string]interface{}{"smooth_iter": 50, "max_ik_solutions": 15})
 }
 func TestCBiRRTFallback2(t *testing.T) {
 	plannerRun(t, motionplan.NewCBiRRTMotionPlannerWithSeed,
@@ -285,19 +307,6 @@ func TestPlanScoring(t *testing.T) {
 	w.Flush()
 	f.Close()
 }
-
-func TestVizPlan(t *testing.T) {
-	Init("scene1")
-	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/ompl5/scene3_4.csv"
-	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_ps/scene6_25.csv"
-	
-	file := "/home/peter/Documents/echo/ompl-evaluation/results/cbrt_fb20_fast/scene1_5.csv"
-	//~ file := "/home/peter/Documents/echo/ompl-evaluation/results/cbirrt_impr/scene8_25.csv"
-	data, err := readCSV(file)
-	test.That(t, err, test.ShouldBeNil)
-	VisualizeOMPL(data)
-}
-
 
 func readCSV(filepath string) ([][]float64, error) {
 	csvfile, err := os.Open(filepath)
