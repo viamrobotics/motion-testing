@@ -106,6 +106,16 @@ std::string getResultsPathPrefix(const PlannerChoices& choice)
       planner_code = "-InfRRTstar";
       break;
     }
+    case (PlannerChoices::BITstar):
+    {
+      planner_code = "-BITstar";
+      break;
+    }
+    case (PlannerChoices::AdvancedBITstar):
+    {
+      planner_code = "-AdvBITstar";
+      break;
+    }
   }
   path_prefix += planner_code + "/";
 
@@ -148,6 +158,18 @@ int main(int argc, char* argv[])
       {
         planner_choice = PlannerChoices::InformedRRTstar;
         planner_name = "Informed RRT*";
+        break;
+      }
+      case (PlannerChoices::BITstar):
+      {
+        planner_choice = PlannerChoices::BITstar;
+        planner_name = "BIT*";
+        break;
+      }
+      case (PlannerChoices::AdvancedBITstar):
+      {
+        planner_choice = PlannerChoices::AdvancedBITstar;
+        planner_name = "Advanced BIT*";
         break;
       }
     }

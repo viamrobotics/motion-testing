@@ -8,6 +8,8 @@
 
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/informedtrees/ABITstar.h>
+#include <ompl/geometric/planners/informedtrees/BITstar.h>
 
 #include <cstdint>
 #include <functional>
@@ -137,9 +139,19 @@ bool ArmPlanningEvalInterface::initPlanning(const PlanEvaluationParams& params)
   setGoalState(params.goal, params.goal_threshold);
 
   // Set the planner the arm is going to use for planning
-  // TODO(wspies): Future options can be added here as additional cases, if we want to do that
+  // Future options can be added here as additional cases, if we want to do that
   switch (params.planner)
   {
+    case (PlannerChoices::AdvancedBITstar):
+    {
+      arm_planner_= std::make_shared<ompl::geometric::ABITstar>(arm_si_);
+      break;
+    }
+    case (PlannerChoices::BITstar):
+    {
+      arm_planner_= std::make_shared<ompl::geometric::BITstar>(arm_si_);
+      break;
+    }
     case (PlannerChoices::InformedRRTstar):
     {
       arm_planner_= std::make_shared<ompl::geometric::InformedRRTstar>(arm_si_);

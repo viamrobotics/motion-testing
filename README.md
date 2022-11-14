@@ -42,27 +42,69 @@ target_link_libraries(${PROJECT_NAME}_<sample>
 ...
 ```
 
+#### Debian Bullseye (e.g. Raspberry Pi OS Lite 64-bit)
+
+WIP
+
 ### From Homebrew
 
 WIP
 
 ## Usage
 
-Code within this repository can be easily compiled by executing the following commands:
+Code within this repository can be easily prepared for use by executing the following helper script:
 
 ```shell
-mkdir build && cd build
-cmake ..
-make
+cd ompl-evaluation
+./compile.sh
 ```
 
-Which should create new executable code within the build directory, depending on how CMakeLists is structured.
+...which will generate Golang bindings and compile the C++ source necessary to generate the `planning_evaluator` binary.
 
-### Testing
+### Running against scenes with the planning_evaluator
 
-WIP
+Once the `planning_evaluator` is ready, you may pass a number of command line arguments in order to have finer control
+over the operation of the underlying `ArmPlanningEvalInterface`.
 
-### Benchmarking
+```shell
+planning_evaluator <scene> <time> <planner> <title>
+```
+
+#### Options
+
+* **scene** (string, default: scene1)
+
+  Selects the scene (world construction, arm choice, start and goal definitions) to use when performing motion planning
+
+* **time** (double, default: 5)
+
+  Amount of time, in seconds, to plan solutions for the set scene
+
+* **planner** (int, default: 0)
+
+  Enumerated value which represents which planner should be used when planning for a given scene. Choices are 0 (RRT*),
+  1 (Informed RRT*), 2 (BIT*), or 3 (Advanced BIT*). Other passed values will default the evaluator to using RRT*.
+
+* **title** (string, optional)
+
+  If given, this will set a prefix for the result and path files generated when the `planning_evaluator` has completed
+  its work. Otherwise, the title prefix will match the given scene name.
+
+#### Batch Executions
+
+A script is provided to execute a large number of parallel instances of the `planning_evaluator` with the same scenes,
+times, and planners, but with different generated file titles. This is very helpful for providing a lot of data for
+particular scenes quickly without overwriting path or result details. This script can be executed by calling...
+
+```shell
+./scripts/execute_ompl_tests.sh
+```
+
+...which, by default, will execute 100 tests for 20 seconds against all available scenes in batches of 10 jobs. The
+results and path files will each have unique names. Customization requires a user to modify constants within the shell
+script.
+
+### Running against scenes with RDK
 
 WIP
 

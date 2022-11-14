@@ -19,11 +19,14 @@ namespace ompl_evaluation
 {
 namespace interfaces
 {
-//! TODO(wspies)
+//! PlannerChoices is an enumeration that allows for more developer-friendly identification of planner choices when
+//! deciding what OMPL planner to use
 enum PlannerChoices : int
 {
   RRTstar = 0,
-  InformedRRTstar = 1
+  InformedRRTstar = 1,
+  BITstar = 2,
+  AdvancedBITstar = 3
 };
 
 //! Alias for a vector of C-struct joint limits, which are defined in the @p omplbindings::bindings library
@@ -69,19 +72,12 @@ struct PlanEvaluationResults
 
   //! In nanoseconds, how long did it take for the planner @p solve() method to return a valid plan?
   std::chrono::nanoseconds actual_time;
-
-  //! TODO(wspies): Not currently calculable without external input
-  //! Per scope doc... For quality we will run the planner for RT, and capture the delta between the optimal path and RT
-  //! generated path as a ratio between 0 and 1.
-  //double quality;
-
-  //! TODO(wspies): Not currently calculable without external input
-  //! Per scope doc... For performance, we’ll limit the planner to RT, and score as a ratio based on the percentage of
-  //! RT taken to return a path (1 - (time spent/RT)).
-  //double performance;
 };
 
-//! @brief TODO(wspies)
+//! @brief The ArmPlanningEvalInterface is an OMPL interface and data collection class that works on some small operator
+//! input to set up a motion problem and generate solutions to that problem. A limited set of planning algorithms can be
+//! selected in order to solve such problems, each of which are hand-selected to ensure that sampling, problem
+//! definitions, optimality conditions, etc. are all compatible by default with the given problem.
 class ArmPlanningEvalInterface
 {
 public:
