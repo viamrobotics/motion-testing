@@ -1,6 +1,8 @@
 build/
-results/ompl-RRTstar/
+results/ompl-AdvBITstar/
+results/ompl-BITstar/
 results/ompl-InfRRTstar/
+results/ompl-RRTstar/
 
 *.csv
 
