@@ -1,18 +1,30 @@
-# ompl-evaluation
+# motion-testing
 
 ## Overview
 
-The [Open Motion Planning Library (OMPL)](https://ompl.kavrakilab.org/) is a major facilitator to research and development in the field of robotic manipulation and motion planning. In the interests of broadening Viam's motion planning capabilities, eventual utilization of the OMPL from within the `rdk` has been set as a long term objective of the Motion Team. In the shorter term, comparing the performance of supported planners within OMPL to our own motion planning services will be an important element of assessing `rdk` performance. To those ends, this repository is intended to serve as a testing environment for planners, a benchmarking environment for Viam's motion planning, an interface development sandbox, and, over time, help us craft the blueprints to interface `rdk` with the OMPL.
+At present, development of motion planning within Viam benefits from significant virtualized testing. Checking algorithmic performance, behavior of motion planners, forward and inverse kinematic solver performance, and tracking collision checking performance are all facilitated by the use of **scenes**. Scenes are combinations of specific robotic arms, world configurations, start and goal states, and other input parameters that comprise a repeatable test. These scenes allow the Motion Planning team to evaluate our capabilities in a more integrated fashion.
 
-For now, the majority of code in this repository will probably be written in C++ or Python, but over time these files will be amended with or replaced by code written in Golang or Rust.
+Below this section, a comprehensive overview of the scenes (including their objectives, what features they demonstrate, and how they tie into user stories) is included.
 
-## Setting Up OMPL
+In addition, the Motion Planning team also benefits from comparisons to state-of-the-art implementations provided by other motion planning libraries, namely the **[Open Motion Planning Library (OMPL)](https://ompl.kavrakilab.org/)**. In the shorter term, comparing the performance of supported planners within OMPL to our own motion planning services will be an important element of assessing the competitiveness of motion services provided by `rdk`. To those ends, this repository also serves as a testing environment for OMPL's included planners, a benchmarking environment for Viam's motion planning against planning provided by the OMPL, an interface development sandbox, and, over time, perhaps facilitate deeper collaboration between `rdk` and the OMPL.
 
-These instructions assume the user will NOT be using OMPL binaries and libraries included with any release version of the Robot Operating System (ROS). Instead, this section will walk through the steps required to build a standalone install of OMPL and include its capabilities as part of other software, such as this repository. Several dependencies are required by the OMPL, including CMake, Boost, and Eigen; depending on the chosen method of installation, additional manual steps may need to be taken before using OMPL as part of your exploration.
+## Scenes
 
-### From Source
+WIP
 
-#### Ubuntu 20.04+
+## The Open Motion Planning Library
+
+The [Open Motion Planning Library (OMPL)](https://ompl.kavrakilab.org/) is a major facilitator to research and development in the field of robotic manipulation and motion planning. This software is not typically included in any Mac OS or Linux OS installation, so instructions follow for setting up, compiling, and including software from the OMPL in a local environment.
+
+For now, the majority of OMPL-leveraging code in this repository will probably be written in C++ or Python, but over time these files will be amended with or replaced by code written in Golang or Rust.
+
+### Setting Up OMPL
+
+These instructions assume the user will NOT be using OMPL binaries and libraries included with any release version of the Robot Operating System (ROS). Instead, this section will walk through the steps required to build a standalone install of OMPL and include its libraries as part of other software, such as the `planning_evaluation` scripts within this repository. Several dependencies are required by the OMPL, including **CMake**, **Boost**, and **Eigen**; depending on the chosen method of installation, additional manual steps may need to be taken before using the OMPL as part of your development.
+
+#### From Source
+
+##### Ubuntu 20.04+
 
 1. Clone the ompl repository onto your local machine by executing `git clone git@github.com:ompl/ompl.git`
     * Cloning to a code workspace or something in the home directory is recommended
@@ -42,11 +54,11 @@ target_link_libraries(${PROJECT_NAME}_<sample>
 ...
 ```
 
-#### Debian Bullseye (e.g. Raspberry Pi OS Lite 64-bit)
+##### Debian Bullseye (e.g. Raspberry Pi OS Lite 64-bit)
 
 WIP
 
-### From Homebrew
+#### From Homebrew
 
 WIP
 
@@ -55,7 +67,7 @@ WIP
 Code within this repository can be easily prepared for use by executing the following helper script:
 
 ```shell
-cd ompl-evaluation
+cd motion-testing
 ./compile.sh
 ```
 

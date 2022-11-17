@@ -1,5 +1,5 @@
 
-#include <ompl-evaluation/interfaces/ArmPlanningEvalInterface.hpp>
+#include <motion-testing/interfaces/ArmPlanningEvalInterface.hpp>
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -13,7 +13,7 @@
 namespace bpo = boost::program_options;
 
 //! Convenience alias to shortcut getting to the PlannerChoices namespace
-using PlannerChoices = ompl_evaluation::interfaces::PlannerChoices;
+using PlannerChoices = motion_testing::interfaces::PlannerChoices;
 
 //! This will help handle passing user configuration details back and forth between @p main() and @p parseArgs()
 struct ArgStruct
@@ -85,7 +85,7 @@ std::string getResultsPathPrefix(const PlannerChoices& choice)
   {
     path_prefix = invoc_path.parent_path().string();
   }
-  else if (invoc_path.stem().string() == "ompl-evaluation")
+  else if (invoc_path.stem().string() == "motion-testing")
   {
     path_prefix = invoc_path.string();
   }
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
     }
 
     // Setting up evaluation parameters
-    ompl_evaluation::interfaces::PlanEvaluationParams eval_params;
+    motion_testing::interfaces::PlanEvaluationParams eval_params;
     eval_params.scene_name = scene_name;
     eval_params.goal_threshold = 1e-6;
     eval_params.planner = planner_choice;
@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
     const std::string results_fs_path = fs_prefix + (title_override.empty() ? scene_name : title_override);
 
     // This creates, configures, and uses the ArmPlanningEvalInterface to generate motion plans
-    ompl_evaluation::interfaces::ArmPlanningEvalInterface eval_arm_planner(eval_params);
+    motion_testing::interfaces::ArmPlanningEvalInterface eval_arm_planner(eval_params);
     eval_arm_planner.configure();
 
     ompl::geometric::PathGeometric* path = eval_arm_planner.solve();

@@ -1,4 +1,4 @@
-#include <ompl-evaluation/interfaces/ArmPlanningEvalInterface.hpp>
+#include <motion-testing/interfaces/ArmPlanningEvalInterface.hpp>
 
 #include <ompl/base/spaces/RealVectorBounds.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-using namespace ompl_evaluation::interfaces;
+using namespace motion_testing::interfaces;
 
 bool isPathValid(ompl::geometric::PathGeometric* path,  int joint_count)
 {

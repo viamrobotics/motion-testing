@@ -1,5 +1,5 @@
-#ifndef OMPL_EVALUATION_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
-#define OMPL_EVALUATION_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
+#ifndef MOTION_TESTING_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
+#define MOTION_TESTING_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
 
 #include "bindings.h"
 
@@ -15,7 +15,7 @@
 #include <memory>
 #include <vector>
 
-namespace ompl_evaluation
+namespace motion_testing
 {
 namespace interfaces
 {
@@ -162,6 +162,6 @@ private:
 };
 
 }  // namespace interfaces
-}  // namespace ompl_evaluation
+}  // namespace motion_testing
 
-#endif  // OMPL_EVALUATION_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
+#endif  // MOTION_TESTING_INTERFACES_ARM_PLANNING_EVAL_INTERFACE_H
