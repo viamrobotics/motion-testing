@@ -77,7 +77,8 @@ Once the `planning_evaluator` is ready, you may pass a number of command line ar
 over the operation of the underlying `ArmPlanningEvalInterface`.
 
 ```shell
-  planning_evaluator <scene> <time> <planner> <title>
+  cd build
+  ./planning_evaluator <scene> <time> <planner> <title>
 ```
 
 #### Options
