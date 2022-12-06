@@ -2,11 +2,9 @@
 
 ## Overview
 
-At present, development of motion planning within Viam benefits from significant virtualized testing. Checking algorithmic performance, behavior of motion planners, forward and inverse kinematic solver performance, and tracking collision checking performance are all facilitated by the use of **scenes**. Scenes are combinations of specific robotic arms, world configurations, start and goal states, and other input parameters that comprise a repeatable test. These scenes allow the Motion Planning team to evaluate our capabilities in a more integrated fashion.
+At present, development of motion planning within Viam benefits from significant virtualized testing. Checking algorithmic performance, behavior of motion planners, forward and inverse kinematic solver performance, and tracking collision checking performance are all facilitated by the use of **scenes**. Scenes are combinations of specific robotic arms, world configurations, start and goal states, and other input parameters that comprise a repeatable test. These scenes allow the Motion Planning team to evaluate our capabilities in a more integrated fashion. Below this section, a comprehensive overview of the scenes (including their objectives, what features they demonstrate, and how they tie into user stories) is included.
 
-Below this section, a comprehensive overview of the scenes (including their objectives, what features they demonstrate, and how they tie into user stories) is included.
-
-In addition, the Motion Planning team also benefits from comparisons to state-of-the-art implementations provided by other motion planning libraries, namely the **[Open Motion Planning Library (OMPL)](https://ompl.kavrakilab.org/)**. In the shorter term, comparing the performance of supported planners within OMPL to our own motion planning services will be an important element of assessing the competitiveness of motion services provided by `rdk`. To those ends, this repository also serves as a testing environment for OMPL's included planners, a benchmarking environment for Viam's motion planning against planning provided by the OMPL, an interface development sandbox, and, over time, perhaps facilitate deeper collaboration between `rdk` and the OMPL.
+In addition, the Motion Planning team also benefits from comparisons to state-of-the-art implementations provided by other motion planning libraries, namely the **[Open Motion Planning Library (OMPL)](https://ompl.kavrakilab.org/)**. In the shorter term, comparing the performance of supported planners within OMPL to our own motion planning services will be an important element of assessing the competitiveness of motion services provided by Viam's `rdk`. To those ends, this repository also serves as a testing environment for OMPL's included planners, a benchmarking environment for Viam's motion planning against planning provided by the OMPL, an interface development sandbox, and, over time, perhaps facilitate deeper collaboration between `rdk` and the OMPL.
 
 ## Scenes
 
@@ -79,7 +77,7 @@ Once the `planning_evaluator` is ready, you may pass a number of command line ar
 over the operation of the underlying `ArmPlanningEvalInterface`.
 
 ```shell
-planning_evaluator <scene> <time> <planner> <title>
+  planning_evaluator <scene> <time> <planner> <title>
 ```
 
 #### Options
