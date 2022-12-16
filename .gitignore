@@ -1,9 +1,1 @@
-build/
-results/ompl-AdvBITstar/
-results/ompl-BITstar/
-results/ompl-InfRRTstar/
-results/ompl-RRTstar/
-
-*.csv
-
-.vscode
+results/
