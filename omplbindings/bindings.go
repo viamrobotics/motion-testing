@@ -43,7 +43,6 @@ var logger golog.Logger
 
 const testArmFrame = "arm"
 
-
 //export NumJoints
 func NumJoints() C.int {
 	return C.int(len(sceneFS.Frame(testArmFrame).DoF()))
@@ -126,13 +125,13 @@ func ValidState(pos []float64) bool {
 }
 
 //export VisualizeOMPL
-func VisualizeOMPL(inputs [][]float64) {
+func VisualizeOMPL(inputs [][]float64) error {
 	plan := make([][]referenceframe.Input, 0)
 	nSteps := 0
 	for i, input := range inputs {
 		pStep := referenceframe.FloatsToInputs(input)
 		plan = append(plan, pStep)
-		if i < len(inputs) - 1 {
+		if i < len(inputs)-1 {
 			nextStep := referenceframe.FloatsToInputs(inputs[i+1])
 			for j := 1; j <= nSteps; j++ {
 				step := referenceframe.InterpolateInputs(pStep, nextStep, float64(j)/float64(nSteps))
@@ -140,7 +139,11 @@ func VisualizeOMPL(inputs [][]float64) {
 			}
 		}
 	}
-	visualization.VisualizePlan(scene.RobotFrame, plan, scene.WorldState)
+	worldState, err := referenceframe.WorldStateToProtobuf(scene.WorldState)
+	if err != nil {
+		return nil
+	}
+	visualization.VisualizePlan(scene.RobotFrame, plan, worldState)
 }
 
 //export Init
@@ -172,7 +175,7 @@ func Init(name string) {
 	// Setup PlanOptions for eventual IK solvers
 	scenePlanOpts = motionplan.NewBasicPlannerOptions()
 	scenePlanOpts.AddConstraint("collision", collision)
-	
+
 	constraints = append(constraints, collision)
 
 	// Setup IK solver after scene buildup
