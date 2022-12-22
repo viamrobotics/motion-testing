@@ -17,29 +17,20 @@ package main
 */
 import "C"
 import (
-	"context"
 	"fmt"
-	"math"
-	"runtime"
 	"unsafe"
 
 	golog "github.com/edaniels/golog"
 	"github.com/golang/geo/r3"
 
-	"github.com/viamrobotics/visualization"
-	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
 )
 
 var scene *config
 var sceneFS referenceframe.FrameSystem
-var scenePlanOpts *motionplan.PlannerOptions
 
-var goalPoseC *C.struct_pose
-var constraints []motionplan.Constraint
-var ik *motionplan.CombinedIK
-var logger golog.Logger
+var logger golog.Logger = golog.NewLogger("omplbindings")
 
 const testArmFrame = "arm"
 
@@ -77,15 +68,14 @@ func StartPos() *C.double {
 
 //export GoalPose
 func GoalPose() *C.struct_pose {
-	return goalPoseC
+	return poseToC(scene.Goal)
 }
 
 //export NearGoal
 func NearGoal(pos []float64) bool {
 	actual := calcPose(pos)
-	expected := cToPose(goalPoseC)
 	// TODO(rb): tie the epsilon to the resolution
-	return spatialmath.PoseAlmostCoincidentEps(actual, expected, 1e-3)
+	return spatialmath.PoseAlmostCoincidentEps(actual, scene.Goal, 1e-3)
 }
 
 //export ComputePositions
@@ -95,55 +85,63 @@ func ComputePositions(pos []float64) *C.struct_pose {
 
 //export ComputePose
 func ComputePose(targetPoseC *C.struct_pose) *C.double {
-	spatial_pose := cToPose(targetPoseC)
-	pb_pose := spatialmath.PoseToProtobuf(spatial_pose)
-
-	solutions, err := getIKSolutions(context.Background(), scenePlanOpts, ik, pb_pose, scene.Start, sceneFS.Frame(testArmFrame))
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	ik_sol_len := len(solutions[0].Q())
+	// solutions, err := motionplan.BestIKSolutions(
+	// 	context.Background(),
+	// 	logger,
+	// 	sceneFS,
+	// 	scene.RobotFrame,
+	// 	scene.Start,
+	// 	cToPose(targetPoseC),
+	// 	scene.WorldState,
+	// 	1,
+	// 	options,
+	// )
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	solution := make([]referenceframe.Input, 6)
+	ik_sol_len := len(solution)
 	ik_sol_ptr := C.malloc(C.size_t(ik_sol_len) * C.size_t(unsafe.Sizeof(C.double(0))))
 	ik_solution := (*[1 << 30]C.double)(ik_sol_ptr)[:ik_sol_len:ik_sol_len]
 	for i := 0; i < ik_sol_len; i++ {
-		ik_solution[i] = C.double(solutions[0].Q()[i].Value)
+		ik_solution[i] = C.double(solution[i].Value)
 	}
 	return (*C.double)(ik_sol_ptr)
 }
 
 //export ValidState
 func ValidState(pos []float64) bool {
-	cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame(testArmFrame)}
-	for _, cons := range constraints {
-		pass, _ := cons(cInput)
-		if !pass {
-			return false
-		}
-	}
+	// cInput := &motionplan.ConstraintInput{StartInput: referenceframe.FloatsToInputs(pos), Frame: sceneFS.Frame(testArmFrame)}
+	// for _, cons := range constraints {
+	// 	pass, _ := cons(cInput)
+	// 	if !pass {
+	// 		return false
+	// 	}
+	// }
 	return true
 }
 
 //export VisualizeOMPL
 func VisualizeOMPL(inputs [][]float64) error {
-	plan := make([][]referenceframe.Input, 0)
-	nSteps := 0
-	for i, input := range inputs {
-		pStep := referenceframe.FloatsToInputs(input)
-		plan = append(plan, pStep)
-		if i < len(inputs)-1 {
-			nextStep := referenceframe.FloatsToInputs(inputs[i+1])
-			for j := 1; j <= nSteps; j++ {
-				step := referenceframe.InterpolateInputs(pStep, nextStep, float64(j)/float64(nSteps))
-				plan = append(plan, step)
-			}
-		}
-	}
-	worldState, err := referenceframe.WorldStateToProtobuf(scene.WorldState)
-	if err != nil {
-		return nil
-	}
-	visualization.VisualizePlan(scene.RobotFrame, plan, worldState)
+	// plan := make([][]referenceframe.Input, 0)
+	// nSteps := 0
+	// for i, input := range inputs {
+	// 	pStep := referenceframe.FloatsToInputs(input)
+	// 	plan = append(plan, pStep)
+	// 	if i < len(inputs)-1 {
+	// 		nextStep := referenceframe.FloatsToInputs(inputs[i+1])
+	// 		for j := 1; j <= nSteps; j++ {
+	// 			step := referenceframe.InterpolateInputs(pStep, nextStep, float64(j)/float64(nSteps))
+	// 			plan = append(plan, step)
+	// 		}
+	// 	}
+	// }
+	// worldState, err := referenceframe.WorldStateToProtobuf(scene.WorldState)
+	// if err != nil {
+	// 	return nil
+	// }
+	// return visualization.VisualizePlan(scene.RobotFrame, plan, worldState)
+	return nil
 }
 
 //export Init
@@ -156,38 +154,13 @@ func Init(name string) {
 		fmt.Println("Scene '", name, "'does not exist!")
 		return
 	}
-	scene = initFunc()
-	sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
-
-	// generic post-scene setup
 	var err error
-	collision, err := motionplan.NewCollisionConstraintFromWorldState(
-		sceneFS.Frame(testArmFrame),
-		sceneFS,
-		scene.WorldState,
-		referenceframe.StartPositions(sceneFS),
-	)
+	scene, err = initFunc()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	// Setup PlanOptions for eventual IK solvers
-	scenePlanOpts = motionplan.NewBasicPlannerOptions()
-	scenePlanOpts.AddConstraint("collision", collision)
-
-	constraints = append(constraints, collision)
-
-	// Setup IK solver after scene buildup
-	nCPU := int(math.Max(1.0, float64(runtime.NumCPU()/4)))
-	logger = golog.NewLogger("omplbindings")
-	ik, err = motionplan.CreateCombinedIKSolver(scene.RobotFrame, logger, nCPU)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	goalPoseC = poseToC(scene.Goal)
+	sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
 }
 
 func poseToC(pose spatialmath.Pose) *C.struct_pose {
