@@ -17,6 +17,7 @@ package main
 */
 import "C"
 import (
+	"errors"
 	"fmt"
 	"unsafe"
 
@@ -145,22 +146,24 @@ func VisualizeOMPL(inputs [][]float64) error {
 }
 
 //export Init
-func Init(name string) {
+func Init(name string) error {
 	sceneFS = referenceframe.NewEmptySimpleFrameSystem("")
 
 	// setup scenes in global vars
 	initFunc, ok := allScenes[name]
 	if !ok {
-		fmt.Println("Scene '", name, "'does not exist!")
-		return
+		msg := "scene '" + name + "'does not exist"
+		fmt.Println(msg)
+		return errors.New(msg)
 	}
 	var err error
 	scene, err = initFunc()
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 	sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
+	return nil
 }
 
 func poseToC(pose spatialmath.Pose) *C.struct_pose {
