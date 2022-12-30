@@ -128,11 +128,15 @@ func TestRRTStar(t *testing.T) {
 }
 
 func TestScoring(t *testing.T) {
-	err := scoreFolder("../results/default/", "default")
+	err := scoreFolder("../results/default/")
 	test.That(t, err, test.ShouldBeNil)
 }
 
-func scoreFolder(folder, alg string) error {
+func TestIntegration(t *testing.T) {
+	t.Log("accessing test succesfully")
+}
+
+func scoreFolder(folder string) error {
 	runs, err := os.ReadDir(folder)
 	if err != nil {
 		return err
@@ -146,17 +150,14 @@ func scoreFolder(folder, alg string) error {
 
 	w := csv.NewWriter(f)
 	defer w.Flush()
-	w.Write([]string{"alg", "scene", "seed", "success", "time", "total_score", "joint_score", "line_score", "orient_score"})
+	w.Write([]string{"scene", "seed", "success", "time", "total_score", "joint_score", "line_score", "orient_score"})
 
 	for _, run := range runs {
-		sceneNum := ""
-		seed := ""
-
 		if path.Ext(run.Name()) == ".txt" {
 			fmt.Println(run.Name())
 			res := strings.Split(run.Name(), "_")
-			sceneNum = res[0]
-			seed = res[1]
+			sceneNum := res[0]
+			seed := res[1]
 
 			b, err := os.ReadFile(folder + run.Name())
 			if err != nil {
@@ -172,7 +173,7 @@ func scoreFolder(folder, alg string) error {
 				return err
 			}
 
-			// Fix ompl
+			// Parse whether was successful or not
 			if pass == "1" {
 				pass = "true"
 				time /= 1e9
@@ -181,10 +182,7 @@ func scoreFolder(folder, alg string) error {
 				pass = "false"
 				time /= 1e9
 			}
-			//~ fmt.Println(sceneNum, seed, pass, time)
-			jscore := -1.
-			tscore := -1.
-			oscore := -1.
+
 			if pass == "true" {
 				// Only process paths that are valid.
 				data, err := readCSV(folder + sceneNum + "_" + seed + ".csv")
@@ -192,13 +190,12 @@ func scoreFolder(folder, alg string) error {
 					return err
 				}
 
-				jscore, tscore, oscore, err = processPath(data, sceneNum)
+				jscore, tscore, oscore, err := processPath(data, sceneNum)
 				if err != nil {
 					return err
 				}
 
 				w.Write([]string{
-					alg,
 					sceneNum,
 					seed,
 					pass,
@@ -210,15 +207,14 @@ func scoreFolder(folder, alg string) error {
 				})
 			} else {
 				w.Write([]string{
-					alg,
 					sceneNum,
 					seed,
 					pass,
 					fmt.Sprintf("%f", -1.),
 					fmt.Sprintf("%f", -1.),
-					fmt.Sprintf("%f", jscore),
-					fmt.Sprintf("%f", tscore),
-					fmt.Sprintf("%f", oscore),
+					fmt.Sprintf("%f", -1.),
+					fmt.Sprintf("%f", -1.),
+					fmt.Sprintf("%f", -1.),
 				})
 			}
 		}
@@ -254,6 +250,87 @@ func readCSV(filepath string) ([][]float64, error) {
 	}
 
 	return path, nil
+}
+
+func TestPlanScoring(t *testing.T) {
+	outputFolder := "../results/"
+	folders, err := os.ReadDir(outputFolder)
+	test.That(t, err, test.ShouldBeNil)
+
+	f, err := os.Create(outputFolder + "results.csv")
+	test.That(t, err, test.ShouldBeNil)
+	w := csv.NewWriter(f)
+	w.Write([]string{"alg", "scene", "seed", "success", "time", "total_score", "joint_score", "line_score", "orient_score"})
+	for _, alg := range folders {
+		if alg.IsDir() && alg.Name() != "archive" {
+			runs, err := os.ReadDir(outputFolder + alg.Name())
+			test.That(t, err, test.ShouldBeNil)
+			for _, run := range runs {
+				sceneNum := ""
+				seed := ""
+
+				if path.Ext(run.Name()) == ".txt" {
+					fmt.Println(run.Name())
+					res := strings.Split(run.Name(), "_")
+					sceneNum = res[0]
+					seed = res[1]
+
+					b, err := os.ReadFile(outputFolder + alg.Name() + "/" + run.Name())
+					test.That(t, err, test.ShouldBeNil)
+					rundata := string(b)
+					res = strings.Split(rundata, ",")
+					pass := res[0]
+
+					time, err := strconv.ParseFloat(strings.TrimSpace(res[1]), 64)
+					test.That(t, err, test.ShouldBeNil)
+
+					// Fix ompl
+					if pass == "1" {
+						pass = "true"
+						time /= 1e9
+					}
+					if pass == "0" {
+						pass = "false"
+						time /= 1e9
+					}
+					//~ fmt.Println(sceneNum, seed, pass, time)
+					jscore := -1.
+					tscore := -1.
+					oscore := -1.
+					if pass == "true" {
+						// Only process paths that are valid.
+						data, err := readCSV(outputFolder + alg.Name() + "/" + sceneNum + "_" + seed + ".csv")
+						test.That(t, err, test.ShouldBeNil)
+						jscore, tscore, oscore, err = processPath(data, sceneNum)
+						test.That(t, err, test.ShouldBeNil)
+						w.Write([]string{
+							alg.Name(),
+							sceneNum,
+							seed,
+							pass,
+							fmt.Sprintf("%f", time),
+							fmt.Sprintf("%f", jscore+tscore+oscore),
+							fmt.Sprintf("%f", jscore),
+							fmt.Sprintf("%f", tscore),
+							fmt.Sprintf("%f", oscore)})
+					} else {
+						w.Write([]string{
+							alg.Name(),
+							sceneNum,
+							seed,
+							pass,
+							fmt.Sprintf("%f", -1.),
+							fmt.Sprintf("%f", -1.),
+							fmt.Sprintf("%f", jscore),
+							fmt.Sprintf("%f", tscore),
+							fmt.Sprintf("%f", oscore)})
+					}
+				}
+			}
+		}
+	}
+	w.Flush()
+	f.Close()
 }
 
 func processPath(data [][]float64, scene string) (float64, float64, float64, error) {
