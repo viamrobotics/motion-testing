@@ -85,7 +85,6 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/smartystreets/assertions v1.13.0 // indirect
 	github.com/srikrsna/protoc-gen-gotag v0.6.2 // indirect
-	github.com/viamrobotics/visualization v0.0.0-20221028214143-c4c65ded4277
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
