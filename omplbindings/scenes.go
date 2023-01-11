@@ -22,14 +22,13 @@ type config struct {
 }
 
 var allScenes = map[string]func() (*config, error){
-	// "scene1": scene1,
-	// "scene2": scene2,
-	// "scene3": scene3,
-	// "scene4": scene4,
-	// "scene5": scene5,
-	// "scene6": scene6,
-	// TODO(rb): scene 7 is broken for some reason
-	"scene7": scene7,
+	// "scene1":  scene1,
+	// "scene2":  scene2,
+	"scene3": scene3,
+	"scene4": scene4,
+	// "scene5":  scene5,
+	// "scene6":  scene6,
+	// "scene7":  scene7,
 	// "scene8":  scene8,
 	// "scene9":  scene9,
 	// "scene10": scene10,

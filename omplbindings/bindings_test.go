@@ -39,7 +39,7 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 		for i := 1; i <= 2; i++ {
 			testName := scene + "_" + strconv.Itoa(i)
 			options["rseed"] = i
-			options["timeout"] = 10
+			options["timeout"] = 10.
 			if err := runPlanner(outputFolder+testName, options); err != nil {
 				return err
 			}
