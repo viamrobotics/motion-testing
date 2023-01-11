@@ -153,7 +153,7 @@ func Init(name string) error {
 	initFunc, ok := allScenes[name]
 	if !ok {
 		msg := "scene '" + name + "'does not exist"
-		fmt.Println(msg)
+		logger.Error(msg)
 		return errors.New(msg)
 	}
 	var err error
