@@ -68,7 +68,7 @@ func scene2() (*config, error) {
 	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
 		Obstacles: []*commonpb.GeometriesInFrame{
 			{
-				ReferenceFrame: "world",
+				ReferenceFrame: referenceframe.World,
 				Geometries: []*commonpb.Geometry{
 					{
 						Center: spatialmath.PoseToProtobuf(testPose),
@@ -373,7 +373,7 @@ func scene10() (*config, error) {
 }
 
 // scene 11: Get the UR5 to hit itself when this set of start and goal data is used for motion planning
-// Corresponds to move that can cause a self-collision on the UR5 from Rand's move set
+// Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
 func scene11() (*config, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
