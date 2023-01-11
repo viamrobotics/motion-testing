@@ -47,7 +47,7 @@ func scene1() (*config, error) {
 	goalPt.Y += 100
 	return &config{
 		Start:      startInput,
-		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
 		RobotFrame: model,
 		WorldState: &referenceframe.WorldState{},
 	}, nil
@@ -61,7 +61,7 @@ func scene2() (*config, error) {
 	goalPt := startPose.Point()
 	goalPt.X += 200
 	goalPt.Z += 100
-	testPose := spatialmath.NewPoseFromOrientation(
+	testPose := spatialmath.NewPose(
 		r3.Vector{X: 1., Y: -200., Z: 3.},
 		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
 	)
@@ -100,7 +100,7 @@ func scene2() (*config, error) {
 
 	return &config{
 		Start:      startInput,
-		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
 		RobotFrame: model,
 		WorldState: worldState,
 	}, nil
@@ -112,7 +112,7 @@ func scene3() (*config, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 	goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
-	testPose := spatialmath.NewPoseFromOrientation(
+	testPose := spatialmath.NewPose(
 		r3.Vector{X: 0., Y: 150., Z: 0.},
 		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
 	)
@@ -141,7 +141,7 @@ func scene3() (*config, error) {
 
 	return &config{
 		Start:      startInput,
-		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
 		RobotFrame: model,
 		WorldState: worldState,
 	}, nil
@@ -156,7 +156,7 @@ func scene4() (*config, error) {
 	goalPt.X += 300
 	testPt := startPose.Point()
 	testPt.X += 150
-	testPose := spatialmath.NewPoseFromOrientation(testPt, startPose.Orientation())
+	testPose := spatialmath.NewPose(testPt, startPose.Orientation())
 	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
 		Obstacles: []*commonpb.GeometriesInFrame{
 			{
@@ -182,7 +182,7 @@ func scene4() (*config, error) {
 
 	return &config{
 		Start:      startInput,
-		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
 		RobotFrame: model,
 		WorldState: worldState,
 	}, nil
@@ -240,7 +240,7 @@ func scene5() (*config, error) {
 
 	return &config{
 		Start:      startInput,
-		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
 		RobotFrame: model,
 		WorldState: worldState,
 	}, err
@@ -286,7 +286,7 @@ func scene8() (*config, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.Goal = spatialmath.NewPoseFromOrientation(cfg.Goal.Point(), &spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.})
+	cfg.Goal = spatialmath.NewPose(cfg.Goal.Point(), &spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.})
 	return cfg, err
 }
 
@@ -317,7 +317,7 @@ func scene9() (*config, error) {
 
 	return &config{
 		Start:      startInput,
-		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
 		RobotFrame: model,
 		WorldState: &referenceframe.WorldState{Obstacles: []*referenceframe.GeometriesInFrame{
 			referenceframe.NewGeometriesInFrame(referenceframe.World, obstacles),
@@ -338,7 +338,7 @@ func scene10() (*config, error) {
 	goalPt.Y += 600
 
 	// Pose of UR5 mount pillar
-	pillarPose := spatialmath.NewPoseFromOrientation(
+	pillarPose := spatialmath.NewPose(
 		r3.Vector{X: 0., Y: 0., Z: -1000.},
 		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
 	)
@@ -366,7 +366,7 @@ func scene10() (*config, error) {
 	}
 	return &config{
 		Start:      startInput,
-		Goal:       spatialmath.NewPoseFromOrientation(goalPt, startPose.Orientation()),
+		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
 		RobotFrame: model,
 		WorldState: worldState,
 	}, nil
@@ -381,10 +381,10 @@ func scene11() (*config, error) {
 	// Goal pose
 	goalPos := r3.Vector{X: -244.43, Y: -255.12, Z: 676.97}
 	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.233, Y: -1.637, Z: 1.224})
-	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
+	goalPose := spatialmath.NewPose(goalPos, goalRot)
 
 	// Pose of UR5 mount pillar
-	pillarPose := spatialmath.NewPoseFromOrientation(
+	pillarPose := spatialmath.NewPose(
 		r3.Vector{X: 0., Y: 0., Z: -1000.},
 		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
 	)
@@ -428,10 +428,10 @@ func scene12() (*config, error) {
 	// Goal pose
 	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
 	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
-	goalPose := spatialmath.NewPoseFromOrientation(goalPos, goalRot)
+	goalPose := spatialmath.NewPose(goalPos, goalRot)
 
 	// Pose of UR5 mount pillar
-	pillarPose := spatialmath.NewPoseFromOrientation(
+	pillarPose := spatialmath.NewPose(
 		r3.Vector{X: 0., Y: 0., Z: -1000.},
 		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
 	)

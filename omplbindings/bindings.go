@@ -186,7 +186,7 @@ func cToPose(cPose *C.struct_pose) spatialmath.Pose {
 	pt := r3.Vector{float64(cPose.X), float64(cPose.Y), float64(cPose.Z)}
 	orient := &spatialmath.EulerAngles{Roll: float64(cPose.Roll), Pitch: float64(cPose.Pitch), Yaw: float64(cPose.Yaw)}
 
-	return spatialmath.NewPoseFromOrientation(pt, orient)
+	return spatialmath.NewPose(pt, orient)
 }
 
 // Needed for C export
