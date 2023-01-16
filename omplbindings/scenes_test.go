@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -16,10 +17,12 @@ import (
 	"go.viam.com/test"
 )
 
-const numTests = 2
+const numTests = 10
 const timeout = 5.0 // seconds
 
 var nameFlag = flag.String("name", "", "name of test to run")
+
+var resultsDirectory = filepath.Join("..", "results")
 
 func TestDefault(t *testing.T) {
 	name := *nameFlag
@@ -54,8 +57,9 @@ func TestRRTStar(t *testing.T) {
 }
 
 func runScenes(t *testing.T, name string, options map[string]interface{}) error {
-	outputFolder := "../results/" + name + "/"
+	outputFolder := filepath.Join(resultsDirectory, name)
 	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
+		// TODO(rb): potentially create a temp directory to be storing these files
 		err := os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
 			return err
@@ -67,10 +71,9 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 			return err
 		}
 		for i := 1; i <= numTests; i++ {
-			testName := scene + "_" + strconv.Itoa(i)
 			options["rseed"] = i
 			options["timeout"] = timeout
-			if err := runPlanner(outputFolder+testName, options); err != nil {
+			if err := runPlanner(filepath.Join(outputFolder, scene+"_"+strconv.Itoa(i)), options); err != nil {
 				return err
 			}
 		}
