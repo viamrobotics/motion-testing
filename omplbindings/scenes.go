@@ -26,14 +26,14 @@ var allScenes = map[string]func() (*config, error){
 	"scene2": scene2,
 	"scene3": scene3,
 	"scene4": scene4,
-	// "scene5":  scene5,
-	// "scene6":  scene6,
-	// "scene7":  scene7,
-	// "scene8":  scene8,
-	// "scene9":  scene9,
-	// "scene10": scene10,
-	// "scene11": scene11,
-	// "scene12": scene12,
+	"scene5":  scene5,
+	"scene6":  scene6,
+	"scene7":  scene7,
+	"scene8":  scene8,
+	"scene9":  scene9,
+	"scene10": scene10,
+	"scene11": scene11,
+	"scene12": scene12,
 }
 
 // scene1: setup a UR5 moving along a linear path in unrestricted space
