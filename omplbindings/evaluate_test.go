@@ -14,6 +14,7 @@ import (
 
 	"github.com/montanaflynn/stats"
 	"go.viam.com/test"
+	"gonum.org/v1/gonum/stat/distuv"
 )
 
 type testResult struct {
@@ -160,14 +161,28 @@ func compareResults(baseline, modification *testResult) error {
 
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("##Availability\n| Scene | %s | %s | Percent Difference | \n", baseline.name, modification.name))
+	builder.WriteString(fmt.Sprintf("##Availability\n| Scene | %s | %s | Percent Improvement | Health | \n",
+		baseline.name,
+		modification.name),
+	)
 	for name := range allScenes {
-		builder.WriteString(availabilityEntry(name, baseline.score[name].successes, modification.score[name].successes))
+		builder.WriteString(tableEntryInt(name, baseline.score[name].successes, modification.score[name].successes))
 	}
 
-	builder.WriteString(fmt.Sprintf("##Quality\n| Scene | %s | %s | Percent Difference | \n", baseline.name, modification.name))
+	builder.WriteString(fmt.Sprintf("##Quality\n| Scene | %s | %s | Probability of Improvement | Health | \n",
+		baseline.name,
+		modification.name),
+	)
 	for name := range allScenes {
-		builder.WriteString(qualityEntry(name, baseline.score[name].qualities, modification.score[name].qualities))
+		builder.WriteString(tableEntryFloats(name, baseline.score[name].qualities, modification.score[name].qualities))
+	}
+
+	builder.WriteString(fmt.Sprintf("##Performance\n| Scene | %s | %s | Probability of Improvement | Health | \n",
+		baseline.name,
+		modification.name),
+	)
+	for name := range allScenes {
+		builder.WriteString(tableEntryFloats(name, baseline.score[name].performances, modification.score[name].performances))
 	}
 
 	f.WriteString(builder.String())
@@ -204,27 +219,52 @@ func readSolutionFromCSV(filepath string) ([][]float64, error) {
 	return solution, nil
 }
 
-func availabilityEntry(entry string, initial, final int) string {
+func tableEntryInt(entry string, initial, final int) string {
 	return fmt.Sprintf("| %s | %d | %d | %.0f%% | \n", entry, initial, final, 100.0*(float64(final-initial))/float64(initial))
 }
 
-func qualityEntry(entry string, initial, final stats.Float64Data) string {
-	initialMean, initialStdDev := normalDistribution(initial)
-	finalMean, finalStdDev := normalDistribution(final)
+func tableEntryFloats(entry string, initial, final stats.Float64Data) string {
+	// create normal distributions from initial and final float slices
+	A, AValid := normal(initial)
+	B, BValid := normal(final)
 
-	// compare two distributions directly using Z-test
-	zScore := (initialMean - finalMean) / math.Sqrt(initialStdDev*initialStdDev+finalStdDev*finalStdDev)
-	return fmt.Sprintf("| %s | %f\u00B1%f | %f\u00B1%f | %f | \n", entry, initialMean, initialStdDev, finalMean, finalStdDev, zScore)
+	var probability float64
+	switch {
+	case AValid && BValid:
+		// create normal distribution C = B - A
+		C := distuv.Normal{
+			Mu:    B.Mu - A.Mu,
+			Sigma: math.Sqrt(A.Sigma*A.Sigma + B.Sigma*B.Sigma),
+		}
+
+		switch {
+		case C.Sigma != 0:
+			// probability that B is an improvement over A is found by evaluating the CDF at x=0
+			probability = 100 * C.CDF(0)
+		case C.Mu < 0:
+			probability = 0
+		case C.Mu > 0:
+			probability = 100
+		default:
+			probability = 50
+		}
+	case AValid && !BValid:
+		probability = 0
+	case !AValid && BValid:
+		probability = 100
+	default:
+		probability = math.NaN()
+	}
+
+	return fmt.Sprintf("| %s | %.2f\u00B1%.2f | %.2f\u00B1%.2f | %.0f%% | \n", entry, A.Mu, A.Sigma, B.Mu, B.Sigma, probability)
 }
 
-func normalDistribution(data stats.Float64Data) (float64, float64) {
-	mean, err := data.Mean()
-	if err != nil {
-		return math.NaN(), math.NaN()
+// normal makes a normal distribution from the float slice
+func normal(data stats.Float64Data) (distuv.Normal, bool) {
+	mean, err1 := data.Mean()
+	stdDev, err2 := data.StandardDeviation()
+	if err1 != nil || err2 != nil {
+		return distuv.Normal{Mu: math.NaN(), Sigma: math.NaN()}, false
 	}
-	stdDev, err := data.StandardDeviation()
-	if err != nil {
-		return math.NaN(), math.NaN()
-	}
-	return mean, stdDev
+	return distuv.Normal{Mu: mean, Sigma: stdDev}, true
 }
