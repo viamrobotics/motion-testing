@@ -264,9 +264,9 @@ func tableEntryFloats(sceneNum int, initial, final stats.Float64Data) string {
 			// probability that B is an improvement over A is found by evaluating the CDF at x=0
 			probability = 100 * C.CDF(0)
 		case C.Mu < 0:
-			probability = 0
-		case C.Mu > 0:
 			probability = 100
+		case C.Mu > 0:
+			probability = 0
 		default:
 			probability = 50
 		}
