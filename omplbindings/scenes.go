@@ -21,19 +21,19 @@ type config struct {
 	WorldState *referenceframe.WorldState
 }
 
-var allScenes = map[string]func() (*config, error){
-	"scene1": scene1,
-	"scene2": scene2,
-	"scene3": scene3,
-	"scene4": scene4,
-	"scene5":  scene5,
-	"scene6":  scene6,
-	"scene7":  scene7,
-	"scene8":  scene8,
-	"scene9":  scene9,
-	"scene10": scene10,
-	"scene11": scene11,
-	"scene12": scene12,
+var allScenes = map[int]func() (*config, error){
+	1:  scene1,
+	2:  scene2,
+	3:  scene3,
+	4:  scene4,
+	5:  scene5,
+	6:  scene6,
+	7:  scene7,
+	8:  scene8,
+	9:  scene9,
+	10: scene10,
+	11: scene11,
+	12: scene12,
 }
 
 // scene1: setup a UR5 moving along a linear path in unrestricted space

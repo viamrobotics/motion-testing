@@ -20,7 +20,7 @@ import (
 
 type testResult struct {
 	name  string
-	score map[string]*testScore
+	score map[int]*testScore
 }
 
 type testScore struct {
@@ -32,12 +32,13 @@ type testScore struct {
 const nilFolder = ""
 
 // flags used to define folders insider results folder to compare
+// TODO: make the default string nilFolder
 var baselineFlag = flag.String("baselineDir", "default", "name of test to use as a baseline")
 var modifiedFlag = flag.String("modifiedDir", "cbirrt", "name of test to compare to the baseline")
 
 // these variables represent the lower and higher bounds (exclusive) for unacceptable and acceptable values respectively
 var percentImprovementHealthThresholds = [2]float64{0, 0}
-var probabilityImprovementHealthThresholds = [2]float64{15.9, 84.1} // numbers derive from first standard deviation of normal distribution
+var probabilityImprovementHealthThresholds = [2]float64{16, 84} // numbers derive from first standard deviation of normal distribution
 
 func TestScores(t *testing.T) {
 	baseline, err := scoreFolder(*baselineFlag)
@@ -76,30 +77,32 @@ func scoreFolder(folder string) (*testResult, error) {
 
 	results := &testResult{
 		name:  folder,
-		score: make(map[string]*testScore, 0),
+		score: make(map[int]*testScore, 0),
 	}
 	for _, run := range runs {
 		if path.Ext(run.Name()) == ".txt" {
-			fmt.Println(run.Name())
-			res := strings.Split(run.Name(), "_")
-			sceneNum := res[0]
-			seed := res[1]
-
-			bytes, err := os.ReadFile(filepath.Join(fullPath, run.Name()))
+			// parse file name to determine what the test parameters were
+			fileName := strings.Split(run.Name(), "_")
+			sceneNum, err := strconv.Atoi(strings.ReplaceAll(fileName[0], "scene", ""))
 			if err != nil {
 				return nil, err
 			}
 
-			rundata := string(bytes)
-			res = strings.Split(rundata, ",")
-			pass := res[0]
+			// read the file and get the results of the run
+			bytes, err := os.ReadFile(filepath.Join(fullPath, run.Name()))
+			if err != nil {
+				return nil, err
+			}
+			rundata := strings.Split(string(bytes), ",")
 
-			time, err := strconv.ParseFloat(strings.TrimSpace(res[1]), 64)
+			// Parse time it took to complete
+			time, err := strconv.ParseFloat(strings.TrimSpace(fileName[1]), 64)
 			if err != nil {
 				return nil, err
 			}
 
 			// Parse whether was successful or not
+			pass := rundata[0]
 			if pass == "1" {
 				pass = "true"
 				time /= 1e9
@@ -109,7 +112,6 @@ func scoreFolder(folder string) (*testResult, error) {
 				time /= 1e9
 			}
 
-			// Only process paths that are valid
 			score, ok := results.score[sceneNum]
 			if !ok {
 				score = &testScore{
@@ -118,7 +120,7 @@ func scoreFolder(folder string) (*testResult, error) {
 				}
 			}
 			if pass == "true" {
-				data, err := readSolutionFromCSV(filepath.Join(fullPath, sceneNum+"_"+seed+".csv"))
+				data, err := readSolutionFromCSV(filepath.Join(fullPath, fileName[0]+"_"+fileName[1]+".csv"))
 				if err != nil {
 					return nil, err
 				}
@@ -129,8 +131,8 @@ func scoreFolder(folder string) (*testResult, error) {
 				}
 
 				w.Write([]string{
-					sceneNum,
-					seed,
+					fileName[0],
+					fileName[1],
 					pass,
 					fmt.Sprintf("%f", time),
 					fmt.Sprintf("%f", jScore+tScore+oScore),
@@ -144,8 +146,8 @@ func scoreFolder(folder string) (*testResult, error) {
 				score.performances = append(score.performances, time)
 			} else {
 				w.Write([]string{
-					sceneNum,
-					seed,
+					fileName[0],
+					fileName[1],
 					pass,
 					fmt.Sprintf("%f", -1.),
 					fmt.Sprintf("%f", -1.),
@@ -169,28 +171,28 @@ func compareResults(baseline, modification *testResult) error {
 
 	var builder strings.Builder
 
-	builder.WriteString(fmt.Sprintf("##Availability\n| Scene | %s | %s | Percent Improvement | Health | \n",
+	builder.WriteString(fmt.Sprintf("##Availability\n| Scene # | %s | %s | Percent Improvement | Health | \n",
 		baseline.name,
 		modification.name),
 	)
-	for name := range allScenes {
-		builder.WriteString(tableEntryInt(name, baseline.score[name].successes, modification.score[name].successes))
+	for i := 1; i <= len(allScenes); i++ {
+		builder.WriteString(tableEntryInt(i, baseline.score[i].successes, modification.score[i].successes))
 	}
 
-	builder.WriteString(fmt.Sprintf("\n##Quality\n| Scene | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
+	builder.WriteString(fmt.Sprintf("\n##Quality\n| Scene # | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
 		baseline.name,
 		modification.name),
 	)
-	for name := range allScenes {
-		builder.WriteString(tableEntryFloats(name, baseline.score[name].qualities, modification.score[name].qualities))
+	for i := 1; i <= len(allScenes); i++ {
+		builder.WriteString(tableEntryFloats(i, baseline.score[i].qualities, modification.score[i].qualities))
 	}
 
-	builder.WriteString(fmt.Sprintf("\n##Performance\n| Scene | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
+	builder.WriteString(fmt.Sprintf("\n##Performance\n| Scene # | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
 		baseline.name,
 		modification.name),
 	)
-	for name := range allScenes {
-		builder.WriteString(tableEntryFloats(name, baseline.score[name].performances, modification.score[name].performances))
+	for i := 1; i <= len(allScenes); i++ {
+		builder.WriteString(tableEntryFloats(i, baseline.score[i].performances, modification.score[i].performances))
 	}
 
 	builder.WriteString(fmt.Sprintf(
@@ -232,10 +234,10 @@ func readSolutionFromCSV(filepath string) ([][]float64, error) {
 	return solution, nil
 }
 
-func tableEntryInt(entry string, initial, final float64) string {
+func tableEntryInt(sceneNum int, initial, final float64) string {
 	delta := percentDifference(initial, final)
-	return fmt.Sprintf("| %s | %.0f%% | %.0f%% | %.0f%% | %c | \n",
-		entry,
+	return fmt.Sprintf("| %d | %.0f%% | %.0f%% | %.0f%% | %c | \n",
+		sceneNum,
 		100*initial/numTests,
 		100*final/numTests,
 		delta,
@@ -243,7 +245,7 @@ func tableEntryInt(entry string, initial, final float64) string {
 	)
 }
 
-func tableEntryFloats(entry string, initial, final stats.Float64Data) string {
+func tableEntryFloats(sceneNum int, initial, final stats.Float64Data) string {
 	// create normal distributions from initial and final float slices
 	A, AValid := normal(initial)
 	B, BValid := normal(final)
@@ -277,8 +279,8 @@ func tableEntryFloats(entry string, initial, final stats.Float64Data) string {
 	}
 
 	delta := percentDifference(A.Mu, B.Mu)
-	return fmt.Sprintf("| %s | %.2f\u00B1%.2f | %.2f\u00B1%.2f | %.0f%% | %.0f%% | %c | \n",
-		entry,
+	return fmt.Sprintf("| %d | %.2f\u00B1%.2f | %.2f\u00B1%.2f | %.0f%% | %.0f%% | %c | \n",
+		sceneNum,
 		A.Mu, A.Sigma,
 		B.Mu, B.Sigma,
 		-delta, // want to flip it so its an improvement if its less

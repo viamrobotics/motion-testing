@@ -12,10 +12,10 @@ import (
 
 const defaultEpsilon = 1e-2
 
-func evaluateSolution(solution [][]float64, scene string) (float64, float64, float64, error) {
+func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, float64, error) {
 	var l2Score, lineScore, oScore float64
 
-	if err := Init(scene); err != nil {
+	if err := Init(sceneNum); err != nil {
 		return -1, -1, -1, err
 	}
 	thisFrame := sceneFS.Frame(testArmFrame)
