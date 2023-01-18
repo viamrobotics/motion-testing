@@ -163,7 +163,7 @@ func scoreFolder(folder string) (*testResult, error) {
 }
 
 func compareResults(baseline, modification *testResult) error {
-	f, err := os.Create(filepath.Join(resultsDirectory, "comparison.md"))
+	f, err := os.Create(filepath.Join(resultsDirectory, "motion-benchmarks.md"))
 	if err != nil {
 		return err
 	}
