@@ -63,6 +63,7 @@ func L2Distance(q1, q2 []float64) float64 {
 	return floats.Norm(diff, 2)
 }
 
+// L2Distance returns the L2 normalized difference between two equal length arrays.
 func distToLine(pt1, pt2, query r3.Vector) float64 {
 	ab := pt1.Sub(pt2)
 	av := query.Sub(pt2)
