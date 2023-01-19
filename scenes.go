@@ -17,7 +17,7 @@ import (
 )
 
 var scene *config
-var sceneFS referenceframe.FrameSystem = referenceframe.NewEmptySimpleFrameSystem("test")
+var sceneFS referenceframe.FrameSystem
 var logger golog.Logger = golog.NewLogger("omplbindings")
 
 const testArmFrame = "arm"
@@ -51,6 +51,7 @@ func initScene(sceneNum int) (err error) {
 		if err != nil {
 			return
 		}
+		sceneFS = referenceframe.NewEmptySimpleFrameSystem("test")
 		sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
 		return
 	}
