@@ -22,7 +22,7 @@ const timeout = 5.0 // seconds
 
 var nameFlag = flag.String("name", "", "name of test to run")
 
-var resultsDirectory = filepath.Join("..", "results")
+var resultsDirectory = "results"
 
 func TestDefault(t *testing.T) {
 	name := *nameFlag
@@ -67,7 +67,7 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 	}
 
 	for sceneNum := range allScenes {
-		if err := Init(sceneNum); err != nil {
+		if err := initScene(sceneNum); err != nil {
 			return err
 		}
 		for i := 1; i <= numTests; i++ {

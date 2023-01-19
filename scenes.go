@@ -6,13 +6,21 @@ import (
 	"math/rand"
 	"strconv"
 
+	"github.com/edaniels/golog"
 	"github.com/golang/geo/r3"
+	"github.com/pkg/errors"
 	commonpb "go.viam.com/api/common/v1"
 	"go.viam.com/rdk/components/arm/universalrobots"
 	"go.viam.com/rdk/components/arm/xarm"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
 )
+
+var scene *config
+var sceneFS referenceframe.FrameSystem = referenceframe.NewEmptySimpleFrameSystem("test")
+var logger golog.Logger = golog.NewLogger("omplbindings")
+
+const testArmFrame = "arm"
 
 type config struct {
 	Start      []referenceframe.Input
@@ -34,6 +42,19 @@ var allScenes = map[int]func() (*config, error){
 	10: scene10,
 	11: scene11,
 	12: scene12,
+}
+
+// init takes an scene number and loads the relevant information into memory
+func initScene(sceneNum int) (err error) {
+	if sceneFn, ok := allScenes[sceneNum]; ok {
+		scene, err = sceneFn()
+		if err != nil {
+			return
+		}
+		sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
+		return
+	}
+	return errors.Errorf("scene %d does not exist", sceneNum)
 }
 
 // scene1: setup a UR5 moving along a linear path in unrestricted space
