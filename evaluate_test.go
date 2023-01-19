@@ -32,9 +32,8 @@ type testScore struct {
 const nilFolder = ""
 
 // flags used to define folders insider results folder to compare
-// TODO: make the default string nilFolder
-var baselineFlag = flag.String("baselineDir", "default", "name of test to use as a baseline")
-var modifiedFlag = flag.String("modifiedDir", "cbirrt", "name of test to compare to the baseline")
+var baselineFlag = flag.String("baselineDir", nilFolder, "name of test to use as a baseline")
+var modifiedFlag = flag.String("modifiedDir", nilFolder, "name of test to compare to the baseline")
 
 // these variables represent the lower and higher bounds (exclusive) for unacceptable and acceptable values respectively
 var percentImprovementHealthThresholds = [2]float64{0, 0}
