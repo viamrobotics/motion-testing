@@ -220,7 +220,7 @@ func readSolutionFromCSV(filepath string) ([][]float64, error) {
 
 func tableHeaderInts(name, baseline, modification string) string {
 	formatLine := "| :---: | :----: | :---: | :----: | :---: |\n"
-	return fmt.Sprintf("\n##%s\n| Scene # | %s | %s | Percent Improvement | Health | \n",
+	return fmt.Sprintf("\n## %s\n| Scene # | %s | %s | Percent Improvement | Health | \n",
 		name,
 		baseline,
 		modification,
@@ -240,7 +240,7 @@ func tableEntryInt(sceneNum int, initial, final float64) string {
 
 func tableHeaderFloats(name, baseline, modification string) string {
 	formatLine := "| :---: | :----: | :---: | :---: | :----: | :---: |\n"
-	return fmt.Sprintf("\n##%s\n| Scene # | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
+	return fmt.Sprintf("\n## %s\n| Scene # | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
 		name,
 		baseline,
 		modification,
