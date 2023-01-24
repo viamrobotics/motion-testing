@@ -12,7 +12,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.1 // indirect
 	git.sr.ht/~sbinet/gg v0.3.1 // indirect
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b // indirect
-	github.com/bep/debounce v1.2.1 // indirect
+	github.com/bep/debounce v1.2.1 // indirecta
 	github.com/campoy/embedmd v1.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
 	github.com/edaniels/lidario v0.0.0-20220607182921-5879aa7b96dd // indirect
