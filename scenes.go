@@ -284,19 +284,23 @@ func scene6() (*config, error) {
 	return cfg, err
 }
 
-// scene7: scene 4 but with a narrow interaction space
+// scene7: scene 4 but with a narrow corridor
 func scene7() (*config, error) {
 	cfg, err := scene4()
 	if err != nil {
 		return nil, err
 	}
-	ispace, err := spatialmath.NewBox(spatialmath.NewZeroPose(), r3.Vector{2000, 260, 2000}, "")
+	left_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, 140, 0}), r3.Vector{2000, 20, 2000}, "")
 	if err != nil {
 		return nil, err
 	}
-	cfg.WorldState.InteractionSpaces = append(
-		cfg.WorldState.InteractionSpaces,
-		referenceframe.NewGeometriesInFrame(referenceframe.World, map[string]spatialmath.Geometry{"": ispace}),
+	right_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, -140, 0}), r3.Vector{2000, 20, 2000}, "")
+	if err != nil {
+		return nil, err
+	}
+	cfg.WorldState.Obstacles = append(
+		cfg.WorldState.Obstacles,
+		referenceframe.NewGeometriesInFrame(referenceframe.World, map[string]spatialmath.Geometry{"l": left_wall, "r": right_wall}),
 	)
 	return cfg, nil
 }
