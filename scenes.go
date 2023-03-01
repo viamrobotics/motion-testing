@@ -23,13 +23,15 @@ var logger golog.Logger = golog.NewLogger("omplbindings")
 const testArmFrame = "arm"
 
 type config struct {
-	Start      []referenceframe.Input
-	Goal       spatialmath.Pose
-	RobotFrame referenceframe.Frame
-	WorldState *referenceframe.WorldState
+	Start            []referenceframe.Input
+	Goal             spatialmath.Pose
+	RobotFrame       referenceframe.Frame
+	EndEffectorFrame *referenceframe.Frame
+	WorldState       *referenceframe.WorldState
 }
 
 var allScenes = map[int]func() (*config, error){
+	// Basic scenes begin
 	1:  scene1,
 	2:  scene2,
 	3:  scene3,
@@ -42,9 +44,11 @@ var allScenes = map[int]func() (*config, error){
 	10: scene10,
 	11: scene11,
 	12: scene12,
+	// User scenes begin
+	13: objSearch,
 }
 
-// init takes an scene number and loads the relevant information into memory
+// initScene takes a scene number and loads the relevant information into memory
 func initScene(sceneNum int) (err error) {
 	if sceneFn, ok := allScenes[sceneNum]; ok {
 		scene, err = sceneFn()
@@ -53,35 +57,46 @@ func initScene(sceneNum int) (err error) {
 		}
 		sceneFS = referenceframe.NewEmptySimpleFrameSystem("test")
 		sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
+
+		if scene.EndEffectorFrame != nil {
+			fmt.Println("TODO: Add processing of an end effector frame for scene", sceneNum)
+		}
+
 		return
 	}
 	return errors.Errorf("scene %d does not exist", sceneNum)
 }
 
-// scene1: setup a UR5 moving along a linear path in unrestricted space
 func scene1() (*config, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
+
+	// Goal pose
 	goalPt := startPose.Point()
 	goalPt.X += 100
 	goalPt.Y += 100
+
 	return &config{
-		Start:      startInput,
-		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame: model,
-		WorldState: &referenceframe.WorldState{},
+		Start:            startInput,
+		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
+		WorldState:       &referenceframe.WorldState{},
 	}, nil
 }
 
-// scene2: setup a xArm7 to move in a straight line, adjacent to two large obstacles that should not impede the most efficient path
 func scene2() (*config, error) {
 	model, _ := xarm.Model("arm", 7)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
+
+	// Goal pose
 	goalPt := startPose.Point()
 	goalPt.X += 200
 	goalPt.Z += 100
+
+	// Obstacles
 	testPose := spatialmath.NewPose(
 		r3.Vector{X: 1., Y: -200., Z: 3.},
 		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
@@ -120,19 +135,23 @@ func scene2() (*config, error) {
 	}
 
 	return &config{
-		Start:      startInput,
-		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame: model,
-		WorldState: worldState,
+		Start:            startInput,
+		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
+		WorldState:       worldState,
 	}, nil
 }
 
-// scene3: setup a UR5 to move to the other side of an obstacle that obstructs the direct path
 func scene3() (*config, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
+
+	// Goal pose
 	goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
+
+	// Obstacles
 	testPose := spatialmath.NewPose(
 		r3.Vector{X: 0., Y: 150., Z: 0.},
 		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
@@ -161,20 +180,24 @@ func scene3() (*config, error) {
 	}
 
 	return &config{
-		Start:      startInput,
-		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame: model,
-		WorldState: worldState,
+		Start:            startInput,
+		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
+		WorldState:       worldState,
 	}, nil
 }
 
-// scene4: a xarm6 moving to the other side of an obstacle that obstructs its path
 func scene4() (*config, error) {
 	model, _ := xarm.Model("arm", 6)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
+
+	// Goal pose
 	goalPt := startPose.Point()
 	goalPt.X += 300
+
+	// Obstacles
 	testPt := startPose.Point()
 	testPt.X += 150
 	testPose := spatialmath.NewPose(testPt, startPose.Orientation())
@@ -202,20 +225,24 @@ func scene4() (*config, error) {
 	}
 
 	return &config{
-		Start:      startInput,
-		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame: model,
-		WorldState: worldState,
+		Start:            startInput,
+		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
+		WorldState:       worldState,
 	}, nil
 }
 
-// scene5: a xarm7 moving in a fairly constrained space
 func scene5() (*config, error) {
 	model, _ := xarm.Model("arm", 7)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
+
+	// Goal pose
 	goalPt := startPose.Point()
 	goalPt.X += 400
+
+	// Obstacles
 	wallPose := spatialmath.NewPoseFromPoint(r3.Vector{0, -200, 0})
 	obs1Pose := spatialmath.NewPoseFromPoint(r3.Vector{300, 0, 0})
 	obs2Pose := spatialmath.NewPoseFromPoint(r3.Vector{300, 0, 500})
@@ -260,14 +287,14 @@ func scene5() (*config, error) {
 	})
 
 	return &config{
-		Start:      startInput,
-		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame: model,
-		WorldState: worldState,
+		Start:            startInput,
+		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
+		WorldState:       worldState,
 	}, err
 }
 
-// scene6: scene 5 but with a bonus obstacle
 func scene6() (*config, error) {
 	cfg, err := scene5()
 	if err != nil {
@@ -284,7 +311,6 @@ func scene6() (*config, error) {
 	return cfg, err
 }
 
-// scene7: scene 4 but with a narrow corridor
 func scene7() (*config, error) {
 	cfg, err := scene4()
 	if err != nil {
@@ -305,7 +331,6 @@ func scene7() (*config, error) {
 	return cfg, nil
 }
 
-// scene8: scene 2 but with an orientation change for the goal
 func scene8() (*config, error) {
 	cfg, err := scene2()
 	if err != nil {
@@ -315,11 +340,12 @@ func scene8() (*config, error) {
 	return cfg, err
 }
 
-// scene9: setup a UR5 moving a big movement with 100 random obstacles
 func scene9() (*config, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
+
+	// Goal pose
 	goalPt := startPose.Point()
 	goalPt.X += 1100
 	goalPt.Y += 600
@@ -341,9 +367,10 @@ func scene9() (*config, error) {
 	}
 
 	return &config{
-		Start:      startInput,
-		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame: model,
+		Start:            startInput,
+		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
 		WorldState: &referenceframe.WorldState{Obstacles: []*referenceframe.GeometriesInFrame{
 			referenceframe.NewGeometriesInFrame(referenceframe.World, obstacles),
 		}},
@@ -351,7 +378,6 @@ func scene9() (*config, error) {
 
 }
 
-// scene10: Move a UR5 a large distance around the base
 func scene10() (*config, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi / 4, math.Pi / 2, 3 * math.Pi / 4, -math.Pi / 2, 0})
@@ -389,15 +415,16 @@ func scene10() (*config, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &config{
-		Start:      startInput,
-		Goal:       spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame: model,
-		WorldState: worldState,
+		Start:            startInput,
+		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
+		WorldState:       worldState,
 	}, nil
 }
 
-// scene 11: Get the UR5 to hit itself when this set of start and goal data is used for motion planning
 // Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
 func scene11() (*config, error) {
 	model, _ := universalrobots.Model("arm")
@@ -437,15 +464,15 @@ func scene11() (*config, error) {
 	}
 
 	return &config{
-		Start:      startInput,
-		Goal:       goalPose,
-		RobotFrame: model,
-		WorldState: worldState,
+		Start:            startInput,
+		Goal:             goalPose,
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
+		WorldState:       worldState,
 	}, nil
 }
 
-// scene12: Move a UR5 that has been tangled up with itself through the workspace across octents
-// Corresponds to move that only works with MoveJ from Rand's move set
+// Corresponds to move that only works with MoveJ from an engineering move set
 func scene12() (*config, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
@@ -484,10 +511,84 @@ func scene12() (*config, error) {
 	}
 
 	return &config{
-		Start:      startInput,
-		Goal:       goalPose,
-		RobotFrame: model,
-		WorldState: worldState,
+		Start:            startInput,
+		Goal:             goalPose,
+		RobotFrame:       model,
+		EndEffectorFrame: nil,
+		WorldState:       worldState,
+	}, nil
+}
+
+func objSearch() (*config, error) {
+	model, _ := universalrobots.Model("arm")
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	// START POSE NEEDS TO BE CONVERTED INTO JOINT POSITIONS
+
+	// End effector frame
+	vgPose := spatialmath.NewPoseFromPoint(r3.Vector{Z: 90})
+	vgBox, _ := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{Z: 75}), r3.Vector{200, 200, 200}, "")
+	vg, _ := referenceframe.NewStaticFrameWithGeometry("gripper", vgPose, vgBox)
+
+	// Goal pose
+	goalPose := spatialmath.NewPose(
+		r3.Vector{X: -600.0, Y: -400.0, Z: 60.0},
+		&spatialmath.OrientationVectorDegrees{Theta: 0, OX: 0, OY: -1, OZ: 0},
+	)
+	// HOW DO WE HANDLE MULTIPLE GOALS?
+
+	// Obstacles
+	vertWallBehindPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 350.0, Y: 0.0, Z: 500.0})
+	mountTablePose := spatialmath.NewPoseFromPoint(r3.Vector{X: 350.0, Y: 0.0, Z: -500.0})
+	userTablePose := spatialmath.NewPoseFromPoint(r3.Vector{X: -450.0, Y: 00.0, Z: -266.0})
+	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
+		Obstacles: []*commonpb.GeometriesInFrame{
+			{
+				ReferenceFrame: "world",
+				Geometries: []*commonpb.Geometry{
+					{
+						Center: spatialmath.PoseToProtobuf(vertWallBehindPose),
+						GeometryType: &commonpb.Geometry_Box{
+							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+								X: 80,
+								Y: 1000,
+								Z: 1000,
+							}},
+						},
+					},
+					{
+						Center: spatialmath.PoseToProtobuf(mountTablePose),
+						GeometryType: &commonpb.Geometry_Box{
+							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+								X: 700,
+								Y: 1000,
+								Z: 1000,
+							}},
+						},
+					},
+					{
+						Center: spatialmath.PoseToProtobuf(userTablePose),
+						GeometryType: &commonpb.Geometry_Box{
+							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+								X: 900,
+								Y: 2000,
+								Z: 100,
+							}},
+						},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &config{
+		Start:            startInput,
+		Goal:             goalPose,
+		RobotFrame:       model,
+		EndEffectorFrame: &vg,
+		WorldState:       worldState,
 	}, nil
 }
 
