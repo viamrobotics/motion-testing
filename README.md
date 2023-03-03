@@ -8,11 +8,11 @@ Separately, the capability exists to execute these tests on a local resource (su
 
 A comprehensive overview of the scenes (including their objectives, what features they demonstrate, and how they tie into user stories) is included below.
 
-## Executing `motion-testing` Tests
+## Manual Execution of Tests
 
 Note that executing these tests requires many of the same dependencies as developing against `rdk` in the first place, most notably an operational Go development environment. See the `rdk` README for details on setting up a development environment for further details.
 
-Two possible use cases of `motion-testing` will be described in this section. First, executing a single, siloed test sequence with released `rdk` software can be done to establish baseline performance at any time. Second, comparisons of local changes and their impacts (such as those made during engineering development) can be made against the performance of unmodified code in upstream respositories. Both cases require the `motion-testing` repository to be cloned locally to continue.
+Two possible use cases of `motion-testing` will be described in this section. First, executing a single test sequence with released `rdk` software can be done to establish baseline performance at any time. Second, comparisons of local changes and their impacts (such as those made during engineering development) can be made against the performance of unmodified code in upstream respositories. Both cases require the `motion-testing` repository to be cloned locally to continue.
 
 ### Single Benchmark
 
