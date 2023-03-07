@@ -279,7 +279,7 @@ func scene6() (*config, error) {
 	}
 	cfg.WorldState.Obstacles = append(
 		cfg.WorldState.Obstacles,
-		referenceframe.NewGeometriesInFrame(referenceframe.World, map[string]spatialmath.Geometry{"": obstacle}),
+		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{obstacle}),
 	)
 	return cfg, err
 }
@@ -290,17 +290,17 @@ func scene7() (*config, error) {
 	if err != nil {
 		return nil, err
 	}
-	left_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, 140, 0}), r3.Vector{2000, 20, 2000}, "")
+	left_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, 140, 0}), r3.Vector{2000, 20, 2000}, "left_wall")
 	if err != nil {
 		return nil, err
 	}
-	right_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, -140, 0}), r3.Vector{2000, 20, 2000}, "")
+	right_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, -140, 0}), r3.Vector{2000, 20, 2000}, "right_wall")
 	if err != nil {
 		return nil, err
 	}
 	cfg.WorldState.Obstacles = append(
 		cfg.WorldState.Obstacles,
-		referenceframe.NewGeometriesInFrame(referenceframe.World, map[string]spatialmath.Geometry{"l": left_wall, "r": right_wall}),
+		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{left_wall, right_wall}),
 	)
 	return cfg, nil
 }
@@ -325,7 +325,7 @@ func scene9() (*config, error) {
 	goalPt.Y += 600
 
 	rGen := rand.New(rand.NewSource(int64(1)))
-	obstacles := make(map[string]spatialmath.Geometry, 0)
+	obstacles := make([]spatialmath.Geometry, 0)
 	for i := 0; i < 100; i++ {
 		cubePose := spatialmath.NewPoseFromPoint(r3.Vector{
 			X: 2000 * (rGen.Float64() - 0.5),
@@ -337,7 +337,7 @@ func scene9() (*config, error) {
 		if err != nil {
 			return nil, err
 		}
-		obstacles[label] = cube
+		obstacles = append(obstacles, cube)
 	}
 
 	return &config{
