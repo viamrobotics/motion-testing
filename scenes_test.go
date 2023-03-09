@@ -84,14 +84,20 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
 
+	// Check the frame we are planning against, in case we have brought in a static frame for an attached end effector
+	evalFrame := testArmFrame
+	if scene.EndEffectorFrame != nil {
+		evalFrame = testEndEffectorFrame
+	}
+
 	// run planning query
 	startMap := referenceframe.StartPositions(sceneFS)
-	startMap[testArmFrame] = scene.Start
+	startMap[evalFrame] = scene.Start
 	planMap, err := motionplan.PlanMotion(
 		context.Background(),
 		logger,
 		referenceframe.NewPoseInFrame("world", scene.Goal),
-		sceneFS.Frame(testArmFrame),
+		sceneFS.Frame(evalFrame),
 		startMap,
 		sceneFS,
 		scene.WorldState,

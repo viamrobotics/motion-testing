@@ -21,6 +21,7 @@ var sceneFS referenceframe.FrameSystem
 var logger golog.Logger = golog.NewLogger("omplbindings")
 
 const testArmFrame = "arm"
+const testEndEffectorFrame = "end_effector"
 
 type config struct {
 	Start            []referenceframe.Input
@@ -59,7 +60,7 @@ func initScene(sceneNum int) (err error) {
 		sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
 
 		if scene.EndEffectorFrame != nil {
-			fmt.Println("TODO: Add processing of an end effector frame for scene", sceneNum)
+			sceneFS.AddFrame(*(scene.EndEffectorFrame), scene.RobotFrame)
 		}
 
 		return
@@ -519,22 +520,22 @@ func scene12() (*config, error) {
 	}, nil
 }
 
+// Corresponds to a user application involving unstructured visual search with an end effector
 func objSearch() (*config, error) {
 	model, _ := universalrobots.Model("arm")
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
-	// START POSE NEEDS TO BE CONVERTED INTO JOINT POSITIONS
+	// Taken from recordings of recreations at the NYC-1900 robotics lab
+	startInput := referenceframe.FloatsToInputs([]float64{0.5128, -1.9168, -2.2394, -1.8598, 1.1410, -0.9511})
 
 	// End effector frame
 	vgPose := spatialmath.NewPoseFromPoint(r3.Vector{Z: 90})
 	vgBox, _ := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{Z: 75}), r3.Vector{200, 200, 200}, "")
-	vg, _ := referenceframe.NewStaticFrameWithGeometry("gripper", vgPose, vgBox)
+	vg, _ := referenceframe.NewStaticFrameWithGeometry(testEndEffectorFrame, vgPose, vgBox)
 
 	// Goal pose
 	goalPose := spatialmath.NewPose(
 		r3.Vector{X: -600.0, Y: -400.0, Z: 60.0},
 		&spatialmath.OrientationVectorDegrees{Theta: 0, OX: 0, OY: -1, OZ: 0},
 	)
-	// HOW DO WE HANDLE MULTIPLE GOALS?
 
 	// Obstacles
 	vertWallBehindPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 350.0, Y: 0.0, Z: 500.0})

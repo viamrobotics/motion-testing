@@ -56,17 +56,21 @@ Later, named scenes represent customer-specific applications or demos that we su
 
 At this time, each scene is tightly coupled to a specific robot configuration. Future expansion is planned to decouple these elements, enabling the execution of all scenes with all major robotic arm models that Viam currently supports.
 
-| Basic Scenes | Description of Task                                                                                                      | Arm Used |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------ | -------- |
-| scene1       | Straight-line move in unrestricted space                                                                                 | UR5      |
-| scene2       | Straight-line move with large obstacles nearby                                                                           | UR5      |
-| scene3       | Reach over a short obstacle that obstructs the direct path                                                               | UR5      |
-| scene4       | Reach over a short obstacle that obstructs the direct path                                                               | xArm6    |
-| scene5       | Reach through a window with a large wall on one side                                                                     | xArm7    |
-| scene6       | Reach through a window with a large wall behind and to the side                                                          | xArm7    |
-| scene7       | Reach over a short obstacle, staying within a narrow corridor                                                            | xArm6    |
-| scene8       | Pouring motion with end effector, with large obstacles nearby                                                            | xArm7    |
-| scene9       | Large arm motion within a “forest”, numerous small obstacles in a random distribution surrounding the robot              | UR5      |
-| scene10      | Move a large distance around the robot base                                                                              | UR5      |
-| scene11      | Specific start-goal pose pairing that has been found to induce collisions when used with the built-in UR5 planning       | UR5      |
-| scene12      | Specific start-goal pose pairing that is difficult to execute with any low-level robot motion primitive other than MoveJ | UR5      |
+| Basic Scenes | Description of Task                                                                                                      | Arm + EE Used |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| scene1       | Straight-line move in unrestricted space                                                                                 | UR5 + None    |
+| scene2       | Straight-line move with large obstacles nearby                                                                           | UR5 + None    |
+| scene3       | Reach over a short obstacle that obstructs the direct path                                                               | UR5 + None    |
+| scene4       | Reach over a short obstacle that obstructs the direct path                                                               | xArm6 + None  |
+| scene5       | Reach through a window with a large wall on one side                                                                     | xArm7 + None  |
+| scene6       | Reach through a window with a large wall behind and to the side                                                          | xArm7 + None  |
+| scene7       | Reach over a short obstacle, staying within a narrow corridor                                                            | xArm6 + None  |
+| scene8       | Pouring motion with end effector, with large obstacles nearby                                                            | xArm7 + None  |
+| scene9       | Large arm motion within a “forest”, numerous small obstacles in a random distribution surrounding the robot              | UR5 + None    |
+| scene10      | Move a large distance around the robot base                                                                              | UR5 + None    |
+| scene11      | Specific start-goal pose pairing that has been found to induce collisions when used with the built-in UR5 planning       | UR5 + None    |
+| scene12      | Specific start-goal pose pairing that is difficult to execute with any low-level robot motion primitive other than MoveJ | UR5 + None    |
+
+
+| User Scenes   | Description of Task                                                                                                     | Arm + EE Used |
+| 13: objSearch | Based on a user application involving a UR5e and a Viam gripper tasked with moving to random poses in a workspace       | UR5 + VG      |
