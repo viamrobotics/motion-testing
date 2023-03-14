@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
-	go.viam.com/api v0.1.86
+	go.viam.com/api v0.1.87
 	go.viam.com/rdk v0.2.12
 )
 
@@ -32,7 +32,7 @@ require (
 	github.com/lestrrat-go/iter v1.0.1 // indirect
 	github.com/lestrrat-go/jwx v1.2.25 // indirect
 	github.com/lestrrat-go/option v1.0.0 // indirect
-	github.com/lib/pq v1.10.6 // indirect
+	github.com/lib/pq v1.10.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/pion/transport/v2 v2.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

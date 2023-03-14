@@ -18,7 +18,7 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 	if err := initScene(sceneNum); err != nil {
 		return -1, -1, -1, err
 	}
-	thisFrame := sceneFS.Frame(testArmFrame)
+	thisFrame := scene.FrameSystem.Frame(scene.FrameToPlan)
 
 	poseStart, err := thisFrame.Transform(referenceframe.FloatsToInputs(solution[0]))
 	if poseStart == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {

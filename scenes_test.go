@@ -84,22 +84,16 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
 
-	// Check the frame we are planning against, in case we have brought in a static frame for an attached end effector
-	evalFrame := testArmFrame
-	if scene.EndEffectorFrame != nil {
-		evalFrame = testEndEffectorFrame
-	}
-
 	// run planning query
-	startMap := referenceframe.StartPositions(sceneFS)
-	startMap[evalFrame] = scene.Start
+	startMap := referenceframe.StartPositions(scene.FrameSystem)
+	startMap[scene.FrameToPlan] = scene.Start
 	planMap, err := motionplan.PlanMotion(
 		context.Background(),
 		logger,
 		referenceframe.NewPoseInFrame("world", scene.Goal),
-		sceneFS.Frame(evalFrame),
+		scene.FrameSystem.Frame(scene.FrameToPlan),
 		startMap,
-		sceneFS,
+		scene.FrameSystem,
 		scene.WorldState,
 		options,
 	)
@@ -131,7 +125,7 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	defer csvFile.Close()
 
 	if success == "true" {
-		path, err := motionplan.FrameStepsFromRobotPath(testArmFrame, planMap)
+		path, err := motionplan.FrameStepsFromRobotPath(scene.FrameToPlan, planMap)
 		if err != nil {
 			return err
 		}

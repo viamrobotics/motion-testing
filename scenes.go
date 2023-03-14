@@ -16,22 +16,19 @@ import (
 	"go.viam.com/rdk/spatialmath"
 )
 
-var scene *config
-var sceneFS referenceframe.FrameSystem
-var logger golog.Logger = golog.NewLogger("omplbindings")
+var logger golog.Logger = golog.NewLogger("motion-testing")
 
-const testArmFrame = "arm"
-const testEndEffectorFrame = "end_effector"
+var scene *sceneConfig
 
-type config struct {
-	Start            []referenceframe.Input
-	Goal             spatialmath.Pose
-	RobotFrame       referenceframe.Frame
-	EndEffectorFrame *referenceframe.Frame
-	WorldState       *referenceframe.WorldState
+type sceneConfig struct {
+	Start       []referenceframe.Input
+	Goal        spatialmath.Pose
+	FrameToPlan string
+	WorldState  *referenceframe.WorldState
+	FrameSystem referenceframe.FrameSystem
 }
 
-var allScenes = map[int]func() (*config, error){
+var allScenes = map[int]func() (*sceneConfig, error){
 	// Basic scenes begin
 	1:  scene1,
 	2:  scene2,
@@ -45,8 +42,6 @@ var allScenes = map[int]func() (*config, error){
 	10: scene10,
 	11: scene11,
 	12: scene12,
-	// User scenes begin
-	13: objSearch,
 }
 
 // initScene takes a scene number and loads the relevant information into memory
@@ -56,43 +51,44 @@ func initScene(sceneNum int) (err error) {
 		if err != nil {
 			return
 		}
-		sceneFS = referenceframe.NewEmptySimpleFrameSystem("test")
-		sceneFS.AddFrame(scene.RobotFrame, sceneFS.World())
-
-		if scene.EndEffectorFrame != nil {
-			sceneFS.AddFrame(*(scene.EndEffectorFrame), scene.RobotFrame)
-		}
-
 		return
 	}
 	return errors.Errorf("scene %d does not exist", sceneNum)
 }
 
-func scene1() (*config, error) {
+func scene1() (*sceneConfig, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 100
 	goalPt.Y += 100
 
-	return &config{
-		Start:            startInput,
-		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
-		WorldState:       &referenceframe.WorldState{},
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
+		FrameToPlan: "arm",
+		WorldState:  &referenceframe.WorldState{},
+		FrameSystem: fs,
 	}, nil
 }
 
-func scene2() (*config, error) {
+func scene2() (*sceneConfig, error) {
 	model, _ := xarm.Model("arm", 7)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 200
 	goalPt.Z += 100
@@ -116,6 +112,7 @@ func scene2() (*config, error) {
 								Z: 20,
 							}},
 						},
+						Label: "floor",
 					},
 					{
 						Center: spatialmath.PoseToProtobuf(testPose),
@@ -126,6 +123,7 @@ func scene2() (*config, error) {
 								Z: 2000,
 							}},
 						},
+						Label: "wall",
 					},
 				},
 			},
@@ -135,21 +133,25 @@ func scene2() (*config, error) {
 		return nil, err
 	}
 
-	return &config{
-		Start:            startInput,
-		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
-		WorldState:       worldState,
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
+		FrameToPlan: "arm",
+		WorldState:  worldState,
+		FrameSystem: fs,
 	}, nil
 }
 
-func scene3() (*config, error) {
+func scene3() (*sceneConfig, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
 
 	// Obstacles
@@ -171,6 +173,7 @@ func scene3() (*config, error) {
 								Z: 120,
 							}},
 						},
+						Label: "blocker",
 					},
 				},
 			},
@@ -180,21 +183,25 @@ func scene3() (*config, error) {
 		return nil, err
 	}
 
-	return &config{
-		Start:            startInput,
-		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
-		WorldState:       worldState,
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
+		FrameToPlan: "arm",
+		WorldState:  worldState,
+		FrameSystem: fs,
 	}, nil
 }
 
-func scene4() (*config, error) {
+func scene4() (*sceneConfig, error) {
 	model, _ := xarm.Model("arm", 6)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 300
 
@@ -216,6 +223,7 @@ func scene4() (*config, error) {
 								Z: 60,
 							}},
 						},
+						Label: "blocker",
 					},
 				},
 			},
@@ -225,21 +233,25 @@ func scene4() (*config, error) {
 		return nil, err
 	}
 
-	return &config{
-		Start:            startInput,
-		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
-		WorldState:       worldState,
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
+		FrameToPlan: "arm",
+		WorldState:  worldState,
+		FrameSystem: fs,
 	}, nil
 }
 
-func scene5() (*config, error) {
+func scene5() (*sceneConfig, error) {
 	model, _ := xarm.Model("arm", 7)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 400
 
@@ -261,6 +273,7 @@ func scene5() (*config, error) {
 								Z: 2000,
 							}},
 						},
+						Label: "wall",
 					},
 					{
 						Center: spatialmath.PoseToProtobuf(obs1Pose),
@@ -271,6 +284,7 @@ func scene5() (*config, error) {
 								Z: 200,
 							}},
 						},
+						Label: "lower_window",
 					},
 					{
 						Center: spatialmath.PoseToProtobuf(obs2Pose),
@@ -281,27 +295,28 @@ func scene5() (*config, error) {
 								Z: 200,
 							}},
 						},
+						Label: "upper_window",
 					},
 				},
 			},
 		},
 	})
 
-	return &config{
-		Start:            startInput,
-		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
-		WorldState:       worldState,
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
+		FrameToPlan: "arm",
+		WorldState:  worldState,
+		FrameSystem: fs,
 	}, err
 }
 
-func scene6() (*config, error) {
+func scene6() (*sceneConfig, error) {
 	cfg, err := scene5()
 	if err != nil {
 		return nil, err
 	}
-	obstacle, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{-150, 0, 0}), r3.Vector{20, 2000, 2000}, "")
+	obstacle, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{-150, 0, 0}), r3.Vector{20, 2000, 2000}, "extra_obs")
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +327,7 @@ func scene6() (*config, error) {
 	return cfg, err
 }
 
-func scene7() (*config, error) {
+func scene7() (*sceneConfig, error) {
 	cfg, err := scene4()
 	if err != nil {
 		return nil, err
@@ -332,7 +347,7 @@ func scene7() (*config, error) {
 	return cfg, nil
 }
 
-func scene8() (*config, error) {
+func scene8() (*sceneConfig, error) {
 	cfg, err := scene2()
 	if err != nil {
 		return nil, err
@@ -341,12 +356,16 @@ func scene8() (*config, error) {
 	return cfg, err
 }
 
-func scene9() (*config, error) {
+func scene9() (*sceneConfig, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 1100
 	goalPt.Y += 600
@@ -367,24 +386,28 @@ func scene9() (*config, error) {
 		obstacles = append(obstacles, cube)
 	}
 
-	return &config{
-		Start:            startInput,
-		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
+		FrameToPlan: "arm",
 		WorldState: &referenceframe.WorldState{Obstacles: []*referenceframe.GeometriesInFrame{
 			referenceframe.NewGeometriesInFrame(referenceframe.World, obstacles),
 		}},
+		FrameSystem: fs,
 	}, nil
 
 }
 
-func scene10() (*config, error) {
+func scene10() (*sceneConfig, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi / 4, math.Pi / 2, 3 * math.Pi / 4, -math.Pi / 2, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 1200
 	goalPt.Y += 600
@@ -408,6 +431,7 @@ func scene10() (*config, error) {
 								Z: 2000,
 							}},
 						},
+						Label: "pillar",
 					},
 				},
 			},
@@ -417,21 +441,25 @@ func scene10() (*config, error) {
 		return nil, err
 	}
 
-	return &config{
-		Start:            startInput,
-		Goal:             spatialmath.NewPose(goalPt, startPose.Orientation()),
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
-		WorldState:       worldState,
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
+		FrameToPlan: "arm",
+		WorldState:  worldState,
+		FrameSystem: fs,
 	}, nil
 }
 
 // Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
-func scene11() (*config, error) {
+func scene11() (*sceneConfig, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPos := r3.Vector{X: -244.43, Y: -255.12, Z: 676.97}
 	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.233, Y: -1.637, Z: 1.224})
 	goalPose := spatialmath.NewPose(goalPos, goalRot)
@@ -455,6 +483,7 @@ func scene11() (*config, error) {
 								Z: 2000,
 							}},
 						},
+						Label: "pillar",
 					},
 				},
 			},
@@ -464,21 +493,25 @@ func scene11() (*config, error) {
 		return nil, err
 	}
 
-	return &config{
-		Start:            startInput,
-		Goal:             goalPose,
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
-		WorldState:       worldState,
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        goalPose,
+		FrameToPlan: "arm",
+		WorldState:  worldState,
+		FrameSystem: fs,
 	}, nil
 }
 
 // Corresponds to move that only works with MoveJ from an engineering move set
-func scene12() (*config, error) {
+func scene12() (*sceneConfig, error) {
 	model, _ := universalrobots.Model("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
 
-	// Goal pose
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs.AddFrame(model, fs.World())
+
+	// Goal specification
 	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
 	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
 	goalPose := spatialmath.NewPose(goalPos, goalRot)
@@ -502,6 +535,7 @@ func scene12() (*config, error) {
 								Z: 2000,
 							}},
 						},
+						Label: "pillar",
 					},
 				},
 			},
@@ -511,94 +545,99 @@ func scene12() (*config, error) {
 		return nil, err
 	}
 
-	return &config{
-		Start:            startInput,
-		Goal:             goalPose,
-		RobotFrame:       model,
-		EndEffectorFrame: nil,
-		WorldState:       worldState,
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        goalPose,
+		FrameToPlan: "arm",
+		WorldState:  worldState,
+		FrameSystem: fs,
 	}, nil
 }
 
-// Corresponds to a user application involving unstructured visual search with an end effector
-func objSearch() (*config, error) {
-	model, _ := universalrobots.Model("arm")
-	// Taken from recordings of recreations at the NYC-1900 robotics lab
-	startInput := referenceframe.FloatsToInputs([]float64{0.5128, -1.9168, -2.2394, -1.8598, 1.1410, -0.9511})
-
-	// End effector frame
-	vgPose := spatialmath.NewPoseFromPoint(r3.Vector{Z: 90})
-	vgBox, _ := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{Z: 75}), r3.Vector{200, 200, 200}, "")
-	vg, _ := referenceframe.NewStaticFrameWithGeometry(testEndEffectorFrame, vgPose, vgBox)
-
-	// Goal pose
-	goalPose := spatialmath.NewPose(
-		r3.Vector{X: -600.0, Y: -400.0, Z: 60.0},
-		&spatialmath.OrientationVectorDegrees{Theta: 0, OX: 0, OY: -1, OZ: 0},
-	)
-
-	// Obstacles
-	vertWallBehindPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 350.0, Y: 0.0, Z: 500.0})
-	mountTablePose := spatialmath.NewPoseFromPoint(r3.Vector{X: 350.0, Y: 0.0, Z: -500.0})
-	userTablePose := spatialmath.NewPoseFromPoint(r3.Vector{X: -450.0, Y: 00.0, Z: -266.0})
-	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
-		Obstacles: []*commonpb.GeometriesInFrame{
-			{
-				ReferenceFrame: "world",
-				Geometries: []*commonpb.Geometry{
-					{
-						Center: spatialmath.PoseToProtobuf(vertWallBehindPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 80,
-								Y: 1000,
-								Z: 1000,
-							}},
-						},
-					},
-					{
-						Center: spatialmath.PoseToProtobuf(mountTablePose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 700,
-								Y: 1000,
-								Z: 1000,
-							}},
-						},
-					},
-					{
-						Center: spatialmath.PoseToProtobuf(userTablePose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 900,
-								Y: 2000,
-								Z: 100,
-							}},
-						},
-					},
-				},
-			},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &config{
-		Start:            startInput,
-		Goal:             goalPose,
-		RobotFrame:       model,
-		EndEffectorFrame: &vg,
-		WorldState:       worldState,
-	}, nil
-}
+//// Corresponds to a user application involving unstructured visual search with an end effector
+//func objSearch() (*sceneConfig, error) {
+//	model, _ := universalrobots.Model("arm")
+//	// Taken from recordings of recreations at the NYC-1900 robotics lab
+//	startInput := referenceframe.FloatsToInputs([]float64{0.5128, -1.9168, -2.2394, -1.8598, 1.1410, -0.9511})
+//
+//	// End effector frame
+//	vgPose := spatialmath.NewPoseFromPoint(r3.Vector{Z: 90})
+//	vgBox, _ := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{Z: 75}), r3.Vector{200, 200, 200}, "")
+//	vg, _ := referenceframe.NewStaticFrameWithGeometry("end_effector", vgPose, vgBox)
+//
+//	// Add frame system and needed frames
+//	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+//	fs.AddFrame(model, fs.World())
+//	fs.AddFrame(vg, model)
+//
+//	// Goal specification
+//	goalPose := spatialmath.NewPose(
+//		r3.Vector{X: -600.0, Y: -400.0, Z: 60.0},
+//		&spatialmath.OrientationVectorDegrees{Theta: 0, OX: 0, OY: -1, OZ: 0},
+//	)
+//
+//	// Obstacles
+//	vertWallBehindPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 350.0, Y: 0.0, Z: 500.0})
+//	mountTablePose := spatialmath.NewPoseFromPoint(r3.Vector{X: 350.0, Y: 0.0, Z: -500.0})
+//	userTablePose := spatialmath.NewPoseFromPoint(r3.Vector{X: -450.0, Y: 00.0, Z: -266.0})
+//	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
+//		Obstacles: []*commonpb.GeometriesInFrame{
+//			{
+//				ReferenceFrame: "world",
+//				Geometries: []*commonpb.Geometry{
+//					{
+//						Center: spatialmath.PoseToProtobuf(vertWallBehindPose),
+//						GeometryType: &commonpb.Geometry_Box{
+//							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+//								X: 80,
+//								Y: 1000,
+//								Z: 1000,
+//							}},
+//						},
+//					},
+//					{
+//						Center: spatialmath.PoseToProtobuf(mountTablePose),
+//						GeometryType: &commonpb.Geometry_Box{
+//							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+//								X: 700,
+//								Y: 1000,
+//								Z: 1000,
+//							}},
+//						},
+//					},
+//					{
+//						Center: spatialmath.PoseToProtobuf(userTablePose),
+//						GeometryType: &commonpb.Geometry_Box{
+//							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+//								X: 900,
+//								Y: 2000,
+//								Z: 100,
+//							}},
+//						},
+//					},
+//				},
+//			},
+//		},
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return &sceneConfig{
+//		Start:       startInput,
+//		Goal:        goalPose,
+//		FrameToPlan: "end_effector",
+//		WorldState:  worldState,
+//		FrameSystem: fs,
+//	}, nil
+//}
 
 func calcPose(pos []float64) spatialmath.Pose {
 	positions := map[string][]referenceframe.Input{}
 	inputs := referenceframe.FloatsToInputs(pos)
 	positions["arm"] = inputs
 	posFrame := referenceframe.NewPoseInFrame("arm", spatialmath.NewZeroPose())
-	tf, err := sceneFS.Transform(positions, posFrame, "world")
+	tf, err := scene.FrameSystem.Transform(positions, posFrame, "world")
 	if err != nil {
 		fmt.Println(err)
 		return nil
