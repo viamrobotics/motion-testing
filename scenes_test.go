@@ -7,8 +7,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -78,6 +80,28 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 			}
 		}
 	}
+
+	// Create SHA-containing file for this execution in the output folder
+	hashFile, err := os.Create(filepath.Join(outputFolder, "hash"))
+	if err != nil {
+		return err
+	}
+	defer hashFile.Close()
+	//nolint:gosec
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		if len(out) != 0 {
+			return fmt.Errorf("error running git rev-parse HEAD")
+		}
+		return err
+	}
+	hash := strings.TrimSpace(string(out))
+	_, err = hashFile.WriteString(hash)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
