@@ -82,22 +82,7 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 	}
 
 	// Create SHA-containing file for this execution in the output folder
-	hashFile, err := os.Create(filepath.Join(outputFolder, "hash"))
-	if err != nil {
-		return err
-	}
-	defer hashFile.Close()
-	//nolint:gosec
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		if len(out) != 0 {
-			return fmt.Errorf("error running git rev-parse HEAD")
-		}
-		return err
-	}
-	hash := strings.TrimSpace(string(out))
-	_, err = hashFile.WriteString(hash)
+	err := generateHashFile(outputFolder)
 	if err != nil {
 		return err
 	}
@@ -163,5 +148,31 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 			w.Write(stepStr)
 		}
 	}
+	return nil
+}
+
+func generateHashFile(folder string) error {
+	hashFile, err := os.Create(filepath.Join(folder, "hash"))
+	if err != nil {
+		return err
+	}
+	defer hashFile.Close()
+
+	//nolint:gosec
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		if len(out) != 0 {
+			return fmt.Errorf("error running git rev-parse HEAD")
+		}
+		return err
+	}
+
+	hash := strings.TrimSpace(string(out))
+	_, err = hashFile.WriteString(hash)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
