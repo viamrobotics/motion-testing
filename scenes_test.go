@@ -7,8 +7,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -78,6 +80,13 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 			}
 		}
 	}
+
+	// Create SHA-containing file for this execution in the output folder
+	err := generateHashFile(outputFolder)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -85,15 +94,15 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
 
 	// run planning query
-	startMap := referenceframe.StartPositions(sceneFS)
-	startMap[testArmFrame] = scene.Start
+	startMap := referenceframe.StartPositions(scene.FrameSystem)
+	startMap[scene.FrameToPlan] = scene.Start
 	planMap, err := motionplan.PlanMotion(
 		context.Background(),
 		logger,
 		referenceframe.NewPoseInFrame("world", scene.Goal),
-		sceneFS.Frame(testArmFrame),
+		scene.FrameSystem.Frame(scene.FrameToPlan),
 		startMap,
-		sceneFS,
+		scene.FrameSystem,
 		scene.WorldState,
 		options,
 	)
@@ -125,7 +134,7 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	defer csvFile.Close()
 
 	if success == "true" {
-		path, err := motionplan.FrameStepsFromRobotPath(testArmFrame, planMap)
+		path, err := motionplan.FrameStepsFromRobotPath(scene.FrameToPlan, planMap)
 		if err != nil {
 			return err
 		}
@@ -139,5 +148,31 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 			w.Write(stepStr)
 		}
 	}
+	return nil
+}
+
+func generateHashFile(folder string) error {
+	hashFile, err := os.Create(filepath.Join(folder, "hash"))
+	if err != nil {
+		return err
+	}
+	defer hashFile.Close()
+
+	//nolint:gosec
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		if len(out) != 0 {
+			return fmt.Errorf("error running git rev-parse HEAD")
+		}
+		return err
+	}
+
+	hash := strings.TrimSpace(string(out))
+	_, err = hashFile.WriteString(hash)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
