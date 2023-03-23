@@ -104,6 +104,7 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 		startMap,
 		scene.FrameSystem,
 		scene.WorldState,
+		nil,
 		options,
 	)
 
