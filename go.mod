@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
-	go.viam.com/api v0.1.94
-	go.viam.com/rdk v0.2.27
+	go.viam.com/api v0.1.105
+	go.viam.com/rdk v0.2.33
 )
 
 require (
@@ -22,7 +22,7 @@ require (
 	github.com/go-fonts/liberation v0.3.0 // indirect
 	github.com/go-latex/latex v0.0.0-20230307184459-12ec69307ad9 // indirect
 	github.com/go-pdf/fpdf v0.6.0 // indirect
-	github.com/goccy/go-json v0.10.0 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/gonuts/binary v0.2.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/pion/transport/v2 v2.0.2 // indirect
 	github.com/pion/udp/v2 v2.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/zitadel/oidc v1.13.2 // indirect
+	github.com/zitadel/oidc v1.13.4 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go-hep.org/x/hep v0.32.1 // indirect
 	gonum.org/v1/plot v0.12.0 // indirect
@@ -49,9 +49,9 @@ require (
 
 require (
 	cloud.google.com/go v0.110.0 // indirect
-	cloud.google.com/go/compute v1.18.0 // indirect
-	cloud.google.com/go/iam v0.12.0 // indirect
-	cloud.google.com/go/storage v1.29.0 // indirect
+	cloud.google.com/go/compute v1.19.0 // indirect
+	cloud.google.com/go/iam v0.13.0 // indirect
+	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/a8m/envsubst v1.4.2 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
@@ -69,16 +69,16 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
-	github.com/googleapis/gax-go/v2 v2.7.1 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.4.6 // indirect
 	github.com/jhump/protoreflect v1.15.1 // indirect
-	github.com/klauspost/compress v1.16.0 // indirect
+	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.2 // indirect
-	github.com/miekg/dns v1.1.51 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/miekg/dns v1.1.52 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
@@ -115,9 +115,9 @@ require (
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2
-	go.viam.com/utils v0.1.17-0.20230320131150-fc1f54523dac // indirect
+	go.viam.com/utils v0.1.18-0.20230327140716-bfeb34d89117 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20230307190834-24139beb5833 // indirect
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
 	golang.org/x/image v0.6.0 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
@@ -128,11 +128,11 @@ require (
 	golang.org/x/tools v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gonum.org/v1/gonum v0.12.0
-	google.golang.org/api v0.112.0 // indirect
+	google.golang.org/api v0.114.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
-	google.golang.org/grpc v1.53.0 // indirect
-	google.golang.org/protobuf v1.29.0 // indirect
+	google.golang.org/genproto v0.0.0-20230322174352-cde4c949918d // indirect
+	google.golang.org/grpc v1.54.0 // indirect
+	google.golang.org/protobuf v1.30.0 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
 
