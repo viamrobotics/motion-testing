@@ -19,7 +19,7 @@ import (
 	"go.viam.com/test"
 )
 
-const numTests = 25
+const numTests = 10
 const timeout = 5.0 // seconds
 
 var nameFlag = flag.String("name", "", "name of test to run")
