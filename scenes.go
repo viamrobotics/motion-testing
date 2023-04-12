@@ -80,7 +80,7 @@ func scene1() (*sceneConfig, error) {
 }
 
 func scene2() (*sceneConfig, error) {
-	model, _ := xarm.Model("arm", 7)
+	model, _ := xarm.Model("arm", xarm.ModelName7DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -193,7 +193,7 @@ func scene3() (*sceneConfig, error) {
 }
 
 func scene4() (*sceneConfig, error) {
-	model, _ := xarm.Model("arm", 6)
+	model, _ := xarm.Model("arm", xarm.ModelName6DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -243,7 +243,7 @@ func scene4() (*sceneConfig, error) {
 }
 
 func scene5() (*sceneConfig, error) {
-	model, _ := xarm.Model("arm", 7)
+	model, _ := xarm.Model("arm", xarm.ModelName7DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
