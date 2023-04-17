@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
-	go.viam.com/api v0.1.106
-	go.viam.com/rdk v0.2.33
+	go.viam.com/api v0.1.109
+	go.viam.com/rdk v0.2.34-0.20230412215513-10be1add35e8
 )
 
 require (
