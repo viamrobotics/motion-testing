@@ -57,7 +57,7 @@ func initScene(sceneNum int) (err error) {
 }
 
 func scene1() (*sceneConfig, error) {
-	model, _ := universalrobots.Model("arm")
+	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -80,7 +80,7 @@ func scene1() (*sceneConfig, error) {
 }
 
 func scene2() (*sceneConfig, error) {
-	model, _ := xarm.Model("arm", xarm.ModelName7DOF)
+	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName7DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -143,7 +143,7 @@ func scene2() (*sceneConfig, error) {
 }
 
 func scene3() (*sceneConfig, error) {
-	model, _ := universalrobots.Model("arm")
+	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -193,7 +193,7 @@ func scene3() (*sceneConfig, error) {
 }
 
 func scene4() (*sceneConfig, error) {
-	model, _ := xarm.Model("arm", xarm.ModelName6DOF)
+	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName6DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -243,7 +243,7 @@ func scene4() (*sceneConfig, error) {
 }
 
 func scene5() (*sceneConfig, error) {
-	model, _ := xarm.Model("arm", xarm.ModelName7DOF)
+	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName7DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -357,7 +357,7 @@ func scene8() (*sceneConfig, error) {
 }
 
 func scene9() (*sceneConfig, error) {
-	model, _ := universalrobots.Model("arm")
+	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -399,7 +399,7 @@ func scene9() (*sceneConfig, error) {
 }
 
 func scene10() (*sceneConfig, error) {
-	model, _ := universalrobots.Model("arm")
+	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi / 4, math.Pi / 2, 3 * math.Pi / 4, -math.Pi / 2, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -452,7 +452,7 @@ func scene10() (*sceneConfig, error) {
 
 // Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
 func scene11() (*sceneConfig, error) {
-	model, _ := universalrobots.Model("arm")
+	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
 
 	// Add frame system and needed frames
@@ -504,7 +504,7 @@ func scene11() (*sceneConfig, error) {
 
 // Corresponds to move that only works with MoveJ from an engineering move set
 func scene12() (*sceneConfig, error) {
-	model, _ := universalrobots.Model("arm")
+	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
 
 	// Add frame system and needed frames

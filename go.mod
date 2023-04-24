@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
-	go.viam.com/api v0.1.109
+	go.viam.com/api v0.1.115
 	go.viam.com/rdk v0.2.34-0.20230412215513-10be1add35e8
 )
 
@@ -36,7 +36,7 @@ require (
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/pion/transport/v2 v2.0.2 // indirect
+	github.com/pion/transport/v2 v2.1.0 // indirect
 	github.com/pion/udp/v2 v2.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/zitadel/oidc v1.13.4 // indirect
@@ -85,7 +85,7 @@ require (
 	github.com/montanaflynn/stats v0.7.0
 	github.com/pion/datachannel v1.5.5 // indirect
 	github.com/pion/dtls/v2 v2.2.6 // indirect
-	github.com/pion/ice/v2 v2.3.1 // indirect
+	github.com/pion/ice/v2 v2.3.2 // indirect
 	github.com/pion/interceptor v0.1.12 // indirect
 	github.com/pion/logging v0.2.2 // indirect
 	github.com/pion/mdns v0.0.7 // indirect
@@ -97,7 +97,7 @@ require (
 	github.com/pion/srtp/v2 v2.0.12 // indirect
 	github.com/pion/stun v0.4.0 // indirect
 	github.com/pion/turn/v2 v2.1.0 // indirect
-	github.com/pion/webrtc/v3 v3.1.58 // indirect
+	github.com/pion/webrtc/v3 v3.1.59 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rs/cors v1.8.3 // indirect
@@ -115,16 +115,16 @@ require (
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2
-	go.viam.com/utils v0.1.18-0.20230327140716-bfeb34d89117 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
+	go.viam.com/utils v0.1.20-0.20230424163529-ce35a14fc60f // indirect
+	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
-	golang.org/x/image v0.6.0 // indirect
+	golang.org/x/image v0.7.0 // indirect
 	golang.org/x/mod v0.9.0 // indirect
-	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/oauth2 v0.6.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gonum.org/v1/gonum v0.12.0
