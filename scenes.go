@@ -316,14 +316,30 @@ func scene6() (*sceneConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	newGeometries := make([]*referenceframe.GeometriesInFrame, 0)
+	oldWorld, err := cfg.WorldState.ToProtobuf()
+	for _, protoGeometries := range oldWorld.GetObstacles() {
+		oldGeometries, err := referenceframe.ProtobufToGeometriesInFrame(protoGeometries)
+		if err != nil {
+			return nil, err
+		}
+		newGeometries = append(newGeometries, oldGeometries)
+	}
+
 	obstacle, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{-150, 0, 0}), r3.Vector{20, 2000, 2000}, "extra_obs")
 	if err != nil {
 		return nil, err
 	}
-	cfg.WorldState.Obstacles = append(
-		cfg.WorldState.Obstacles,
-		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{obstacle}),
-	)
+	obstaclesInFrame := referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{obstacle})
+	newGeometries = append(newGeometries, obstaclesInFrame)
+
+	newWorldState, err := referenceframe.NewWorldState(newGeometries, nil)
+	if err != nil {
+		return nil, err
+	}
+	cfg.WorldState = newWorldState
+
 	return cfg, err
 }
 
@@ -332,6 +348,17 @@ func scene7() (*sceneConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	newGeometries := make([]*referenceframe.GeometriesInFrame, 0)
+	oldWorld, err := cfg.WorldState.ToProtobuf()
+	for _, protoGeometries := range oldWorld.GetObstacles() {
+		oldGeometries, err := referenceframe.ProtobufToGeometriesInFrame(protoGeometries)
+		if err != nil {
+			return nil, err
+		}
+		newGeometries = append(newGeometries, oldGeometries)
+	}
+
 	left_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, 140, 0}), r3.Vector{2000, 20, 2000}, "left_wall")
 	if err != nil {
 		return nil, err
@@ -340,11 +367,16 @@ func scene7() (*sceneConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.WorldState.Obstacles = append(
-		cfg.WorldState.Obstacles,
-		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{left_wall, right_wall}),
-	)
-	return cfg, nil
+	obstaclesInFrame := referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{left_wall, right_wall})
+	newGeometries = append(newGeometries, obstaclesInFrame)
+
+	newWorldState, err := referenceframe.NewWorldState(newGeometries, nil)
+	if err != nil {
+		return nil, err
+	}
+	cfg.WorldState = newWorldState
+
+	return cfg, err
 }
 
 func scene8() (*sceneConfig, error) {
@@ -386,13 +418,17 @@ func scene9() (*sceneConfig, error) {
 		obstacles = append(obstacles, cube)
 	}
 
+	obstaclesInFrame := referenceframe.NewGeometriesInFrame(referenceframe.World, obstacles)
+	worldState, err := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{obstaclesInFrame}, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	return &sceneConfig{
 		Start:       startInput,
 		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
 		FrameToPlan: "arm",
-		WorldState: &referenceframe.WorldState{Obstacles: []*referenceframe.GeometriesInFrame{
-			referenceframe.NewGeometriesInFrame(referenceframe.World, obstacles),
-		}},
+		WorldState:  worldState,
 		FrameSystem: fs,
 	}, nil
 
