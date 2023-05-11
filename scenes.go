@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"strconv"
@@ -62,7 +61,7 @@ func scene1() (*sceneConfig, error) {
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -85,7 +84,7 @@ func scene2() (*sceneConfig, error) {
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -148,7 +147,7 @@ func scene3() (*sceneConfig, error) {
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -198,7 +197,7 @@ func scene4() (*sceneConfig, error) {
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -248,7 +247,7 @@ func scene5() (*sceneConfig, error) {
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -394,7 +393,7 @@ func scene9() (*sceneConfig, error) {
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -440,7 +439,7 @@ func scene10() (*sceneConfig, error) {
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -492,7 +491,7 @@ func scene11() (*sceneConfig, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -544,7 +543,7 @@ func scene12() (*sceneConfig, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
 
 	// Add frame system and needed frames
-	fs := referenceframe.NewEmptySimpleFrameSystem("test")
+	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
 	// Goal specification
@@ -588,18 +587,4 @@ func scene12() (*sceneConfig, error) {
 		WorldState:  worldState,
 		FrameSystem: fs,
 	}, nil
-}
-
-func calcPose(pos []float64) spatialmath.Pose {
-	positions := map[string][]referenceframe.Input{}
-	inputs := referenceframe.FloatsToInputs(pos)
-	positions["arm"] = inputs
-	posFrame := referenceframe.NewPoseInFrame("arm", spatialmath.NewZeroPose())
-	tf, err := scene.FrameSystem.Transform(positions, posFrame, "world")
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	pose, _ := tf.(*referenceframe.PoseInFrame)
-	return pose.Pose()
 }

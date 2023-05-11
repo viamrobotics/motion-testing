@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
 	go.viam.com/api v0.1.118
-	go.viam.com/rdk v0.2.34-0.20230412215513-10be1add35e8
+	go.viam.com/rdk v0.2.39-0.20230511123910-3c9e5cf164de
 )
 
 require (
@@ -115,7 +115,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2
-	go.viam.com/utils v0.1.26 // indirect
+	go.viam.com/utils v0.1.31 // indirect
 	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
 	golang.org/x/image v0.7.0 // indirect
@@ -135,5 +135,3 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
-
-replace go.viam.com/rdk => ../rdk
