@@ -41,6 +41,12 @@ var allScenes = map[int]func() (*sceneConfig, error){
 	10: scene10,
 	11: scene11,
 	12: scene12,
+	13: scene13,
+	14: scene14,
+	15: scene15,
+	16: scene16,
+	17: scene17,
+	18: scene18,
 }
 
 // initScene takes a scene number and loads the relevant information into memory

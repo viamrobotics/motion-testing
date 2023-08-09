@@ -1,0 +1,129 @@
+package main
+
+import (
+	"bytes"
+	"context"
+	"os"
+	"path/filepath"
+
+	"github.com/golang/geo/r3"
+	"go.viam.com/rdk/components/base"
+	"go.viam.com/rdk/components/base/fake"
+	"go.viam.com/rdk/components/base/kinematicbase"
+	"go.viam.com/rdk/pointcloud"
+	"go.viam.com/rdk/referenceframe"
+	"go.viam.com/rdk/resource"
+	"go.viam.com/rdk/services/motion"
+	"go.viam.com/rdk/services/slam"
+	"go.viam.com/rdk/spatialmath"
+	"go.viam.com/rdk/testutils/inject"
+	"go.viam.com/utils"
+	"go.viam.com/utils/artifact"
+)
+
+func getPointCloudMap(path string) (func() ([]byte, error), error) {
+	const chunkSizeBytes = 1 * 1024 * 1024
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	chunk := make([]byte, chunkSizeBytes)
+	f := func() ([]byte, error) {
+		bytesRead, err := file.Read(chunk)
+		if err != nil {
+			defer utils.UncheckedErrorFunc(file.Close)
+			return nil, err
+		}
+		return chunk[:bytesRead], err
+	}
+	return f, nil
+}
+
+func createBaseSceneConfig(startInput []referenceframe.Input, goalPose spatialmath.Pose) (*sceneConfig, error) {
+	injectSlam := inject.NewSLAMService("test_slam")
+	injectSlam.GetPointCloudMapFunc = func(ctx context.Context) (func() ([]byte, error), error) {
+		return getPointCloudMap(filepath.Clean(artifact.MustPath("pointcloud/octagonspace.pcd")))
+	}
+	injectSlam.GetPositionFunc = func(ctx context.Context) (spatialmath.Pose, string, error) {
+		return spatialmath.NewZeroPose(), "", nil
+	}
+
+	limits, _ := slam.GetLimits(context.Background(), injectSlam)
+
+	// create fake base
+	baseCfg := resource.Config{
+		Name:  "test-base",
+		API:   base.API,
+		Frame: &referenceframe.LinkConfig{Geometry: &spatialmath.GeometryConfig{R: 20}},
+	}
+	fakeBase, _ := fake.NewBase(context.Background(), nil, baseCfg, logger)
+	kb, _ := kinematicbase.WrapWithFakeKinematics(
+		context.Background(),
+		fakeBase.(*fake.Base),
+		motion.NewSLAMLocalizer(injectSlam),
+		limits,
+		kinematicbase.NewKinematicBaseOptions(),
+	)
+
+	// Add frame system and needed frames
+	fs := referenceframe.NewEmptyFrameSystem("test")
+	fs.AddFrame(kb.Kinematics(), fs.World())
+
+	// get point cloud data in the form of bytes from pcd
+	pointCloudData, _ := slam.GetPointCloudMapFull(context.Background(), injectSlam)
+	// store slam point cloud data  in the form of a recursive octree for collision checking
+	octree, _ := pointcloud.ReadPCDToBasicOctree(bytes.NewReader(pointCloudData))
+	worldState, _ := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{
+		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{octree}),
+	}, nil)
+
+	return &sceneConfig{
+		Start:       startInput,
+		Goal:        goalPose,
+		FrameToPlan: "base",
+		WorldState:  worldState,
+		FrameSystem: fs,
+	}, nil
+}
+
+// octagon straight path
+func scene13() (*sceneConfig, error) {
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
+	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 0.277 * 1000, Y: 0.593 * 1000})
+	return createBaseSceneConfig(startInput, goalPose)
+}
+
+// octagon obstacle path
+func scene14() (*sceneConfig, error) {
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
+	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 1.32 * 1000, Y: 0})
+	return createBaseSceneConfig(startInput, goalPose)
+}
+
+// office straight path
+func scene15() (*sceneConfig, error) {
+	startInput := referenceframe.FloatsToInputs([]float64{-6.905, 0.623, 0})
+	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -29.164 * 1000, Y: 3.433 * 1000})
+	return createBaseSceneConfig(startInput, goalPose)
+}
+
+// office path around one corner
+func scene16() (*sceneConfig, error) {
+	startInput := referenceframe.FloatsToInputs([]float64{-19.376, 2.305, 0})
+	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -27.946 * 1000, Y: -4.406 * 1000})
+	return createBaseSceneConfig(startInput, goalPose)
+}
+
+// office path through small hallways
+func scene17() (*sceneConfig, error) {
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
+	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -5.959 * 1000, Y: -5.542 * 1000})
+	return createBaseSceneConfig(startInput, goalPose)
+}
+
+// office path across large area
+func scene18() (*sceneConfig, error) {
+	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
+	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -52.555 * 1000, Y: -27.215 * 1000})
+	return createBaseSceneConfig(startInput, goalPose)
+}
