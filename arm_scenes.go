@@ -20,7 +20,7 @@ var logger golog.Logger = golog.NewLogger("motion-testing")
 var scene *sceneConfig
 
 type sceneConfig struct {
-	Start       []referenceframe.Input
+	StartMap    map[string][]referenceframe.Input
 	Goal        spatialmath.Pose
 	FrameToPlan string
 	WorldState  *referenceframe.WorldState
@@ -70,13 +70,16 @@ func scene1() (*sceneConfig, error) {
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
+
 	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 100
 	goalPt.Y += 100
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
 		FrameToPlan: "arm",
 		WorldState:  &referenceframe.WorldState{},
@@ -92,6 +95,9 @@ func scene2() (*sceneConfig, error) {
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
+
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
 
 	// Goal specification
 	goalPt := startPose.Point()
@@ -139,7 +145,7 @@ func scene2() (*sceneConfig, error) {
 	}
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
 		FrameToPlan: "arm",
 		WorldState:  worldState,
@@ -155,6 +161,9 @@ func scene3() (*sceneConfig, error) {
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
+
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
 
 	// Goal specification
 	goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
@@ -189,7 +198,7 @@ func scene3() (*sceneConfig, error) {
 	}
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
 		FrameToPlan: "arm",
 		WorldState:  worldState,
@@ -205,6 +214,9 @@ func scene4() (*sceneConfig, error) {
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
+
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
 
 	// Goal specification
 	goalPt := startPose.Point()
@@ -239,7 +251,7 @@ func scene4() (*sceneConfig, error) {
 	}
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
 		FrameToPlan: "arm",
 		WorldState:  worldState,
@@ -255,6 +267,9 @@ func scene5() (*sceneConfig, error) {
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
+
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
 
 	// Goal specification
 	goalPt := startPose.Point()
@@ -308,7 +323,7 @@ func scene5() (*sceneConfig, error) {
 	})
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
 		FrameToPlan: "arm",
 		WorldState:  worldState,
@@ -402,6 +417,9 @@ func scene9() (*sceneConfig, error) {
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
+
 	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 1100
@@ -430,7 +448,7 @@ func scene9() (*sceneConfig, error) {
 	}
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
 		FrameToPlan: "arm",
 		WorldState:  worldState,
@@ -447,6 +465,9 @@ func scene10() (*sceneConfig, error) {
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
+
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
 
 	// Goal specification
 	goalPt := startPose.Point()
@@ -483,7 +504,7 @@ func scene10() (*sceneConfig, error) {
 	}
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
 		FrameToPlan: "arm",
 		WorldState:  worldState,
@@ -499,6 +520,9 @@ func scene11() (*sceneConfig, error) {
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
+
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
 
 	// Goal specification
 	goalPos := r3.Vector{X: -244.43, Y: -255.12, Z: 676.97}
@@ -535,7 +559,7 @@ func scene11() (*sceneConfig, error) {
 	}
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        goalPose,
 		FrameToPlan: "arm",
 		WorldState:  worldState,
@@ -551,6 +575,9 @@ func scene12() (*sceneConfig, error) {
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
+
+	startMap := referenceframe.StartPositions(fs)
+	startMap["arm"] = startInput
 
 	// Goal specification
 	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
@@ -587,7 +614,7 @@ func scene12() (*sceneConfig, error) {
 	}
 
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:    startMap,
 		Goal:        goalPose,
 		FrameToPlan: "arm",
 		WorldState:  worldState,

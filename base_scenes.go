@@ -39,10 +39,11 @@ func getPointCloudMap(path string) (func() ([]byte, error), error) {
 	return f, nil
 }
 
-func createBaseSceneConfig(startInput []referenceframe.Input, goalPose spatialmath.Pose) (*sceneConfig, error) {
+func createBaseSceneConfig(startInput []referenceframe.Input, goalPose spatialmath.Pose, artifactPath string) (*sceneConfig, error) {
 	injectSlam := inject.NewSLAMService("test_slam")
 	injectSlam.GetPointCloudMapFunc = func(ctx context.Context) (func() ([]byte, error), error) {
-		return getPointCloudMap(filepath.Clean(artifact.MustPath("pointcloud/octagonspace.pcd")))
+
+		return getPointCloudMap(filepath.Clean(artifact.MustPath(artifactPath)))
 	}
 	injectSlam.GetPositionFunc = func(ctx context.Context) (spatialmath.Pose, string, error) {
 		return spatialmath.NewZeroPose(), "", nil
@@ -52,7 +53,7 @@ func createBaseSceneConfig(startInput []referenceframe.Input, goalPose spatialma
 
 	// create fake base
 	baseCfg := resource.Config{
-		Name:  "test-base",
+		Name:  "test_base",
 		API:   base.API,
 		Frame: &referenceframe.LinkConfig{Geometry: &spatialmath.GeometryConfig{R: 20}},
 	}
@@ -77,10 +78,14 @@ func createBaseSceneConfig(startInput []referenceframe.Input, goalPose spatialma
 		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{octree}),
 	}, nil)
 
+	startMap := referenceframe.StartPositions(fs)
+	// only 2DoF for start input because base is in position-only mode by default
+	startMap["test_base"] = startInput[:2]
+
 	return &sceneConfig{
-		Start:       startInput,
+		StartMap:       startMap,
 		Goal:        goalPose,
-		FrameToPlan: "base",
+		FrameToPlan: "test_base",
 		WorldState:  worldState,
 		FrameSystem: fs,
 	}, nil
@@ -90,40 +95,40 @@ func createBaseSceneConfig(startInput []referenceframe.Input, goalPose spatialma
 func scene13() (*sceneConfig, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 0.277 * 1000, Y: 0.593 * 1000})
-	return createBaseSceneConfig(startInput, goalPose)
+	return createBaseSceneConfig(startInput, goalPose, "pointcloud/octagonspace.pcd")
 }
 
 // octagon obstacle path
 func scene14() (*sceneConfig, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 1.32 * 1000, Y: 0})
-	return createBaseSceneConfig(startInput, goalPose)
+	return createBaseSceneConfig(startInput, goalPose, "pointcloud/octagonspace.pcd")
 }
 
 // office straight path
 func scene15() (*sceneConfig, error) {
-	startInput := referenceframe.FloatsToInputs([]float64{-6.905, 0.623, 0})
+	startInput := referenceframe.FloatsToInputs([]float64{-6.905 * 1000, 0.623 * 1000, 0})
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -29.164 * 1000, Y: 3.433 * 1000})
-	return createBaseSceneConfig(startInput, goalPose)
+	return createBaseSceneConfig(startInput, goalPose, "slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd")
 }
 
 // office path around one corner
 func scene16() (*sceneConfig, error) {
-	startInput := referenceframe.FloatsToInputs([]float64{-19.376, 2.305, 0})
+	startInput := referenceframe.FloatsToInputs([]float64{-19.376 * 1000, 2.305 * 1000, 0})
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -27.946 * 1000, Y: -4.406 * 1000})
-	return createBaseSceneConfig(startInput, goalPose)
+	return createBaseSceneConfig(startInput, goalPose, "slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd")
 }
 
 // office path through small hallways
 func scene17() (*sceneConfig, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -5.959 * 1000, Y: -5.542 * 1000})
-	return createBaseSceneConfig(startInput, goalPose)
+	return createBaseSceneConfig(startInput, goalPose, "slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd")
 }
 
 // office path across large area
 func scene18() (*sceneConfig, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -52.555 * 1000, Y: -27.215 * 1000})
-	return createBaseSceneConfig(startInput, goalPose)
+	return createBaseSceneConfig(startInput, goalPose, "slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd")
 }
