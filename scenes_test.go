@@ -94,14 +94,12 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
 
 	// run planning query
-	startMap := referenceframe.StartPositions(scene.FrameSystem)
-	startMap[scene.FrameToPlan] = scene.Start
 	planMap, err := motionplan.PlanMotion(
 		context.Background(),
 		logger,
 		referenceframe.NewPoseInFrame("world", scene.Goal),
 		scene.FrameSystem.Frame(scene.FrameToPlan),
-		startMap,
+		scene.StartMap,
 		scene.FrameSystem,
 		scene.WorldState,
 		nil,

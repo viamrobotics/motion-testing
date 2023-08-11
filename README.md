@@ -48,9 +48,9 @@ Note the two directory arguments for `TestScores` and how these compare to the p
 
 By changing checked out branches in the `rdk` repository (or other repos), a developer could also benchmark multiple sets of changes against each other.
 
-## Scenes
+## Arm Scenes
 
-Basic Scenes 1-12 are derived from brainstorming sessions the Motion team participated in to get automated performance testing off the ground. These do not have any specific user in mind, but could be thought of as possible situations users might encounter during workspace setup or application development.
+Basic Arm Scenes 1-12 are derived from brainstorming sessions the Motion team participated in to get automated performance testing off the ground. These do not have any specific user in mind, but could be thought of as possible situations users might encounter during workspace setup or application development.
 
 Later, named scenes represent customer-specific applications or demos that we supported or observed. By tailoring specific scenes to these applications, we should be able to anticipate impacts to certain user applications before our users make such discoveries in production.
 
@@ -71,7 +71,20 @@ At this time, each scene is tightly coupled to a specific robot configuration. F
 | scene11      | Specific start-goal pose pairing that has been found to induce collisions when used with the built-in UR5 planning       | UR5 + None    |
 | scene12      | Specific start-goal pose pairing that is difficult to execute with any low-level robot motion primitive other than MoveJ | UR5 + None    |
 
+## Base Scenes
+
+Basic Base Scenes 13-18 cover a variety of situations where planning for a base on a SLAM map might be used. These scenes aren't specific to any type of base.
+
+| Basic Scenes | Description of Task                                                                    |
+| ------------ | ---------------------------------------------------------------------------------------|
+| scene13      | Straight-line move on a small map with no obstacles                                    |
+| scene14      | Move around an obstacle on a small map                                                 |
+| scene15      | Straight-line move on a large office map                                               |
+| scene16      | Move around one corner on a large office map                                           |
+| scene17      | Move a medium distance on a large office map with narrow hallways along the path       |
+| scene18      | Move a large distance on a large office map with many obstacles in the way             |
+
 User scenes are not executed as part of the standard battery of tests which are evaluated during typical CI tasks. These scenes should be referenced, modified, and executed separately from any of the above **Basic Scenes**. 
 
 | User Scenes   | Description of Task                                                                                                     | Arm + EE Used |
-| 13: objSearch | Based on a user application involving a UR5e and a Viam gripper tasked with moving to random poses in a workspace       | UR5 + VG      |
+| 19: objSearch | Based on a user application involving a UR5e and a Viam gripper tasked with moving to random poses in a workspace       | UR5 + VG      |
