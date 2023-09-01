@@ -20,7 +20,7 @@ var logger golog.Logger = golog.NewLogger("motion-testing")
 var scene *motionplan.PlanRequest
 
 var allScenes = map[int]func() (*motionplan.PlanRequest, error){
-	// Basic scenes begin
+	// arm scenes
 	1:  scene1,
 	2:  scene2,
 	3:  scene3,
@@ -33,6 +33,7 @@ var allScenes = map[int]func() (*motionplan.PlanRequest, error){
 	10: scene10,
 	11: scene11,
 	12: scene12,
+	// base scenes
 	13: scene13,
 	14: scene14,
 	15: scene15,
