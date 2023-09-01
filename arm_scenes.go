@@ -5,63 +5,16 @@ import (
 	"math/rand"
 	"strconv"
 
-	"github.com/edaniels/golog"
 	"github.com/golang/geo/r3"
-	"github.com/pkg/errors"
 	commonpb "go.viam.com/api/common/v1"
 	"go.viam.com/rdk/components/arm/universalrobots"
 	"go.viam.com/rdk/components/arm/xarm"
+	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
 )
 
-var logger golog.Logger = golog.NewLogger("motion-testing")
-
-var scene *sceneConfig
-
-type sceneConfig struct {
-	StartMap    map[string][]referenceframe.Input
-	Goal        spatialmath.Pose
-	FrameToPlan string
-	WorldState  *referenceframe.WorldState
-	FrameSystem referenceframe.FrameSystem
-}
-
-var allScenes = map[int]func() (*sceneConfig, error){
-	// Basic scenes begin
-	1:  scene1,
-	2:  scene2,
-	3:  scene3,
-	4:  scene4,
-	5:  scene5,
-	6:  scene6,
-	7:  scene7,
-	8:  scene8,
-	9:  scene9,
-	10: scene10,
-	11: scene11,
-	12: scene12,
-	13: scene13,
-	14: scene14,
-	15: scene15,
-	16: scene16,
-	17: scene17,
-	18: scene18,
-}
-
-// initScene takes a scene number and loads the relevant information into memory
-func initScene(sceneNum int) (err error) {
-	if sceneFn, ok := allScenes[sceneNum]; ok {
-		scene, err = sceneFn()
-		if err != nil {
-			return
-		}
-		return
-	}
-	return errors.Errorf("scene %d does not exist", sceneNum)
-}
-
-func scene1() (*sceneConfig, error) {
+func scene1() (*motionplan.PlanRequest, error) {
 	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
@@ -78,16 +31,16 @@ func scene1() (*sceneConfig, error) {
 	goalPt.X += 100
 	goalPt.Y += 100
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
-		FrameToPlan: "arm",
-		WorldState:  &referenceframe.WorldState{},
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
+		Frame:              model,
+		WorldState:         &referenceframe.WorldState{},
+		FrameSystem:        fs,
 	}, nil
 }
 
-func scene2() (*sceneConfig, error) {
+func scene2() (*motionplan.PlanRequest, error) {
 	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName7DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
@@ -144,16 +97,16 @@ func scene2() (*sceneConfig, error) {
 		return nil, err
 	}
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
-		FrameToPlan: "arm",
-		WorldState:  worldState,
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
+		Frame:              model,
+		WorldState:         worldState,
+		FrameSystem:        fs,
 	}, nil
 }
 
-func scene3() (*sceneConfig, error) {
+func scene3() (*motionplan.PlanRequest, error) {
 	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
@@ -197,16 +150,16 @@ func scene3() (*sceneConfig, error) {
 		return nil, err
 	}
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
-		FrameToPlan: "arm",
-		WorldState:  worldState,
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
+		Frame:              model,
+		WorldState:         worldState,
+		FrameSystem:        fs,
 	}, nil
 }
 
-func scene4() (*sceneConfig, error) {
+func scene4() (*motionplan.PlanRequest, error) {
 	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName6DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
@@ -250,16 +203,16 @@ func scene4() (*sceneConfig, error) {
 		return nil, err
 	}
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
-		FrameToPlan: "arm",
-		WorldState:  worldState,
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
+		Frame:              model,
+		WorldState:         worldState,
+		FrameSystem:        fs,
 	}, nil
 }
 
-func scene5() (*sceneConfig, error) {
+func scene5() (*motionplan.PlanRequest, error) {
 	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName7DOF)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
@@ -322,16 +275,16 @@ func scene5() (*sceneConfig, error) {
 		},
 	})
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
-		FrameToPlan: "arm",
-		WorldState:  worldState,
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
+		Frame:              model,
+		WorldState:         worldState,
+		FrameSystem:        fs,
 	}, err
 }
 
-func scene6() (*sceneConfig, error) {
+func scene6() (*motionplan.PlanRequest, error) {
 	cfg, err := scene5()
 	if err != nil {
 		return nil, err
@@ -363,7 +316,7 @@ func scene6() (*sceneConfig, error) {
 	return cfg, err
 }
 
-func scene7() (*sceneConfig, error) {
+func scene7() (*motionplan.PlanRequest, error) {
 	cfg, err := scene4()
 	if err != nil {
 		return nil, err
@@ -399,16 +352,16 @@ func scene7() (*sceneConfig, error) {
 	return cfg, err
 }
 
-func scene8() (*sceneConfig, error) {
+func scene8() (*motionplan.PlanRequest, error) {
 	cfg, err := scene2()
 	if err != nil {
 		return nil, err
 	}
-	cfg.Goal = spatialmath.NewPose(cfg.Goal.Point(), &spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.})
+	cfg.Goal = referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPoseFromPoint(cfg.Goal.Pose().Point()))
 	return cfg, err
 }
 
-func scene9() (*sceneConfig, error) {
+func scene9() (*motionplan.PlanRequest, error) {
 	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
@@ -447,17 +400,17 @@ func scene9() (*sceneConfig, error) {
 		return nil, err
 	}
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
-		FrameToPlan: "arm",
-		WorldState:  worldState,
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
+		Frame:              model,
+		WorldState:         worldState,
+		FrameSystem:        fs,
 	}, nil
 
 }
 
-func scene10() (*sceneConfig, error) {
+func scene10() (*motionplan.PlanRequest, error) {
 	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi / 4, math.Pi / 2, 3 * math.Pi / 4, -math.Pi / 2, 0})
 	startPose, _ := model.Transform(startInput)
@@ -503,17 +456,17 @@ func scene10() (*sceneConfig, error) {
 		return nil, err
 	}
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        spatialmath.NewPose(goalPt, startPose.Orientation()),
-		FrameToPlan: "arm",
-		WorldState:  worldState,
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
+		Frame:              model,
+		WorldState:         worldState,
+		FrameSystem:        fs,
 	}, nil
 }
 
 // Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
-func scene11() (*sceneConfig, error) {
+func scene11() (*motionplan.PlanRequest, error) {
 	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
 
@@ -558,17 +511,17 @@ func scene11() (*sceneConfig, error) {
 		return nil, err
 	}
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        goalPose,
-		FrameToPlan: "arm",
-		WorldState:  worldState,
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, goalPose),
+		Frame:              model,
+		WorldState:         worldState,
+		FrameSystem:        fs,
 	}, nil
 }
 
 // Corresponds to move that only works with MoveJ from an engineering move set
-func scene12() (*sceneConfig, error) {
+func scene12() (*motionplan.PlanRequest, error) {
 	model, _ := universalrobots.MakeModelFrame("arm")
 	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
 
@@ -613,11 +566,11 @@ func scene12() (*sceneConfig, error) {
 		return nil, err
 	}
 
-	return &sceneConfig{
-		StartMap:    startMap,
-		Goal:        goalPose,
-		FrameToPlan: "arm",
-		WorldState:  worldState,
-		FrameSystem: fs,
+	return &motionplan.PlanRequest{
+		StartConfiguration: startMap,
+		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, goalPose),
+		Frame:              model,
+		WorldState:         worldState,
+		FrameSystem:        fs,
 	}, nil
 }

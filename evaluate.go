@@ -4,7 +4,10 @@ import (
 	"math"
 	"strings"
 
+	"github.com/edaniels/golog"
 	"github.com/golang/geo/r3"
+	"github.com/pkg/errors"
+	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
 	"gonum.org/v1/gonum/floats"
@@ -12,19 +15,57 @@ import (
 
 const defaultEpsilon = 1e-2
 
+var logger golog.Logger = golog.NewLogger("motion-testing")
+
+var scene *motionplan.PlanRequest
+
+var allScenes = map[int]func() (*motionplan.PlanRequest, error){
+	// arm scenes
+	1:  scene1,
+	2:  scene2,
+	3:  scene3,
+	4:  scene4,
+	5:  scene5,
+	6:  scene6,
+	7:  scene7,
+	8:  scene8,
+	9:  scene9,
+	10: scene10,
+	11: scene11,
+	12: scene12,
+	// base scenes
+	13: scene13,
+	14: scene14,
+	15: scene15,
+	16: scene16,
+	17: scene17,
+	18: scene18,
+}
+
+// initScene takes a scene number and loads the relevant information into memory
+func initScene(sceneNum int) (err error) {
+	if sceneFn, ok := allScenes[sceneNum]; ok {
+		scene, err = sceneFn()
+		if err != nil {
+			return
+		}
+		return
+	}
+	return errors.Errorf("scene %d does not exist", sceneNum)
+}
+
 func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, float64, error) {
 	var l2Score, lineScore, oScore float64
 
 	if err := initScene(sceneNum); err != nil {
 		return -1, -1, -1, err
 	}
-	thisFrame := scene.FrameSystem.Frame(scene.FrameToPlan)
 
-	poseStart, err := thisFrame.Transform(referenceframe.FloatsToInputs(solution[0]))
+	poseStart, err := scene.Frame.Transform(referenceframe.FloatsToInputs(solution[0]))
 	if poseStart == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 		return -1, -1, -1, err
 	}
-	poseEnd, err := thisFrame.Transform(referenceframe.FloatsToInputs(solution[len(solution)-1]))
+	poseEnd, err := scene.Frame.Transform(referenceframe.FloatsToInputs(solution[len(solution)-1]))
 	if poseEnd == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 		return -1, -1, -1, err
 	}
@@ -41,7 +82,7 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 				referenceframe.FloatsToInputs(solution[i+1]),
 				float64(j)/float64(nSteps),
 			)
-			pose, err := thisFrame.Transform(step)
+			pose, err := scene.Frame.Transform(step)
 			if pose == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 				return -1, -1, -1, err
 			}

@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"go.viam.com/rdk/motionplan"
-	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/test"
 )
 
@@ -94,17 +93,9 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
 
 	// run planning query
-	planMap, err := motionplan.PlanMotion(
-		context.Background(),
-		logger,
-		referenceframe.NewPoseInFrame("world", scene.Goal),
-		scene.FrameSystem.Frame(scene.FrameToPlan),
-		scene.StartMap,
-		scene.FrameSystem,
-		scene.WorldState,
-		nil,
-		options,
-	)
+	scene.Options = options
+	scene.Logger = logger
+	plan, err := motionplan.PlanMotion(context.Background(), scene)
 
 	// parse output
 	success := "true"
@@ -133,7 +124,7 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	defer csvFile.Close()
 
 	if success == "true" {
-		path, err := motionplan.FrameStepsFromRobotPath(scene.FrameToPlan, planMap)
+		path, err := plan.GetFrameSteps(scene.Frame.Name())
 		if err != nil {
 			return err
 		}
