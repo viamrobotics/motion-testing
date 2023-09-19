@@ -69,6 +69,7 @@ func createBaseSceneConfig(
 		motion.NewSLAMLocalizer(injectSlam),
 		limits,
 		kinematicbase.NewKinematicBaseOptions(),
+		nil,
 	)
 
 	// Add frame system and needed frames
