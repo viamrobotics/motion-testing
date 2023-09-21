@@ -63,11 +63,11 @@ func createBaseSceneConfig(
 		Frame: &referenceframe.LinkConfig{Geometry: &spatialmath.GeometryConfig{R: 20}},
 	}
 	fakeBase, _ := fake.NewBase(context.Background(), nil, baseCfg, logger)
-	kb, _ := kinematicbase.WrapWithFakeKinematics(
+	kb, _ := kinematicbase.WrapWithFakePTGKinematics(
 		context.Background(),
 		fakeBase.(*fake.Base),
+		logger,
 		motion.NewSLAMLocalizer(injectSlam),
-		limits,
 		kinematicbase.NewKinematicBaseOptions(),
 		nil,
 	)
