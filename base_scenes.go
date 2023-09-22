@@ -54,8 +54,6 @@ func createBaseSceneConfig(
 		return spatialmath.NewZeroPose(), "", nil
 	}
 
-	limits, _ := slam.Limits(context.Background(), injectSlam)
-
 	// create fake base
 	baseCfg := resource.Config{
 		Name:  "test_base",
