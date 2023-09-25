@@ -83,8 +83,6 @@ func createBaseSceneConfig(
 	}, nil)
 
 	startMap := referenceframe.StartPositions(fs)
-	// only 2DoF for start input because base is in position-only mode by default
-	startMap["test_base"] = startInput[:2]
 
 	return &motionplan.PlanRequest{
 		StartConfiguration: startMap,
