@@ -4,9 +4,9 @@ import (
 	"math"
 	"strings"
 
-	"github.com/edaniels/golog"
 	"github.com/golang/geo/r3"
 	"github.com/pkg/errors"
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
@@ -15,7 +15,7 @@ import (
 
 const defaultEpsilon = 1e-2
 
-var logger golog.Logger = golog.NewLogger("motion-testing")
+var logger logging.Logger = logging.NewLogger("motion-testing")
 
 var scene *motionplan.PlanRequest
 
