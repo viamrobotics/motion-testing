@@ -65,7 +65,7 @@ func createBaseSceneConfig(
 		context.Background(),
 		fakeBase.(*fake.Base),
 		logger,
-		motion.NewSLAMLocalizer(injectSlam),
+		referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewZeroPose()),
 		kinematicbase.NewKinematicBaseOptions(),
 		nil,
 	)
