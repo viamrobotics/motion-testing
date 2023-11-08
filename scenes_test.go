@@ -68,10 +68,10 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 	}
 
 	for sceneNum := range allScenes {
-		if err := initScene(sceneNum); err != nil {
-			return err
-		}
 		for i := 1; i <= numTests; i++ {
+			if err := initScene(sceneNum); err != nil {
+				return err
+			}
 			options["rseed"] = i
 			options["timeout"] = timeout
 			if err := runPlanner(filepath.Join(outputFolder, "scene"+strconv.Itoa(sceneNum)+"_"+strconv.Itoa(i)), options); err != nil {
