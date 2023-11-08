@@ -67,6 +67,7 @@ func createBaseSceneConfig(
 		referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewZeroPose()),
 		kinematicbase.NewKinematicBaseOptions(),
 		nil,
+		5,
 	)
 
 	// Add frame system and needed frames
