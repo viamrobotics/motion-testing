@@ -69,12 +69,14 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 
 	for sceneNum := range allScenes {
 		for i := 1; i <= numTests; i++ {
+			fmt.Println("scene, iter", sceneNum, i)
 			if err := initScene(sceneNum); err != nil {
 				return err
 			}
 			options["rseed"] = i
 			options["timeout"] = timeout
 			if err := runPlanner(filepath.Join(outputFolder, "scene"+strconv.Itoa(sceneNum)+"_"+strconv.Itoa(i)), options); err != nil {
+				fmt.Println("runPlanner err", err)
 				return err
 			}
 		}
@@ -95,7 +97,9 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	// run planning query
 	scene.Options = options
 	scene.Logger = logger
+	fmt.Println("planning")
 	plan, err := motionplan.PlanMotion(context.Background(), scene)
+	fmt.Println("planned", plan, err)
 
 	// parse output
 	success := "true"
