@@ -42,6 +42,9 @@ var allScenes = map[int]func() (*motionplan.PlanRequest, error){
 	18: scene18,
 }
 
+var baseSceneStart = 13
+const ptgDistIdx = 2
+
 // initScene takes a scene number and loads the relevant information into memory
 func initScene(sceneNum int) (err error) {
 	if sceneFn, ok := allScenes[sceneNum]; ok {
@@ -55,19 +58,24 @@ func initScene(sceneNum int) (err error) {
 }
 
 func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, float64, error) {
-	var l2Score, lineScore, oScore float64
+	var l2Score, lineScore, oScore, totalLineDist float64
+	var err error
 
 	if err := initScene(sceneNum); err != nil {
 		return -1, -1, -1, err
 	}
+	var poseStart, poseEnd spatialmath.Pose
 
-	poseStart, err := scene.Frame.Transform(referenceframe.FloatsToInputs(solution[0]))
-	if poseStart == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
-		return -1, -1, -1, err
-	}
-	poseEnd, err := scene.Frame.Transform(referenceframe.FloatsToInputs(solution[len(solution)-1]))
-	if poseEnd == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
-		return -1, -1, -1, err
+	if sceneNum < baseSceneStart {
+		poseStart, err = scene.Frame.Transform(referenceframe.FloatsToInputs(solution[0]))
+		if poseStart == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
+			return -1, -1, -1, err
+		}
+		poseEnd, err = scene.Frame.Transform(referenceframe.FloatsToInputs(solution[len(solution)-1]))
+		if poseEnd == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
+			return -1, -1, -1, err
+		}
+		totalLineDist = poseStart.Point().Sub(poseEnd.Point()).Norm()
 	}
 
 	// For each step
@@ -75,23 +83,31 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 		l2Score += L2Distance(solution[i], solution[i+1])
 
 		// Check linear and orientation excursion every 2 degrees of joint movement
-		nSteps := getSteps(solution[i], solution[i+1])
-		for j := 1; j <= nSteps; j++ {
-			step := referenceframe.InterpolateInputs(
-				referenceframe.FloatsToInputs(solution[i]),
-				referenceframe.FloatsToInputs(solution[i+1]),
-				float64(j)/float64(nSteps),
-			)
-			pose, err := scene.Frame.Transform(step)
-			if pose == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
-				return -1, -1, -1, err
+		if sceneNum < baseSceneStart {
+			nSteps := getSteps(solution[i], solution[i+1])
+			for j := 1; j <= nSteps; j++ {
+				step := referenceframe.InterpolateInputs(
+					referenceframe.FloatsToInputs(solution[i]),
+					referenceframe.FloatsToInputs(solution[i+1]),
+					float64(j)/float64(nSteps),
+				)
+				pose, err := scene.Frame.Transform(step)
+				if pose == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
+					return -1, -1, -1, err
+				}
+				lineScore += distToLine(poseStart.Point(), poseEnd.Point(), pose.Point())
+				oScore += orientScore(poseStart.Orientation(), poseEnd.Orientation(), pose.Orientation())
 			}
-			lineScore += distToLine(poseStart.Point(), poseEnd.Point(), pose.Point())
-			oScore += orientScore(poseStart.Orientation(), poseEnd.Orientation(), pose.Orientation())
+		} else {
+			lineScore += solution[i][ptgDistIdx]
 		}
 	}
-	totalLineDist := poseStart.Point().Sub(poseEnd.Point()).Norm()
-	return l2Score, lineScore / totalLineDist, oScore, nil
+	
+	if totalLineDist != 0 {
+		lineScore = lineScore / totalLineDist
+	}
+	
+	return l2Score, lineScore, oScore, nil
 }
 
 // L2Distance returns the L2 normalized difference between two equal length arrays.
