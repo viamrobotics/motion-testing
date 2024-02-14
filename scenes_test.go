@@ -124,7 +124,7 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	defer csvFile.Close()
 
 	if success == "true" {
-		path, err := plan.GetFrameSteps(scene.Frame.Name())
+		path, err := plan.Trajectory().GetFrameInputs(scene.Frame.Name())
 		if err != nil {
 			return err
 		}
