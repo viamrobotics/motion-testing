@@ -45,7 +45,7 @@ func createBaseSceneConfig(
 	artifactPath string,
 ) (*motionplan.PlanRequest, error) {
 	injectSlam := inject.NewSLAMService("test_slam")
-	injectSlam.PointCloudMapFunc = func(ctx context.Context) (func() ([]byte, error), error) {
+	injectSlam.PointCloudMapFunc = func(ctx context.Context, returnEditedMap bool) (func() ([]byte, error), error) {
 
 		return getPointCloudMap(filepath.Clean(artifact.MustPath(artifactPath)))
 	}
