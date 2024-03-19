@@ -90,6 +90,7 @@ func createBaseSceneConfig(
 		Frame:              kb.Kinematics(),
 		WorldState:         worldState,
 		FrameSystem:        fs,
+		StartPose:          spatialmath.NewZeroPose(),
 	}, nil
 }
 
