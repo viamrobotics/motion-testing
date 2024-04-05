@@ -1,11 +1,13 @@
 module go.viam.com/omplbindings
 
-go 1.18
+go 1.21
+
+toolchain go1.22.2
 
 require (
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
-	go.viam.com/api v0.1.275
-	go.viam.com/rdk v0.22.1
+	go.viam.com/api v0.1.277
+	go.viam.com/rdk v0.24.1
 )
 
 require (
@@ -74,7 +76,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20231121144256-b99613f794b6 // indirect
-	goji.io v2.0.2+incompatible // indirect
 	golang.org/x/time v0.5.0 // indirect
 	gonum.org/v1/plot v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
@@ -157,7 +158,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2
-	go.viam.com/utils v0.1.69
+	go.viam.com/utils v0.1.71
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/exp v0.0.0-20240318143956-a85f2c67cd81 // indirect
 	golang.org/x/image v0.15.0 // indirect
