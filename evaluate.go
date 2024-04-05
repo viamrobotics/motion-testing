@@ -57,6 +57,14 @@ func initScene(sceneNum int) (err error) {
 	return errors.Errorf("scene %d does not exist", sceneNum)
 }
 
+func interpolateInputs(from, to []referenceframe.Input, by float64) []referenceframe.Input {
+	var newVals []referenceframe.Input
+	for i, j1 := range from {
+		newVals = append(newVals, referenceframe.Input{j1.Value + ((to[i].Value - j1.Value) * by)})
+	}
+	return newVals
+}
+
 func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, float64, error) {
 	var l2Score, lineScore, oScore, totalLineDist float64
 	var err error
@@ -86,7 +94,7 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 		if sceneNum < baseSceneStart {
 			nSteps := getSteps(solution[i], solution[i+1])
 			for j := 1; j <= nSteps; j++ {
-				step := referenceframe.InterpolateInputs(
+				step := interpolateInputs(
 					referenceframe.FloatsToInputs(solution[i]),
 					referenceframe.FloatsToInputs(solution[i+1]),
 					float64(j)/float64(nSteps),
