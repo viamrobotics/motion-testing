@@ -49,8 +49,8 @@ func createBaseSceneConfig(
 
 		return getPointCloudMap(filepath.Clean(artifact.MustPath(artifactPath)))
 	}
-	injectSlam.PositionFunc = func(ctx context.Context) (spatialmath.Pose, string, error) {
-		return spatialmath.NewZeroPose(), "", nil
+	injectSlam.PositionFunc = func(ctx context.Context) (spatialmath.Pose, error) {
+		return spatialmath.NewZeroPose(), nil
 	}
 
 	// create fake base
