@@ -51,7 +51,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	}
 
 	t.Run("is able to reach a nearby geo point with empty values", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -65,7 +65,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("is able to reach a nearby geo point with a requested NaN heading", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -80,7 +80,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("is able to reach a nearby geo point with a requested positive heading", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -95,7 +95,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("is able to reach a nearby geo point with a requested negative heading", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -110,7 +110,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("is able to reach a nearby geo point when the motion configuration is empty", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -126,7 +126,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("go around an obstacle", func(t *testing.T) {
-		localizer, ms, closeFunc := builtin.CreateMoveOnGlobeEnvironment(ctx, t, gpsPoint, nil, 5)
+		localizer, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
 		defer closeFunc(ctx)
 		planDeviationMM := 100.
 		motionCfg := &motion.MotionConfiguration{PositionPollingFreqHz: 0.0000001, LinearMPerSec: 0.2, AngularDegsPerSec: 60}
@@ -190,7 +190,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		goalInBaseFrame := spatialmath.NewPoseFromPoint(r3.Vector{X: -32.508 * 1000, Y: -2.092 * 1000})
 		goalInSLAMFrame := spatialmath.PoseBetweenInverse(motion.SLAMOrientationAdjustment, goalInBaseFrame)
 
-		kb, ms, closeFunc := builtin.CreateMoveOnMapEnvironment(
+		kb, ms, closeFunc := builtin.CreateMoveOnMapTestEnvironment(
 			ctx,
 			t,
 			"slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd",
@@ -238,7 +238,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		extraPosOnly := map[string]interface{}{"motion_profile": "position_only"}
 
 		t.Run("ensure success of movement around obstacle", func(t *testing.T) {
-			kb, ms, closeFunc := builtin.CreateMoveOnMapEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -50}))
+			kb, ms, closeFunc := builtin.CreateMoveOnMapTestEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -50}))
 			defer closeFunc(ctx)
 
 			req := motion.MoveOnMapReq{
@@ -270,7 +270,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			test.That(t, spatialmath.PoseAlmostCoincidentEps(endPos.Pose(), goalInBaseFrame, PlanDeviationMM), test.ShouldBeTrue)
 		})
 		t.Run("check that straight line path executes", func(t *testing.T) {
-			kb, ms, closeFunc := builtin.CreateMoveOnMapEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, nil)
+			kb, ms, closeFunc := builtin.CreateMoveOnMapTestEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, nil)
 			defer closeFunc(ctx)
 			easyGoalInBaseFrame := spatialmath.NewPoseFromPoint(r3.Vector{X: 0.277 * 1000, Y: 0.593 * 1000})
 			easyGoalInSLAMFrame := spatialmath.PoseBetweenInverse(motion.SLAMOrientationAdjustment, easyGoalInBaseFrame)
@@ -305,7 +305,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		})
 
 		t.Run("check that position-only mode executes", func(t *testing.T) {
-			kb, ms, closeFunc := builtin.CreateMoveOnMapEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, nil)
+			kb, ms, closeFunc := builtin.CreateMoveOnMapTestEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, nil)
 			defer closeFunc(ctx)
 
 			req := motion.MoveOnMapReq{
@@ -343,7 +343,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		})
 
 		t.Run("should fail due to map collision", func(t *testing.T) {
-			_, ms, closeFunc := builtin.CreateMoveOnMapEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -500}))
+			_, ms, closeFunc := builtin.CreateMoveOnMapTestEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -500}))
 			defer closeFunc(ctx)
 			easyGoalInBaseFrame := spatialmath.NewPoseFromPoint(r3.Vector{X: 0.277 * 1000, Y: 0.593 * 1000})
 			easyGoalInSLAMFrame := spatialmath.PoseBetweenInverse(motion.SLAMOrientationAdjustment, easyGoalInBaseFrame)
@@ -370,7 +370,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		goal2SLAMFrame := spatialmath.NewPose(r3.Vector{X: 277, Y: 593}, &spatialmath.OrientationVectorDegrees{OZ: 1, Theta: 150})
 		goal2BaseFrame := spatialmath.Compose(goal2SLAMFrame, motion.SLAMOrientationAdjustment)
 
-		kb, ms, closeFunc := builtin.CreateMoveOnMapEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, nil)
+		kb, ms, closeFunc := builtin.CreateMoveOnMapTestEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, nil)
 		defer closeFunc(ctx)
 
 		req := motion.MoveOnMapReq{
@@ -455,7 +455,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 	})
 
 	t.Run("pass when within plan dev m of goal without position_only due to theta difference in goal", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnMapEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, nil)
+		_, ms, closeFunc := builtin.CreateMoveOnMapTestEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, nil)
 		defer closeFunc(ctx)
 
 		req := motion.MoveOnMapReq{
@@ -486,7 +486,7 @@ func TestMotionExtendedAskewIMU(t *testing.T) {
 		goal1SLAMFrame := spatialmath.NewPose(r3.Vector{X: 1.32 * 1000, Y: 0}, &spatialmath.OrientationVectorDegrees{OZ: 1, Theta: 55})
 		goal1BaseFrame := spatialmath.Compose(goal1SLAMFrame, motion.SLAMOrientationAdjustment)
 
-		kb, ms, closeFunc := builtin.CreateMoveOnMapEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, spatialmath.NewPoseFromOrientation(askewOrient))
+		kb, ms, closeFunc := builtin.CreateMoveOnMapTestEnvironment(ctx, t, "pointcloud/octagonspace.pcd", 40, spatialmath.NewPoseFromOrientation(askewOrient))
 		defer closeFunc(ctx)
 
 		req := motion.MoveOnMapReq{
