@@ -43,7 +43,8 @@ var allScenes = map[int]func() (*motionplan.PlanRequest, error){
 }
 
 var baseSceneStart = 13
-const ptgDistIdx = 2
+const ptgDistStartIdx = 2
+const ptgDistEndIdx = 3
 
 // initScene takes a scene number and loads the relevant information into memory
 func initScene(sceneNum int) (err error) {
@@ -107,7 +108,7 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 				oScore += orientScore(poseStart.Orientation(), poseEnd.Orientation(), pose.Orientation())
 			}
 		} else {
-			lineScore += solution[i][ptgDistIdx]
+			lineScore += math.Abs(solution[i][ptgDistEndIdx] - solution[i][ptgDistStartIdx])
 		}
 	}
 	
