@@ -51,7 +51,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	}
 
 	t.Run("is able to reach a nearby geo point with empty values", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -65,7 +65,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("is able to reach a nearby geo point with a requested NaN heading", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -80,7 +80,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("is able to reach a nearby geo point with a requested positive heading", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -95,7 +95,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("is able to reach a nearby geo point with a requested negative heading", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -110,7 +110,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("is able to reach a nearby geo point when the motion configuration is empty", func(t *testing.T) {
-		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
+		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
 			ComponentName:      baseResource,
@@ -126,7 +126,7 @@ func TestMotionExtendedGlobe(t *testing.T) {
 	})
 
 	t.Run("go around an obstacle", func(t *testing.T) {
-		localizer, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, nil, 5)
+		localizer, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		planDeviationMM := 100.
 		motionCfg := &motion.MotionConfiguration{PositionPollingFreqHz: 0.0000001, LinearMPerSec: 0.2, AngularDegsPerSec: 60}
