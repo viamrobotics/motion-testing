@@ -6,14 +6,18 @@ import (
 	"os"
 	"path/filepath"
 
+	geo "github.com/kellydunn/golang-geo"
+
 	"github.com/golang/geo/r3"
 	"go.viam.com/rdk/components/base"
 	"go.viam.com/rdk/components/base/fake"
 	"go.viam.com/rdk/components/base/kinematicbase"
+	"go.viam.com/rdk/components/movementsensor"
 	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/pointcloud"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/resource"
+	"go.viam.com/rdk/services/motion"
 	"go.viam.com/rdk/services/slam"
 	"go.viam.com/rdk/spatialmath"
 	"go.viam.com/rdk/testutils/inject"
@@ -59,15 +63,27 @@ func createBaseSceneConfig(
 		API:   base.API,
 		Frame: &referenceframe.LinkConfig{Geometry: &spatialmath.GeometryConfig{R: 20}},
 	}
+	
+	ms := inject.NewMovementSensor("movement_sensor")
+	gpOrigin := geo.NewPoint(0, 0)
+	ms.PositionFunc = func(ctx context.Context, extra map[string]interface{}) (*geo.Point, float64, error) {
+		return gpOrigin, 0, nil
+	}
+	ms.CompassHeadingFunc = func(ctx context.Context, extra map[string]interface{}) (float64, error) {
+		return 0, nil
+	}
+	ms.PropertiesFunc = func(ctx context.Context, extra map[string]interface{}) (*movementsensor.Properties, error) {
+		return &movementsensor.Properties{CompassHeadingSupported: true}, nil
+	}
+	localizer := motion.NewMovementSensorLocalizer(ms, gpOrigin, spatialmath.NewZeroPose())
 	fakeBase, _ := fake.NewBase(context.Background(), nil, baseCfg, logger)
-	kb, _ := kinematicbase.WrapWithFakePTGKinematics(
+	kb, _ := kinematicbase.WrapWithKinematics(
 		context.Background(),
 		fakeBase.(*fake.Base),
 		logger,
-		referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewZeroPose()),
-		kinematicbase.NewKinematicBaseOptions(),
+		localizer,
 		nil,
-		5,
+		kinematicbase.NewKinematicBaseOptions(),
 	)
 
 	// Add frame system and needed frames
