@@ -180,4 +180,4 @@ require (
 	nhooyr.io/websocket v1.8.10 // indirect
 )
 
-replace go.viam.com/rdk => ../rdk
+// replace go.viam.com/rdk => ../rdk

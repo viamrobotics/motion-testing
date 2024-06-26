@@ -105,7 +105,7 @@ func scoreFolder(folder string) (*testResult, error) {
 			pass := rundata[0]
 
 			// Parse time it took to complete
-			time, err := strconv.ParseFloat(strings.TrimSpace(fileName[1]), 64)
+			time, err := strconv.ParseFloat(strings.TrimSpace(rundata[1]), 64)
 			if err != nil {
 				return nil, err
 			}
