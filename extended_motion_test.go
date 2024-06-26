@@ -461,7 +461,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		req := motion.MoveOnMapReq{
 			ComponentName: base.Named("test-base"),
 			MotionCfg: motionCfg,
-			Destination:   spatialmath.NewZeroPose(),
+			Destination:   spatialmath.NewPoseFromOrientation(&spatialmath.OrientationVectorDegrees{OZ: 1, Theta: 150}),
 			SlamName:      slam.Named("test_slam"),
 		}
 
