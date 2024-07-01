@@ -7,7 +7,7 @@ toolchain go1.22.2
 require (
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/kellydunn/golang-geo v0.7.0
-	go.viam.com/api v0.1.311
+	go.viam.com/api v0.1.317
 	go.viam.com/rdk v0.28.0
 )
 
@@ -180,4 +180,4 @@ require (
 	nhooyr.io/websocket v1.8.10 // indirect
 )
 
-// replace go.viam.com/rdk => ../rdk
+replace go.viam.com/rdk => ../rdk
