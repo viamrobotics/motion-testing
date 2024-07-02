@@ -2,38 +2,38 @@ package main
 
 import (
 	"context"
-	"testing"
 	"math"
-	"time"
 	"runtime"
 	"strings"
+	"testing"
+	"time"
 
 	"github.com/golang/geo/r3"
-	"go.viam.com/rdk/resource"
-	"go.viam.com/rdk/components/movementsensor"
-	"go.viam.com/rdk/components/base"
-	"go.viam.com/rdk/logging"
-	"go.viam.com/rdk/services/motion"
-	"go.viam.com/rdk/services/slam"
-	"go.viam.com/rdk/services/motion/builtin"
-	"go.viam.com/rdk/spatialmath"
-	geo "github.com/kellydunn/golang-geo"
 	"github.com/google/uuid"
+	geo "github.com/kellydunn/golang-geo"
+	"go.viam.com/rdk/components/base"
+	"go.viam.com/rdk/components/movementsensor"
+	"go.viam.com/rdk/logging"
+	"go.viam.com/rdk/resource"
+	"go.viam.com/rdk/services/motion"
+	"go.viam.com/rdk/services/motion/builtin"
+	"go.viam.com/rdk/services/slam"
+	"go.viam.com/rdk/spatialmath"
 	"go.viam.com/test"
 )
 
 var (
-	leftMotorName = "leftmotor"
+	leftMotorName  = "leftmotor"
 	rightMotorName = "rightmotor"
-	baseName = "test-base"
+	baseName       = "test-base"
 	moveSensorName = "test-movement-sensor"
-	
-	moveSensorResource = resource.NewName(movementsensor.API, moveSensorName)
-	baseResource = resource.NewName(base.API, baseName)
+
+	moveSensorResource        = resource.NewName(movementsensor.API, moveSensorName)
+	baseResource              = resource.NewName(base.API, baseName)
 	movementSensorInBasePoint = r3.Vector{X: -10, Y: 0, Z: 0}
-	updateRate = 33
-	PlanDeviationMM = 150.
-	timeoutSec = time.Duration(45)
+	updateRate                = 33
+	PlanDeviationMM           = 150.
+	timeoutSec                = time.Duration(45)
 )
 
 func TestMotionExtendedGlobe(t *testing.T) {
@@ -129,7 +129,8 @@ func TestMotionExtendedGlobe(t *testing.T) {
 		localizer, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		planDeviationMM := 100.
-		motionCfg := &motion.MotionConfiguration{PositionPollingFreqHz: 0.0000001, LinearMPerSec: 0.2, AngularDegsPerSec: 60}
+		var positionPollingFreqHz float64
+		motionCfg := &motion.MotionConfiguration{PositionPollingFreqHz: &positionPollingFreqHz, LinearMPerSec: 0.2, AngularDegsPerSec: 60}
 
 		boxPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 50, Y: 0, Z: 0})
 		boxDims := r3.Vector{X: 5, Y: 50, Z: 10}
@@ -172,18 +173,19 @@ func TestMotionExtendedGlobe(t *testing.T) {
 func TestMotionExtendedMapSimple(t *testing.T) {
 	ctx := context.Background()
 	logger := logging.NewTestLogger(t)
-	motionCfg := &motion.MotionConfiguration{PositionPollingFreqHz: 0.0000001, PlanDeviationMM: 150, LinearMPerSec: 0.3, AngularDegsPerSec: 60}
+	var positionPollingFreqHz float64
+	motionCfg := &motion.MotionConfiguration{PositionPollingFreqHz: &positionPollingFreqHz, PlanDeviationMM: 150, LinearMPerSec: 0.3, AngularDegsPerSec: 60}
 
 	t.Run("Long distance", func(t *testing.T) {
 		if runtime.GOARCH == "arm" {
 			t.Skip("skipping on 32-bit ARM, large maps use too much memory")
 		}
-		// Driving faster makes 
+		// Driving faster makes
 		motionCfgFast := &motion.MotionConfiguration{
-			PositionPollingFreqHz: 0.0000001,
-			PlanDeviationMM: 250,
-			LinearMPerSec: 0.9,
-			AngularDegsPerSec: 60,
+			PositionPollingFreqHz: &positionPollingFreqHz,
+			PlanDeviationMM:       250,
+			LinearMPerSec:         0.9,
+			AngularDegsPerSec:     60,
 		}
 		extra := map[string]interface{}{"motion_profile": "position_only"}
 		// goal position is scaled to be in mm
@@ -203,7 +205,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			Destination:   goalInSLAMFrame,
 			SlamName:      slam.Named("test_slam"),
 			Extra:         extra,
-			MotionCfg: motionCfgFast,
+			MotionCfg:     motionCfgFast,
 		}
 
 		timeoutCtx, timeoutFn := context.WithTimeout(ctx, time.Second*timeoutSec*3)
@@ -223,7 +225,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 
 		endPos, err := kb.CurrentPosition(ctx)
 		test.That(t, err, test.ShouldBeNil)
-		
+
 		logger.Debug("long dist end pose", spatialmath.PoseToProtobuf(endPos.Pose()))
 
 		test.That(t, spatialmath.PoseAlmostCoincidentEps(endPos.Pose(), goalInBaseFrame, PlanDeviationMM), test.ShouldBeTrue)
@@ -246,7 +248,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 				Destination:   goalInSLAMFrame,
 				SlamName:      slam.Named("test_slam"),
 				Extra:         extra,
-				MotionCfg: motionCfg,
+				MotionCfg:     motionCfg,
 			}
 
 			timeoutCtx, timeoutFn := context.WithTimeout(ctx, time.Second*timeoutSec)
@@ -278,9 +280,9 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			req := motion.MoveOnMapReq{
 				ComponentName: base.Named("test-base"),
 				Destination:   easyGoalInSLAMFrame,
-				MotionCfg: motionCfg,
-				SlamName: slam.Named("test_slam"),
-				Extra:    extra,
+				MotionCfg:     motionCfg,
+				SlamName:      slam.Named("test_slam"),
+				Extra:         extra,
 			}
 
 			timeoutCtx, timeoutFn := context.WithTimeout(ctx, time.Second*timeoutSec)
@@ -312,7 +314,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 				ComponentName: base.Named("test-base"),
 				Destination:   goalInSLAMFrame,
 				SlamName:      slam.Named("test_slam"),
-				MotionCfg: motionCfg,
+				MotionCfg:     motionCfg,
 				Extra:         extraPosOnly,
 			}
 
@@ -339,7 +341,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			test.That(t, spatialmath.OrientationAlmostEqualEps(
 				endPos.Pose().Orientation(),
 				goalInBaseFrame.Orientation(),
-				0.5), test.ShouldBeFalse)
+				0.035), test.ShouldBeFalse)
 		})
 
 		t.Run("should fail due to map collision", func(t *testing.T) {
@@ -376,7 +378,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		req := motion.MoveOnMapReq{
 			ComponentName: base.Named("test-base"),
 			Destination:   goal1SLAMFrame,
-			MotionCfg: motionCfg,
+			MotionCfg:     motionCfg,
 			SlamName:      slam.Named("test_slam"),
 			Extra:         map[string]interface{}{"smooth_iter": 5},
 		}
@@ -408,7 +410,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			ComponentName: base.Named("test-base"),
 			Destination:   goal2SLAMFrame,
 			SlamName:      slam.Named("test_slam"),
-			MotionCfg: motionCfg,
+			MotionCfg:     motionCfg,
 			Extra:         map[string]interface{}{"smooth_iter": 5},
 		}
 		timeoutCtx, timeoutFn = context.WithTimeout(ctx, time.Second*timeoutSec)
@@ -460,7 +462,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 
 		req := motion.MoveOnMapReq{
 			ComponentName: base.Named("test-base"),
-			MotionCfg: motionCfg,
+			MotionCfg:     motionCfg,
 			Destination:   spatialmath.NewPoseFromOrientation(&spatialmath.OrientationVectorDegrees{OZ: 1, Theta: 150}),
 			SlamName:      slam.Named("test_slam"),
 		}
@@ -494,7 +496,7 @@ func TestMotionExtendedAskewIMU(t *testing.T) {
 			Destination:   goal1SLAMFrame,
 			SlamName:      slam.Named("test_slam"),
 			Extra:         extraPosOnly,
-			MotionCfg: motionCfg,
+			MotionCfg:     motionCfg,
 		}
 
 		timeoutCtx, timeoutFn := context.WithTimeout(ctx, time.Second*timeoutSec)
