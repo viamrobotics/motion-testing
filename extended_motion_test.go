@@ -341,7 +341,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			test.That(t, spatialmath.OrientationAlmostEqualEps(
 				endPos.Pose().Orientation(),
 				goalInBaseFrame.Orientation(),
-				0.5), test.ShouldBeFalse)
+				0.035), test.ShouldBeFalse)
 		})
 
 		t.Run("should fail due to map collision", func(t *testing.T) {
