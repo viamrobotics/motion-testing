@@ -6,9 +6,9 @@ import (
 	"strconv"
 
 	"github.com/golang/geo/r3"
+	xarm "github.com/viam-modules/viam-ufactory-xarm/arm"
 	commonpb "go.viam.com/api/common/v1"
 	"go.viam.com/rdk/components/arm/universalrobots"
-	"go.viam.com/rdk/components/arm/xarm"
 	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
