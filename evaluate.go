@@ -74,13 +74,15 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 		return -1, -1, -1, err
 	}
 	var poseStart, poseEnd spatialmath.Pose
+	sceneFrame := scene.FrameSystem.Frame("test_base")
 
 	if sceneNum < baseSceneStart {
-		poseStart, err = scene.Frame.Transform(referenceframe.FloatsToInputs(solution[0]))
+		sceneFrame = scene.FrameSystem.Frame("arm")
+		poseStart, err = sceneFrame.Transform(referenceframe.FloatsToInputs(solution[0]))
 		if poseStart == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 			return -1, -1, -1, err
 		}
-		poseEnd, err = scene.Frame.Transform(referenceframe.FloatsToInputs(solution[len(solution)-1]))
+		poseEnd, err = sceneFrame.Transform(referenceframe.FloatsToInputs(solution[len(solution)-1]))
 		if poseEnd == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 			return -1, -1, -1, err
 		}
@@ -100,7 +102,7 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 					referenceframe.FloatsToInputs(solution[i+1]),
 					float64(j)/float64(nSteps),
 				)
-				pose, err := scene.Frame.Transform(step)
+				pose, err := sceneFrame.Transform(step)
 				if pose == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 					return -1, -1, -1, err
 				}

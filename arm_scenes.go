@@ -23,20 +23,21 @@ func scene1() (*motionplan.PlanRequest, error) {
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 100
 	goalPt.Y += 100
 
+	// Create PathState for goal
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
+	goalPathState := motionplan.PathState{"arm": goalPose}
+
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
-		Frame:              model,
-		WorldState:         &referenceframe.WorldState{},
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
 	}, nil
 }
 
@@ -49,13 +50,16 @@ func scene2() (*motionplan.PlanRequest, error) {
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 200
 	goalPt.Z += 100
+
+	// Create PathState for goal
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
+	goalPathState := motionplan.PathState{"arm": goalPose}
 
 	// Obstacles
 	testPose := spatialmath.NewPose(
@@ -98,11 +102,10 @@ func scene2() (*motionplan.PlanRequest, error) {
 	}
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
-		Frame:              model,
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
+		WorldState:  worldState,
 	}, nil
 }
 
@@ -111,15 +114,15 @@ func scene3() (*motionplan.PlanRequest, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
+	goalPathState := motionplan.PathState{"arm": goalPose}
 
 	// Obstacles
 	testPose := spatialmath.NewPose(
@@ -151,11 +154,10 @@ func scene3() (*motionplan.PlanRequest, error) {
 	}
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
-		Frame:              model,
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
+		WorldState:  worldState,
 	}, nil
 }
 
@@ -164,16 +166,16 @@ func scene4() (*motionplan.PlanRequest, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 300
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
+	goalPathState := motionplan.PathState{"arm": goalPose}
 
 	// Obstacles
 	testPt := startPose.Point()
@@ -204,11 +206,10 @@ func scene4() (*motionplan.PlanRequest, error) {
 	}
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
-		Frame:              model,
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
+		WorldState:  worldState,
 	}, nil
 }
 
@@ -217,16 +218,16 @@ func scene5() (*motionplan.PlanRequest, error) {
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
-	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 400
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
+	goalPathState := motionplan.PathState{"arm": goalPose}
 
 	// Obstacles
 	wallPose := spatialmath.NewPoseFromPoint(r3.Vector{0, -200, 0})
@@ -276,11 +277,10 @@ func scene5() (*motionplan.PlanRequest, error) {
 	})
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
-		Frame:              model,
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
+		WorldState:  worldState,
 	}, err
 }
 
@@ -357,8 +357,13 @@ func scene8() (*motionplan.PlanRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.Goal = referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPoseFromPoint(cfg.Goal.Pose().Point()))
-	return cfg, err
+
+	// Update the goal to only include pose information
+	goalPose := cfg.Goals[0].Poses()["arm"].Pose()
+	goalPathState := motionplan.PathState{"arm": referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
+	cfg.Goals = []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)}
+
+	return cfg, nil
 }
 
 func scene9() (*motionplan.PlanRequest, error) {
@@ -370,13 +375,14 @@ func scene9() (*motionplan.PlanRequest, error) {
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 1100
 	goalPt.Y += 600
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
+	goalPathState := motionplan.PathState{"arm": goalPose}
 
 	rGen := rand.New(rand.NewSource(int64(1)))
 	obstacles := make([]spatialmath.Geometry, 0)
@@ -401,13 +407,11 @@ func scene9() (*motionplan.PlanRequest, error) {
 	}
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
-		Frame:              model,
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
+		WorldState:  worldState,
 	}, nil
-
 }
 
 func scene10() (*motionplan.PlanRequest, error) {
@@ -419,13 +423,14 @@ func scene10() (*motionplan.PlanRequest, error) {
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPt := startPose.Point()
 	goalPt.X += 1200
 	goalPt.Y += 600
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
+	goalPathState := motionplan.PathState{"arm": goalPose}
 
 	// Pose of UR5 mount pillar
 	pillarPose := spatialmath.NewPose(
@@ -457,11 +462,10 @@ func scene10() (*motionplan.PlanRequest, error) {
 	}
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation())),
-		Frame:              model,
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
+		WorldState:  worldState,
 	}, nil
 }
 
@@ -474,13 +478,13 @@ func scene11() (*motionplan.PlanRequest, error) {
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPos := r3.Vector{X: -244.43, Y: -255.12, Z: 676.97}
 	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.233, Y: -1.637, Z: 1.224})
-	goalPose := spatialmath.NewPose(goalPos, goalRot)
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPos, goalRot))
+	goalPathState := motionplan.PathState{"arm": goalPose}
 
 	// Pose of UR5 mount pillar
 	pillarPose := spatialmath.NewPose(
@@ -512,11 +516,10 @@ func scene11() (*motionplan.PlanRequest, error) {
 	}
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, goalPose),
-		Frame:              model,
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
+		WorldState:  worldState,
 	}, nil
 }
 
@@ -529,13 +532,13 @@ func scene12() (*motionplan.PlanRequest, error) {
 	fs := referenceframe.NewEmptyFrameSystem("test")
 	fs.AddFrame(model, fs.World())
 
-	startMap := referenceframe.StartPositions(fs)
-	startMap["arm"] = startInput
+	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
 	// Goal specification
 	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
 	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
-	goalPose := spatialmath.NewPose(goalPos, goalRot)
+	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPos, goalRot))
+	goalPathState := motionplan.PathState{"arm": goalPose}
 
 	// Pose of UR5 mount pillar
 	pillarPose := spatialmath.NewPose(
@@ -567,10 +570,9 @@ func scene12() (*motionplan.PlanRequest, error) {
 	}
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, goalPose),
-		Frame:              model,
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		StartState:  motionplan.NewPlanState(nil, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+		FrameSystem: fs,
+		WorldState:  worldState,
 	}, nil
 }
