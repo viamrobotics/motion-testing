@@ -122,9 +122,13 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 		return err
 	}
 	defer csvFile.Close()
+	fName := "test_base"
+	if _, ok := scene.StartState.Configuration()[fName]; !ok {
+		fName = "arm"
+	}
 
 	if success == "true" {
-		path, err := plan.Trajectory().GetFrameInputs(scene.Frame.Name())
+		path, err := plan.Trajectory().GetFrameInputs(fName)
 		if err != nil {
 			return err
 		}

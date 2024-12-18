@@ -97,16 +97,16 @@ func createBaseSceneConfig(
 	worldState, _ := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{
 		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{octree}),
 	}, nil)
-
+	goalPathState := motionplan.PathState{kb.Kinematics().Name(): referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
 	startMap := referenceframe.StartPositions(fs)
+	startPathState := motionplan.PathState{kb.Kinematics().Name(): referenceframe.NewZeroPoseInFrame(referenceframe.World)}
+
 
 	return &motionplan.PlanRequest{
-		StartConfiguration: startMap,
-		Goal:               referenceframe.NewPoseInFrame(referenceframe.World, goalPose),
-		Frame:              kb.Kinematics(),
+		StartState:  motionplan.NewPlanState(startPathState, startMap),
+		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
 		WorldState:         worldState,
 		FrameSystem:        fs,
-		StartPose:          spatialmath.NewZeroPose(),
 	}, nil
 }
 
