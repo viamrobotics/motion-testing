@@ -32,7 +32,7 @@ func scene1() (*motionplan.PlanRequest, error) {
 
 	// Create PathState for goal
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	return &motionplan.PlanRequest{
 		StartState:  motionplan.NewPlanState(nil, startMap),
@@ -59,7 +59,7 @@ func scene2() (*motionplan.PlanRequest, error) {
 
 	// Create PathState for goal
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	// Obstacles
 	testPose := spatialmath.NewPose(
@@ -122,7 +122,7 @@ func scene3() (*motionplan.PlanRequest, error) {
 	// Goal specification
 	goalPt := r3.Vector{X: -400, Y: 350, Z: 0}
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	// Obstacles
 	testPose := spatialmath.NewPose(
@@ -175,7 +175,7 @@ func scene4() (*motionplan.PlanRequest, error) {
 	goalPt := startPose.Point()
 	goalPt.X += 300
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	// Obstacles
 	testPt := startPose.Point()
@@ -227,7 +227,7 @@ func scene5() (*motionplan.PlanRequest, error) {
 	goalPt := startPose.Point()
 	goalPt.X += 400
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	// Obstacles
 	wallPose := spatialmath.NewPoseFromPoint(r3.Vector{0, -200, 0})
@@ -360,7 +360,7 @@ func scene8() (*motionplan.PlanRequest, error) {
 
 	// Update the goal to only include pose information
 	goalPose := cfg.Goals[0].Poses()["arm"].Pose()
-	goalPathState := motionplan.PathState{"arm": referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
 	cfg.Goals = []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)}
 
 	return cfg, nil
@@ -382,7 +382,7 @@ func scene9() (*motionplan.PlanRequest, error) {
 	goalPt.X += 1100
 	goalPt.Y += 600
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	rGen := rand.New(rand.NewSource(int64(1)))
 	obstacles := make([]spatialmath.Geometry, 0)
@@ -430,7 +430,7 @@ func scene10() (*motionplan.PlanRequest, error) {
 	goalPt.X += 1200
 	goalPt.Y += 600
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	// Pose of UR5 mount pillar
 	pillarPose := spatialmath.NewPose(
@@ -484,7 +484,7 @@ func scene11() (*motionplan.PlanRequest, error) {
 	goalPos := r3.Vector{X: -244.43, Y: -255.12, Z: 676.97}
 	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.233, Y: -1.637, Z: 1.224})
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPos, goalRot))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	// Pose of UR5 mount pillar
 	pillarPose := spatialmath.NewPose(
@@ -538,7 +538,7 @@ func scene12() (*motionplan.PlanRequest, error) {
 	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
 	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPos, goalRot))
-	goalPathState := motionplan.PathState{"arm": goalPose}
+	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	// Pose of UR5 mount pillar
 	pillarPose := spatialmath.NewPose(

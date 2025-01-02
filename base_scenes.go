@@ -63,7 +63,7 @@ func createBaseSceneConfig(
 		API:   base.API,
 		Frame: &referenceframe.LinkConfig{Geometry: &spatialmath.GeometryConfig{R: 20}},
 	}
-	
+
 	ms := inject.NewMovementSensor("movement_sensor")
 	gpOrigin := geo.NewPoint(0, 0)
 	ms.PositionFunc = func(ctx context.Context, extra map[string]interface{}) (*geo.Point, float64, error) {
@@ -97,16 +97,15 @@ func createBaseSceneConfig(
 	worldState, _ := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{
 		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{octree}),
 	}, nil)
-	goalPathState := motionplan.PathState{kb.Kinematics().Name(): referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
-	startMap := referenceframe.StartPositions(fs)
-	startPathState := motionplan.PathState{kb.Kinematics().Name(): referenceframe.NewZeroPoseInFrame(referenceframe.World)}
-
+	goalPathState := referenceframe.FrameSystemPoses{kb.Kinematics().Name(): referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
+	startMap := referenceframe.NewZeroInputs(fs)
+	startPathState := referenceframe.FrameSystemPoses{kb.Kinematics().Name(): referenceframe.NewZeroPoseInFrame(referenceframe.World)}
 
 	return &motionplan.PlanRequest{
 		StartState:  motionplan.NewPlanState(startPathState, startMap),
 		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
-		WorldState:         worldState,
-		FrameSystem:        fs,
+		WorldState:  worldState,
+		FrameSystem: fs,
 	}, nil
 }
 
