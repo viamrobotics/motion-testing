@@ -9,6 +9,7 @@ import (
 	xarm "github.com/viam-modules/viam-ufactory-xarm/arm"
 	commonpb "go.viam.com/api/common/v1"
 	"go.viam.com/rdk/components/arm/universalrobots"
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
@@ -42,7 +43,10 @@ func scene1() (*motionplan.PlanRequest, error) {
 }
 
 func scene2() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName7DOF)
+	model, err := xarm.MakeModelFrame(xarm.ModelName7DOF, []int{}, []referenceframe.Input{}, logging.Global())
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -162,7 +166,10 @@ func scene3() (*motionplan.PlanRequest, error) {
 }
 
 func scene4() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName6DOF)
+	model, err := xarm.MakeModelFrame(xarm.ModelName6DOF, []int{}, []referenceframe.Input{}, logging.Global())
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -214,7 +221,10 @@ func scene4() (*motionplan.PlanRequest, error) {
 }
 
 func scene5() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName7DOF)
+	model, err := xarm.MakeModelFrame(xarm.ModelName7DOF, []int{}, []referenceframe.Input{}, logging.Global())
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 

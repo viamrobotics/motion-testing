@@ -93,10 +93,16 @@ func createBaseSceneConfig(
 	// get point cloud data in the form of bytes from pcd
 	pointCloudData, _ := slam.PointCloudMapFull(context.Background(), injectSlam, false)
 	// store slam point cloud data  in the form of a recursive octree for collision checking
-	octree, _ := pointcloud.ReadPCDToBasicOctree(bytes.NewReader(pointCloudData))
-	worldState, _ := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{
-		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{octree}),
+	octree, err := pointcloud.ReadPCD(bytes.NewReader(pointCloudData), pointcloud.BasicOctreeType)
+	if err != nil {
+		return nil, err
+	}
+	worldState, err := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{
+		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{octree.(*pointcloud.BasicOctree)}),
 	}, nil)
+	if err != nil {
+		return nil, err
+	}
 	goalPathState := referenceframe.FrameSystemPoses{kb.Kinematics().Name(): referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
 	startMap := referenceframe.NewZeroInputs(fs)
 	startPathState := referenceframe.FrameSystemPoses{kb.Kinematics().Name(): referenceframe.NewZeroPoseInFrame(referenceframe.World)}
