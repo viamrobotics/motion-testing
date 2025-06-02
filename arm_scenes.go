@@ -42,7 +42,7 @@ func scene1() (*motionplan.PlanRequest, error) {
 }
 
 func scene2() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName7DOF)
+	model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -162,7 +162,7 @@ func scene3() (*motionplan.PlanRequest, error) {
 }
 
 func scene4() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName6DOF)
+	model, _ := xarm.MakeModelFrame(xarm.ModelName6DOF, nil, nil, nil)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -214,7 +214,7 @@ func scene4() (*motionplan.PlanRequest, error) {
 }
 
 func scene5() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame("arm", xarm.ModelName7DOF)
+	model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 

@@ -88,18 +88,30 @@ func createBaseSceneConfig(
 
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(kb.Kinematics(), fs.World())
+	m, err := kb.Kinematics(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	fs.AddFrame(m, fs.World())
 
 	// get point cloud data in the form of bytes from pcd
-	pointCloudData, _ := slam.PointCloudMapFull(context.Background(), injectSlam, false)
+	pointCloudData, err := slam.PointCloudMapFull(context.Background(), injectSlam, false)
+	if err != nil {
+		return nil, err
+	}
+
 	// store slam point cloud data  in the form of a recursive octree for collision checking
-	octree, _ := pointcloud.ReadPCDToBasicOctree(bytes.NewReader(pointCloudData))
+	octree, err := pointcloud.ReadPCD(bytes.NewReader(pointCloudData), "octree")
+	if err != nil {
+		return nil, err
+	}
+	
 	worldState, _ := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{
-		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{octree}),
+		referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{octree.(spatialmath.Geometry)}),
 	}, nil)
-	goalPathState := referenceframe.FrameSystemPoses{kb.Kinematics().Name(): referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
+	goalPathState := referenceframe.FrameSystemPoses{m.Name(): referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
 	startMap := referenceframe.NewZeroInputs(fs)
-	startPathState := referenceframe.FrameSystemPoses{kb.Kinematics().Name(): referenceframe.NewZeroPoseInFrame(referenceframe.World)}
+	startPathState := referenceframe.FrameSystemPoses{m.Name(): referenceframe.NewZeroPoseInFrame(referenceframe.World)}
 
 	return &motionplan.PlanRequest{
 		StartState:  motionplan.NewPlanState(startPathState, startMap),
