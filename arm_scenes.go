@@ -1,21 +1,69 @@
 package main
 
 import (
+	_ "embed"
+	"encoding/json"
+	"fmt"
 	"math"
 	"math/rand"
 	"strconv"
 
 	"github.com/golang/geo/r3"
-	xarm "github.com/viam-modules/viam-ufactory-xarm/arm"
+	"github.com/pkg/errors"
 	commonpb "go.viam.com/api/common/v1"
-	"go.viam.com/rdk/components/arm/universalrobots"
 	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
 )
 
+var xArm7ModelName = "xArm7"
+var xArm6ModelName = "xArm6"
+var ur5eModelName = "arm"
+
+//go:embed xarm7_kinematics.json
+var xArm7ModelJSON []byte
+
+//go:embed xarm6_kinematics.json
+var xArm6ModelJSON []byte
+
+//go:embed ur5e_kinematics.json
+var ur5eModelJSON []byte
+
+func getModelBytes(modelName string) ([]byte, error) {
+	switch modelName {
+	case xArm7ModelName:
+		return xArm7ModelJSON, nil
+	case xArm6ModelName:
+		return xArm6ModelJSON, nil
+	case ur5eModelName:
+		return ur5eModelJSON, nil
+	default:
+		return nil, fmt.Errorf("unrecognized model: %s", modelName)
+	}
+}
+
+func MakeModelFrame(modelName string) (referenceframe.Model, error) {
+	jsonData, err := getModelBytes(modelName)
+	if err != nil {
+		return nil, err
+	}
+
+	// empty data probably means that the robot component has no model information
+	if len(jsonData) == 0 {
+		return nil, referenceframe.ErrNoModelInformation
+	}
+
+	m := &referenceframe.ModelConfigJSON{OriginalFile: &referenceframe.ModelFile{Bytes: jsonData, Extension: "json"}}
+	err = json.Unmarshal(jsonData, m)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal json file")
+	}
+
+	return m.ParseConfig(modelName)
+}
+
 func scene1() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+	model, _ := MakeModelFrame(ur5eModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -42,7 +90,7 @@ func scene1() (*motionplan.PlanRequest, error) {
 }
 
 func scene2() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
+	model, _ := MakeModelFrame(xArm7ModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -110,7 +158,7 @@ func scene2() (*motionplan.PlanRequest, error) {
 }
 
 func scene3() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+	model, _ := MakeModelFrame(ur5eModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -162,7 +210,7 @@ func scene3() (*motionplan.PlanRequest, error) {
 }
 
 func scene4() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame(xarm.ModelName6DOF, nil, nil, nil)
+	model, _ := MakeModelFrame(xArm6ModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -214,7 +262,7 @@ func scene4() (*motionplan.PlanRequest, error) {
 }
 
 func scene5() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
+	model, _ := MakeModelFrame(xArm7ModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -367,7 +415,7 @@ func scene8() (*motionplan.PlanRequest, error) {
 }
 
 func scene9() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+	model, _ := MakeModelFrame(ur5eModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -415,7 +463,7 @@ func scene9() (*motionplan.PlanRequest, error) {
 }
 
 func scene10() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+	model, _ := MakeModelFrame(ur5eModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi / 4, math.Pi / 2, 3 * math.Pi / 4, -math.Pi / 2, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -471,7 +519,7 @@ func scene10() (*motionplan.PlanRequest, error) {
 
 // Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
 func scene11() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+	model, _ := MakeModelFrame(ur5eModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
 
 	// Add frame system and needed frames
@@ -525,7 +573,7 @@ func scene11() (*motionplan.PlanRequest, error) {
 
 // Corresponds to move that only works with MoveJ from an engineering move set
 func scene12() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+	model, _ := MakeModelFrame(ur5eModelName)
 	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
 
 	// Add frame system and needed frames

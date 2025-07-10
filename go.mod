@@ -8,7 +8,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.2.1
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/kellydunn/golang-geo v0.7.0
-	github.com/viam-modules/viam-ufactory-xarm v0.0.0-20250602132145-704c9da34e77
 	go.viam.com/api v0.1.438
 	go.viam.com/rdk v0.77.1-0.20250528183709-63bc09bd6731
 )
