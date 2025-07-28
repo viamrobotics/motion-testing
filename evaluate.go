@@ -19,7 +19,9 @@ const defaultEpsilon = 1e-2
 
 var logger logging.Logger = logging.NewLogger("motion-testing")
 
-var scene *armplanning.PlanRequest
+var scene *armplanning.PlanRequest = &armplanning.PlanRequest{
+	PlannerOptions: armplanning.NewBasicPlannerOptions(),
+}
 
 var allScenes = map[int]func(context.Context, logging.Logger) (*armplanning.PlanRequest, error){
 	// arm scenes
@@ -36,12 +38,12 @@ var allScenes = map[int]func(context.Context, logging.Logger) (*armplanning.Plan
 	11: scene11,
 	12: scene12,
 	// base scenes
-	// 13: scene13,
-	// 14: scene14,
-	// 15: scene15,
-	// 16: scene16,
-	// 17: scene17,
-	// 18: scene18,
+	13: scene13,
+	14: scene14,
+	15: scene15,
+	16: scene16,
+	17: scene17,
+	18: scene18,
 }
 
 var baseSceneStart = 13

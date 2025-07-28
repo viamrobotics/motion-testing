@@ -8,7 +8,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/kellydunn/golang-geo v0.7.0
-	github.com/viam-modules/viam-ufactory-xarm v0.0.0-20250602132145-704c9da34e77
 	go.viam.com/api v0.1.455
 	go.viam.com/rdk v0.77.1-0.20250528183709-63bc09bd6731
 )
@@ -82,6 +81,7 @@ require (
 	github.com/pion/transport/v3 v3.0.7 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
@@ -203,4 +203,5 @@ require (
 	nhooyr.io/websocket v1.8.10 // indirect
 )
 
-replace go.viam.com/rdk => github.com/viamrobotics/rdk v0.85.1-0.20250728163214-e0f1c2f5af67
+// replace go.viam.com/rdk => github.com/viamrobotics/rdk v0.85.1-0.20250728163214-e0f1c2f5af67
+replace go.viam.com/rdk => /Users/nicksanford/code/rdk

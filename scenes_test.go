@@ -93,8 +93,6 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
 
 	// run planning query
-	// scene.Options = options
-	// scene.Logger = logger
 	plan, err := armplanning.PlanMotion(context.Background(), logger, scene)
 
 	// parse output
