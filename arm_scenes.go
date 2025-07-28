@@ -1,21 +1,45 @@
 package main
 
 import (
+	"context"
 	"math"
 	"math/rand"
 	"strconv"
 
-	"github.com/golang/geo/r3"
-	xarm "github.com/viam-modules/viam-ufactory-xarm/arm"
-	commonpb "go.viam.com/api/common/v1"
-	"go.viam.com/rdk/components/arm/universalrobots"
-	"go.viam.com/rdk/motionplan"
+	"go.viam.com/rdk/components/arm"
+	"go.viam.com/rdk/components/arm/fake"
+	"go.viam.com/rdk/logging"
+	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/rdk/referenceframe"
+	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/spatialmath"
+
+	"github.com/golang/geo/r3"
+	commonpb "go.viam.com/api/common/v1"
 )
 
-func scene1() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+func newArmModel(ctx context.Context, armModelName string, logger logging.Logger) (referenceframe.Model, error) {
+	arm1Name := arm.Named(armModelName)
+	cfg := resource.Config{
+		Name:  arm1Name.Name,
+		Model: resource.DefaultModelFamily.WithModel(armModelName),
+		ConvertedAttributes: &fake.Config{
+			ArmModel: armModelName,
+		},
+	}
+	a, err := fake.NewArm(ctx, nil, cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+	return a.Kinematics(ctx)
+}
+
+func scene1(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "ur5e", logger)
+	if err != nil {
+		return nil, err
+	}
+
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -34,15 +58,18 @@ func scene1() (*motionplan.PlanRequest, error) {
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
 	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 	}, nil
 }
 
-func scene2() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
+func scene2(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "xarm7", logger)
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -101,16 +128,19 @@ func scene2() (*motionplan.PlanRequest, error) {
 		return nil, err
 	}
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, nil
 }
 
-func scene3() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+func scene3(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "ur5e", logger)
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -153,16 +183,19 @@ func scene3() (*motionplan.PlanRequest, error) {
 		return nil, err
 	}
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, nil
 }
 
-func scene4() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame(xarm.ModelName6DOF, nil, nil, nil)
+func scene4(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "xarm6", logger)
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -205,16 +238,20 @@ func scene4() (*motionplan.PlanRequest, error) {
 		return nil, err
 	}
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, nil
 }
 
-func scene5() (*motionplan.PlanRequest, error) {
-	model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
+func scene5(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "xarm7", logger)
+	if err != nil {
+		return nil, err
+	}
+	// model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -230,9 +267,9 @@ func scene5() (*motionplan.PlanRequest, error) {
 	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
 	// Obstacles
-	wallPose := spatialmath.NewPoseFromPoint(r3.Vector{0, -200, 0})
-	obs1Pose := spatialmath.NewPoseFromPoint(r3.Vector{300, 0, 0})
-	obs2Pose := spatialmath.NewPoseFromPoint(r3.Vector{300, 0, 500})
+	wallPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -200, Z: 0})
+	obs1Pose := spatialmath.NewPoseFromPoint(r3.Vector{X: 300, Y: 0, Z: 0})
+	obs2Pose := spatialmath.NewPoseFromPoint(r3.Vector{X: 300, Y: 0, Z: 500})
 	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
 		Obstacles: []*commonpb.GeometriesInFrame{
 			{
@@ -276,16 +313,16 @@ func scene5() (*motionplan.PlanRequest, error) {
 		},
 	})
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, err
 }
 
-func scene6() (*motionplan.PlanRequest, error) {
-	cfg, err := scene5()
+func scene6(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	cfg, err := scene5(ctx, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +337,7 @@ func scene6() (*motionplan.PlanRequest, error) {
 		newGeometries = append(newGeometries, oldGeometries)
 	}
 
-	obstacle, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{-150, 0, 0}), r3.Vector{20, 2000, 2000}, "extra_obs")
+	obstacle, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{X: -150, Y: 0, Z: 0}), r3.Vector{X: 20, Y: 2000, Z: 2000}, "extra_obs")
 	if err != nil {
 		return nil, err
 	}
@@ -316,8 +353,8 @@ func scene6() (*motionplan.PlanRequest, error) {
 	return cfg, err
 }
 
-func scene7() (*motionplan.PlanRequest, error) {
-	cfg, err := scene4()
+func scene7(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	cfg, err := scene4(ctx, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -332,11 +369,11 @@ func scene7() (*motionplan.PlanRequest, error) {
 		newGeometries = append(newGeometries, oldGeometries)
 	}
 
-	left_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, 140, 0}), r3.Vector{2000, 20, 2000}, "left_wall")
+	left_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: 140, Z: 0}), r3.Vector{X: 2000, Y: 20, Z: 2000}, "left_wall")
 	if err != nil {
 		return nil, err
 	}
-	right_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{0, -140, 0}), r3.Vector{2000, 20, 2000}, "right_wall")
+	right_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -140, Z: 0}), r3.Vector{X: 2000, Y: 20, Z: 2000}, "right_wall")
 	if err != nil {
 		return nil, err
 	}
@@ -352,8 +389,8 @@ func scene7() (*motionplan.PlanRequest, error) {
 	return cfg, err
 }
 
-func scene8() (*motionplan.PlanRequest, error) {
-	cfg, err := scene2()
+func scene8(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	cfg, err := scene2(ctx, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -361,13 +398,16 @@ func scene8() (*motionplan.PlanRequest, error) {
 	// Update the goal to only include pose information
 	goalPose := cfg.Goals[0].Poses()["arm"].Pose()
 	goalPathState := referenceframe.FrameSystemPoses{"arm": referenceframe.NewPoseInFrame(referenceframe.World, goalPose)}
-	cfg.Goals = []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)}
+	cfg.Goals = []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)}
 
 	return cfg, nil
 }
 
-func scene9() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+func scene9(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "ur5e", logger)
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -393,7 +433,7 @@ func scene9() (*motionplan.PlanRequest, error) {
 			Z: 2000 * (rGen.Float64() - 0.5),
 		})
 		label := strconv.Itoa(i)
-		cube, err := spatialmath.NewBox(cubePose, r3.Vector{1, 1, 1}, label)
+		cube, err := spatialmath.NewBox(cubePose, r3.Vector{X: 1, Y: 1, Z: 1}, label)
 		if err != nil {
 			return nil, err
 		}
@@ -406,16 +446,19 @@ func scene9() (*motionplan.PlanRequest, error) {
 		return nil, err
 	}
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, nil
 }
 
-func scene10() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+func scene10(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "ur5e", logger)
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi / 4, math.Pi / 2, 3 * math.Pi / 4, -math.Pi / 2, 0})
 	startPose, _ := model.Transform(startInput)
 
@@ -461,17 +504,20 @@ func scene10() (*motionplan.PlanRequest, error) {
 		return nil, err
 	}
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, nil
 }
 
 // Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
-func scene11() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+func scene11(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "ur5e", logger)
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
 
 	// Add frame system and needed frames
@@ -515,17 +561,20 @@ func scene11() (*motionplan.PlanRequest, error) {
 		return nil, err
 	}
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, nil
 }
 
 // Corresponds to move that only works with MoveJ from an engineering move set
-func scene12() (*motionplan.PlanRequest, error) {
-	model, _ := universalrobots.MakeModelFrame("arm")
+func scene12(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel(ctx, "ur5e", logger)
+	if err != nil {
+		return nil, err
+	}
 	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
 
 	// Add frame system and needed frames
@@ -569,9 +618,9 @@ func scene12() (*motionplan.PlanRequest, error) {
 		return nil, err
 	}
 
-	return &motionplan.PlanRequest{
-		StartState:  motionplan.NewPlanState(nil, startMap),
-		Goals:       []*motionplan.PlanState{motionplan.NewPlanState(goalPathState, nil)},
+	return &armplanning.PlanRequest{
+		StartState:  armplanning.NewPlanState(nil, startMap),
+		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, nil
