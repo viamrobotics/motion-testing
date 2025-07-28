@@ -196,3 +196,5 @@ require (
 	google.golang.org/protobuf v1.36.6
 	nhooyr.io/websocket v1.8.10 // indirect
 )
+
+replace go.viam.com/rdk => github.com/viamrobotics/rdk v0.85.0
