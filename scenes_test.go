@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"go.viam.com/rdk/motionplan"
+	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/test"
 )
 
@@ -40,7 +40,7 @@ func TestCBiRRT(t *testing.T) {
 		name = "cbirrt"
 	}
 	err := runScenes(t, name, map[string]interface{}{
-		"motion_profile": motionplan.FreeMotionProfile,
+		"motion_profile": armplanning.FreeMotionProfile,
 		"planning_alg":   "cbirrt",
 	})
 	test.That(t, err, test.ShouldBeNil)
@@ -89,13 +89,12 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 	return nil
 }
 
+// TODO: these options need to be integrated into the planner options
 func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
 
 	// run planning query
-	scene.Options = options
-	scene.Logger = logger
-	plan, err := motionplan.PlanMotion(context.Background(), scene)
+	plan, err := armplanning.PlanMotion(context.Background(), logger, scene)
 
 	// parse output
 	success := "true"

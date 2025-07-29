@@ -1,13 +1,15 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"math"
 	"strings"
 
 	"github.com/golang/geo/r3"
 	"github.com/pkg/errors"
 	"go.viam.com/rdk/logging"
-	"go.viam.com/rdk/motionplan"
+	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
 	"gonum.org/v1/gonum/floats"
@@ -17,9 +19,11 @@ const defaultEpsilon = 1e-2
 
 var logger logging.Logger = logging.NewLogger("motion-testing")
 
-var scene *motionplan.PlanRequest
+var scene *armplanning.PlanRequest = &armplanning.PlanRequest{
+	PlannerOptions: armplanning.NewBasicPlannerOptions(),
+}
 
-var allScenes = map[int]func() (*motionplan.PlanRequest, error){
+var allScenes = map[int]func(context.Context, logging.Logger) (*armplanning.PlanRequest, error){
 	// arm scenes
 	1:  scene1,
 	2:  scene2,
@@ -33,23 +37,27 @@ var allScenes = map[int]func() (*motionplan.PlanRequest, error){
 	10: scene10,
 	11: scene11,
 	12: scene12,
+
 	// base scenes
-	13: scene13,
-	14: scene14,
-	15: scene15,
-	16: scene16,
-	17: scene17,
-	18: scene18,
+	// 13: scene13,
+	// 14: scene14,
+	// 15: scene15,
+	// 16: scene16,
+	// 17: scene17,
+	// 18: scene18,
 }
 
 var baseSceneStart = 13
+
 const ptgDistStartIdx = 2
 const ptgDistEndIdx = 3
 
 // initScene takes a scene number and loads the relevant information into memory
 func initScene(sceneNum int) (err error) {
+	ctx := context.Background()
+	logger := logging.NewLogger(fmt.Sprintf("scene-%d", sceneNum))
 	if sceneFn, ok := allScenes[sceneNum]; ok {
-		scene, err = sceneFn()
+		scene, err = sceneFn(ctx, logger)
 		if err != nil {
 			return
 		}
@@ -113,11 +121,11 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 			lineScore += math.Abs(solution[i][ptgDistEndIdx] - solution[i][ptgDistStartIdx])
 		}
 	}
-	
+
 	if totalLineDist != 0 {
 		lineScore = lineScore / totalLineDist
 	}
-	
+
 	return l2Score, lineScore, oScore, nil
 }
 
