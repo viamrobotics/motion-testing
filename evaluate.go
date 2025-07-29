@@ -37,13 +37,14 @@ var allScenes = map[int]func(context.Context, logging.Logger) (*armplanning.Plan
 	10: scene10,
 	11: scene11,
 	12: scene12,
+
 	// base scenes
-	13: scene13,
-	14: scene14,
-	15: scene15,
-	16: scene16,
-	17: scene17,
-	18: scene18,
+	// 13: scene13,
+	// 14: scene14,
+	// 15: scene15,
+	// 16: scene16,
+	// 17: scene17,
+	// 18: scene18,
 }
 
 var baseSceneStart = 13

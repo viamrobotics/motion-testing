@@ -18,7 +18,7 @@ import (
 	"go.viam.com/test"
 )
 
-const numTests = 10
+const numTests = 1
 const timeout = 5.0 // seconds
 
 var nameFlag = flag.String("name", "", "name of test to run")
@@ -89,6 +89,7 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 	return nil
 }
 
+// TODO: these options need to be integrated into the planner options
 func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
 

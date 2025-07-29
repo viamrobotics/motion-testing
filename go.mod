@@ -1,4 +1,4 @@
-module go.viam.com/omplbindings
+module go.viam.com/motion-testing
 
 go 1.23.8
 
@@ -9,7 +9,7 @@ require (
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/kellydunn/golang-geo v0.7.0
 	go.viam.com/api v0.1.455
-	go.viam.com/rdk v0.77.1-0.20250528183709-63bc09bd6731
+	go.viam.com/rdk v0.86.0-rc0.0.20250729152222-0c3bdf425098
 )
 
 require (
@@ -202,6 +202,3 @@ require (
 	google.golang.org/protobuf v1.36.6
 	nhooyr.io/websocket v1.8.10 // indirect
 )
-
-// replace go.viam.com/rdk => github.com/viamrobotics/rdk v0.85.1-0.20250728163214-e0f1c2f5af67
-replace go.viam.com/rdk => /Users/nicksanford/code/rdk

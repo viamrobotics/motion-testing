@@ -19,9 +19,8 @@ import (
 )
 
 func newArmModel(ctx context.Context, armModelName string, logger logging.Logger) (referenceframe.Model, error) {
-	arm1Name := arm.Named(armModelName)
 	cfg := resource.Config{
-		Name:  arm1Name.Name,
+		Name:  arm.Named("arm").Name,
 		Model: resource.DefaultModelFamily.WithModel(armModelName),
 		ConvertedAttributes: &fake.Config{
 			ArmModel: armModelName,
