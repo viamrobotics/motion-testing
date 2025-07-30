@@ -1,8 +1,9 @@
-package main
+package scenes
 
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/test"
 )
@@ -24,6 +26,22 @@ const timeout = 5.0 // seconds
 var nameFlag = flag.String("name", "", "name of test to run")
 
 var resultsDirectory = "results"
+
+func TestPlanRequestRoundTrip(t *testing.T) {
+	pr, err := scene5(context.Background(), logging.NewLogger("test-nick"))
+	test.That(t, err, test.ShouldBeNil)
+	prBytes, err := json.Marshal(pr)
+	test.That(t, err, test.ShouldBeNil)
+	var pr2 armplanning.PlanRequest
+	test.That(t, json.Unmarshal(prBytes, &pr2), test.ShouldBeNil)
+	test.That(t, pr.BoundingRegions, test.ShouldResemble, pr2.BoundingRegions)
+	test.That(t, pr.Constraints, test.ShouldResemble, pr2.Constraints)
+	test.That(t, pr.Goals, test.ShouldResemble, pr2.Goals)
+	test.That(t, pr.PlannerOptions, test.ShouldResemble, pr2.PlannerOptions)
+	test.That(t, pr.StartState, test.ShouldResemble, pr2.StartState)
+	test.That(t, pr.WorldState, test.ShouldResemble, pr2.WorldState)
+	test.That(t, pr.FrameSystem, test.ShouldResemble, pr2.FrameSystem)
+}
 
 func TestDefault(t *testing.T) {
 	name := *nameFlag
@@ -92,6 +110,13 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 // TODO: these options need to be integrated into the planner options
 func runPlanner(fileName string, options map[string]interface{}) error {
 	start := time.Now()
+	jsonBytes, err := json.Marshal(scene)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(fileName+"_plan.json", jsonBytes, 0o666); err != nil {
+		return err
+	}
 
 	// run planning query
 	plan, err := armplanning.PlanMotion(context.Background(), logger, scene)
