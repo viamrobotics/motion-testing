@@ -8,7 +8,6 @@ import (
 
 	"go.viam.com/rdk/components/arm"
 	"go.viam.com/rdk/components/arm/fake"
-	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/resource"
@@ -18,7 +17,8 @@ import (
 	commonpb "go.viam.com/api/common/v1"
 )
 
-func newArmModel(ctx context.Context, armModelName string, logger logging.Logger) (referenceframe.Model, error) {
+func newArmModel(armModelName string) (referenceframe.Model, error) {
+	ctx := context.Background()
 	cfg := resource.Config{
 		Name:  arm.Named("arm").Name,
 		Model: resource.DefaultModelFamily.WithModel(armModelName),
@@ -33,8 +33,8 @@ func newArmModel(ctx context.Context, armModelName string, logger logging.Logger
 	return a.Kinematics(ctx)
 }
 
-func scene1(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func scene1() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +64,8 @@ func scene1(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene2(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "xarm7", logger)
+func scene2() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm7")
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +135,8 @@ func scene2(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene3(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func scene3() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}
@@ -190,8 +190,8 @@ func scene3(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene4(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "xarm6", logger)
+func scene4() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm6")
 	if err != nil {
 		return nil, err
 	}
@@ -245,8 +245,8 @@ func scene4(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene5(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "xarm7", logger)
+func scene5() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm7")
 	if err != nil {
 		return nil, err
 	}
@@ -320,8 +320,8 @@ func scene5(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, err
 }
 
-func scene6(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	cfg, err := scene5(ctx, logger)
+func scene6() (*armplanning.PlanRequest, error) {
+	cfg, err := scene5()
 	if err != nil {
 		return nil, err
 	}
@@ -352,8 +352,8 @@ func scene6(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	return cfg, err
 }
 
-func scene7(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	cfg, err := scene4(ctx, logger)
+func scene7() (*armplanning.PlanRequest, error) {
+	cfg, err := scene4()
 	if err != nil {
 		return nil, err
 	}
@@ -388,8 +388,8 @@ func scene7(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	return cfg, err
 }
 
-func scene8(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	cfg, err := scene2(ctx, logger)
+func scene8() (*armplanning.PlanRequest, error) {
+	cfg, err := scene2()
 	if err != nil {
 		return nil, err
 	}
@@ -402,8 +402,8 @@ func scene8(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	return cfg, nil
 }
 
-func scene9(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func scene9() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}
@@ -453,8 +453,8 @@ func scene9(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene10(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func scene10() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}
@@ -512,8 +512,8 @@ func scene10(ctx context.Context, logger logging.Logger) (*armplanning.PlanReque
 }
 
 // Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
-func scene11(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func scene11() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}
@@ -569,8 +569,8 @@ func scene11(ctx context.Context, logger logging.Logger) (*armplanning.PlanReque
 }
 
 // Corresponds to move that only works with MoveJ from an engineering move set
-func scene12(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func scene12() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}

@@ -30,34 +30,12 @@ func TestDefault(t *testing.T) {
 	if name == "" {
 		name = "default"
 	}
-	err := runScenes(t, name, map[string]interface{}{})
-	test.That(t, err, test.ShouldBeNil)
+	defaultOptions := armplanning.NewBasicPlannerOptions()
+	defaultOptions.Timeout = timeout
+	test.That(t, runScenes(name, defaultOptions), test.ShouldBeNil)
 }
 
-func TestCBiRRT(t *testing.T) {
-	name := *nameFlag
-	if name == "" {
-		name = "cbirrt"
-	}
-	err := runScenes(t, name, map[string]interface{}{
-		"motion_profile": armplanning.FreeMotionProfile,
-		"planning_alg":   "cbirrt",
-	})
-	test.That(t, err, test.ShouldBeNil)
-}
-
-func TestRRTStar(t *testing.T) {
-	name := *nameFlag
-	if name == "" {
-		name = "rrt-star"
-	}
-	err := runScenes(t, name, map[string]interface{}{
-		"planning_alg": "rrtstar",
-	})
-	test.That(t, err, test.ShouldBeNil)
-}
-
-func runScenes(t *testing.T, name string, options map[string]interface{}) error {
+func runScenes(name string, options *armplanning.PlannerOptions) error {
 	outputFolder := filepath.Join(resultsDirectory, name)
 	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
 		// TODO(rb): potentially create a temp directory to be storing these files
@@ -67,14 +45,15 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 		}
 	}
 
-	for sceneNum := range allScenes {
+	for sceneNum, scene := range allScenes {
 		for i := 1; i <= numTests; i++ {
-			if err := initScene(sceneNum); err != nil {
+			req, err := scene()
+			if err != nil {
 				return err
 			}
-			options["rseed"] = i
-			options["timeout"] = timeout
-			if err := runPlanner(filepath.Join(outputFolder, "scene"+strconv.Itoa(sceneNum)+"_"+strconv.Itoa(i)), options); err != nil {
+			req.PlannerOptions = options
+			req.PlannerOptions.RandomSeed = i
+			if err := runPlanner(filepath.Join(outputFolder, "scene"+strconv.Itoa(sceneNum)+"_"+strconv.Itoa(i)), req); err != nil {
 				return err
 			}
 		}
@@ -90,11 +69,11 @@ func runScenes(t *testing.T, name string, options map[string]interface{}) error 
 }
 
 // TODO: these options need to be integrated into the planner options
-func runPlanner(fileName string, options map[string]interface{}) error {
+func runPlanner(fileName string, req *armplanning.PlanRequest) error {
 	start := time.Now()
 
 	// run planning query
-	plan, err := armplanning.PlanMotion(context.Background(), logger, scene)
+	plan, err := armplanning.PlanMotion(context.Background(), logger, req)
 
 	// parse output
 	success := "true"
@@ -122,7 +101,7 @@ func runPlanner(fileName string, options map[string]interface{}) error {
 	}
 	defer csvFile.Close()
 	fName := "test_base"
-	if _, ok := scene.StartState.Configuration()[fName]; !ok {
+	if _, ok := req.StartState.Configuration()[fName]; !ok {
 		fName = "arm"
 	}
 
@@ -151,7 +130,6 @@ func generateHashFile(folder string) error {
 	}
 	defer hashFile.Close()
 
-	//nolint:gosec
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	out, err := cmd.CombinedOutput()
 	if err != nil {

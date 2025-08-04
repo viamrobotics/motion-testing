@@ -123,7 +123,7 @@ func scoreFolder(folder string) (*testResult, error) {
 					return nil, err
 				}
 
-				jScore, tScore, oScore, err := evaluateSolution(data, sceneNum)
+				jScore, tScore, oScore, err := evaluateSolution(data, allScenes[sceneNum])
 				if err != nil {
 					return nil, err
 				}
