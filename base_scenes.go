@@ -15,6 +15,8 @@ import (
 	"go.viam.com/rdk/components/movementsensor"
 	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan/armplanning"
+	"go.viam.com/rdk/logging"
+	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/rdk/pointcloud"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/resource"

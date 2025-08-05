@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"go.viam.com/rdk/motionplan/armplanning"
+	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/test"
 )
 
@@ -68,7 +69,6 @@ func runScenes(name string, options *armplanning.PlannerOptions) error {
 	return nil
 }
 
-// TODO: these options need to be integrated into the planner options
 func runPlanner(fileName string, req *armplanning.PlanRequest) error {
 	start := time.Now()
 
