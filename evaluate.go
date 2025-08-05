@@ -7,7 +7,6 @@ import (
 	"github.com/golang/geo/r3"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
-	"gonum.org/v1/gonum/floats"
 )
 
 const defaultEpsilon = 1e-2
@@ -41,7 +40,7 @@ func evaluateSolution(solution [][]float64, scene sceneFunc) (float64, float64, 
 
 	// For each step
 	for i := 0; i < len(solution)-1; i++ {
-		l2Score += L2Distance(solution[i], solution[i+1])
+		l2Score += referenceframe.InputsL2Distance(referenceframe.FloatsToInputs(solution[i]), referenceframe.FloatsToInputs(solution[i+1]))
 
 		// Check linear and orientation excursion every 2 degrees of joint movement
 		if req.FrameSystem.Frame("arm") != nil {
@@ -72,16 +71,6 @@ func evaluateSolution(solution [][]float64, scene sceneFunc) (float64, float64, 
 	}
 
 	return l2Score, lineScore, oScore, nil
-}
-
-// L2Distance returns the L2 normalized difference between two equal length arrays.
-func L2Distance(q1, q2 []float64) float64 {
-	diff := make([]float64, len(q1))
-	for i := 0; i < len(q1); i++ {
-		diff[i] = q1[i] - q2[i]
-	}
-	// 2 is the L value returning a standard L2 Normalization
-	return floats.Norm(diff, 2)
 }
 
 // L2Distance returns the L2 normalized difference between two equal length arrays.

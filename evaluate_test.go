@@ -140,7 +140,7 @@ func scoreFolder(folder string) (*testResult, error) {
 				})
 
 				score.successes += 1
-				score.qualities = append(score.qualities, jScore)
+				score.qualities = append(score.qualities, jScore) // joint score is the scope we will use for quality
 				score.performances = append(score.performances, time)
 			} else {
 				w.Write([]string{
