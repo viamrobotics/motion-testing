@@ -23,7 +23,7 @@ var scene *armplanning.PlanRequest = &armplanning.PlanRequest{
 	PlannerOptions: armplanning.NewBasicPlannerOptions(),
 }
 
-var allScenes = map[int]func(context.Context, logging.Logger) (*armplanning.PlanRequest, error){
+var AllScenes = map[int]func(context.Context, logging.Logger) (*armplanning.PlanRequest, error){
 	// arm scenes
 	// 1:  scene1,
 	// 2:  scene2,
@@ -56,7 +56,7 @@ const ptgDistEndIdx = 3
 func initScene(sceneNum int) (err error) {
 	ctx := context.Background()
 	logger := logging.NewLogger(fmt.Sprintf("scene-%d", sceneNum))
-	if sceneFn, ok := allScenes[sceneNum]; ok {
+	if sceneFn, ok := AllScenes[sceneNum]; ok {
 		scene, err = sceneFn(ctx, logger)
 		if err != nil {
 			return
