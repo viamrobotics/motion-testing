@@ -1,4 +1,4 @@
-package main
+package scenes
 
 import (
 	"context"
@@ -320,7 +320,7 @@ func scene5(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, err
 }
 
-func scene6(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
+func Scene6(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
 	cfg, err := scene5(ctx, logger)
 	if err != nil {
 		return nil, err

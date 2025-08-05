@@ -202,3 +202,6 @@ require (
 	google.golang.org/protobuf v1.36.6
 	nhooyr.io/websocket v1.8.10 // indirect
 )
+
+// replace go.viam.com/rdk => github.com/nicksanford/rdk v0.0.0-20250729224448-d57517da8216
+replace go.viam.com/rdk => github.com/gvaradarajan/rdk v0.0.0-20250804154529-a14ccbe41081

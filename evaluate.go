@@ -1,4 +1,4 @@
-package main
+package scenes
 
 import (
 	"context"
@@ -23,20 +23,20 @@ var scene *armplanning.PlanRequest = &armplanning.PlanRequest{
 	PlannerOptions: armplanning.NewBasicPlannerOptions(),
 }
 
-var allScenes = map[int]func(context.Context, logging.Logger) (*armplanning.PlanRequest, error){
+var AllScenes = map[int]func(context.Context, logging.Logger) (*armplanning.PlanRequest, error){
 	// arm scenes
-	1:  scene1,
-	2:  scene2,
-	3:  scene3,
-	4:  scene4,
-	5:  scene5,
-	6:  scene6,
-	7:  scene7,
-	8:  scene8,
-	9:  scene9,
-	10: scene10,
-	11: scene11,
-	12: scene12,
+	// 1:  scene1,
+	// 2:  scene2,
+	// 3:  scene3,
+	// 4:  scene4,
+	// 5:  scene5,
+	6: Scene6,
+	// 7:  scene7,
+	// 8:  scene8,
+	// 9:  scene9,
+	// 10: scene10,
+	// 11: scene11,
+	// 12: scene12,
 
 	// base scenes
 	// 13: scene13,
@@ -56,7 +56,7 @@ const ptgDistEndIdx = 3
 func initScene(sceneNum int) (err error) {
 	ctx := context.Background()
 	logger := logging.NewLogger(fmt.Sprintf("scene-%d", sceneNum))
-	if sceneFn, ok := allScenes[sceneNum]; ok {
+	if sceneFn, ok := AllScenes[sceneNum]; ok {
 		scene, err = sceneFn(ctx, logger)
 		if err != nil {
 			return
@@ -133,6 +133,7 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 func L2Distance(q1, q2 []float64) float64 {
 	diff := make([]float64, len(q1))
 	for i := 0; i < len(q1); i++ {
+
 		diff[i] = q1[i] - q2[i]
 	}
 	// 2 is the L value returning a standard L2 Normalization
