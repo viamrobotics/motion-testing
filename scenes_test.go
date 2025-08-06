@@ -15,12 +15,10 @@ import (
 	"time"
 
 	"go.viam.com/rdk/motionplan/armplanning"
-	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/test"
 )
 
-const numTests = 1
-const timeout = 5.0 // seconds
+const numTests = 10
 
 var nameFlag = flag.String("name", "", "name of test to run")
 
@@ -31,9 +29,7 @@ func TestDefault(t *testing.T) {
 	if name == "" {
 		name = "default"
 	}
-	defaultOptions := armplanning.NewBasicPlannerOptions()
-	defaultOptions.Timeout = timeout
-	test.That(t, runScenes(name, defaultOptions), test.ShouldBeNil)
+	test.That(t, runScenes(name, armplanning.NewBasicPlannerOptions()), test.ShouldBeNil)
 }
 
 func runScenes(name string, options *armplanning.PlannerOptions) error {
