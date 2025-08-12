@@ -58,15 +58,15 @@ At this time, each scene is tightly coupled to a specific robot configuration. F
 
 | Basic Scenes | Description of Task                                                                                                      | Arm + EE Used |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------- |
-| scene1       | Straight-line move in unrestricted space                                                                                 | UR5 + None    |
-| scene2       | Straight-line move with large obstacles nearby                                                                           | UR5 + None    |
-| scene3       | Reach over a short obstacle that obstructs the direct path                                                               | UR5 + None    |
-| scene4       | Reach over a short obstacle that obstructs the direct path                                                               | xArm6 + None  |
-| scene5       | Reach through a window with a large wall on one side                                                                     | xArm7 + None  |
-| scene6       | Reach through a window with a large wall behind and to the side                                                          | xArm7 + None  |
-| scene7       | Reach over a short obstacle, staying within a narrow corridor                                                            | xArm6 + None  |
-| scene8       | Pouring motion with end effector, with large obstacles nearby                                                            | xArm7 + None  |
-| scene9       | Large arm motion within a “forest”, numerous small obstacles in a random distribution surrounding the robot              | UR5 + None    |
+| armScene1       | Straight-line move in unrestricted space                                                                                 | UR5 + None    |
+| armScene2       | Straight-line move with large obstacles nearby                                                                           | UR5 + None    |
+| armScene3       | Reach over a short obstacle that obstructs the direct path                                                               | UR5 + None    |
+| armScene4       | Reach over a short obstacle that obstructs the direct path                                                               | xArm6 + None  |
+| armScene5       | Reach through a window with a large wall on one side                                                                     | xArm7 + None  |
+| armScene6       | Reach through a window with a large wall behind and to the side                                                          | xArm7 + None  |
+| armScene7       | Reach over a short obstacle, staying within a narrow corridor                                                            | xArm6 + None  |
+| armScene8       | Pouring motion with end effector, with large obstacles nearby                                                            | xArm7 + None  |
+| armScene9       | Large arm motion within a “forest”, numerous small obstacles in a random distribution surrounding the robot              | UR5 + None    |
 
 ## Base Scenes
 
@@ -74,14 +74,9 @@ Basic Base Scenes 13-18 cover a variety of situations where planning for a base 
 
 | Basic Scenes | Description of Task                                                                    |
 | ------------ | ---------------------------------------------------------------------------------------|
-| scene13      | Straight-line move on a small map with no obstacles                                    |
-| scene14      | Move around an obstacle on a small map                                                 |
-| scene15      | Straight-line move on a large office map                                               |
-| scene16      | Move around one corner on a large office map                                           |
-| scene17      | Move a medium distance on a large office map with narrow hallways along the path       |
-| scene18      | Move a large distance on a large office map with many obstacles in the way             |
-
-User scenes are not executed as part of the standard battery of tests which are evaluated during typical CI tasks. These scenes should be referenced, modified, and executed separately from any of the above **Basic Scenes**. 
-
-| User Scenes   | Description of Task                                                                                                     | Arm + EE Used |
-| 19: objSearch | Based on a user application involving a UR5e and a Viam gripper tasked with moving to random poses in a workspace       | UR5 + VG      |
+| baseScene1      | Straight-line move on a small map with no obstacles                                    |
+| baseScene2      | Move around an obstacle on a small map                                                 |
+| baseScene3      | Straight-line move on a large office map                                               |
+| baseScene4      | Move around one corner on a large office map                                           |
+| baseScene5      | Move a medium distance on a large office map with narrow hallways along the path       |
+| baseScene6      | Move a large distance on a large office map with many obstacles in the way             |
