@@ -189,7 +189,6 @@ func compareResults(baseline, modification *testResult) error {
 	builder.WriteString(fmt.Sprintf("\nThe SHA1 for %s is: %s", baseline.name, baseline.sha1))
 	builder.WriteString(fmt.Sprintf("\nThe SHA1 for %s is: %s", modification.name, modification.sha1))
 	builder.WriteString(fmt.Sprintf("\n* **%d samples** were taken for each scene", numTests))
-	builder.WriteString(fmt.Sprintf("\n* A timeout of **%.1f seconds** was imposed for each trial", timeout))
 
 	f.WriteString(builder.String())
 	return nil
