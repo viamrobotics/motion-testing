@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"math"
 	"math/rand"
 	"strconv"
 
 	"go.viam.com/rdk/components/arm"
 	"go.viam.com/rdk/components/arm/fake"
-	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/resource"
@@ -18,7 +16,8 @@ import (
 	commonpb "go.viam.com/api/common/v1"
 )
 
-func newArmModel(ctx context.Context, armModelName string, logger logging.Logger) (referenceframe.Model, error) {
+func newArmModel(armModelName string) (referenceframe.Model, error) {
+	ctx := context.Background()
 	cfg := resource.Config{
 		Name:  arm.Named("arm").Name,
 		Model: resource.DefaultModelFamily.WithModel(armModelName),
@@ -33,8 +32,8 @@ func newArmModel(ctx context.Context, armModelName string, logger logging.Logger
 	return a.Kinematics(ctx)
 }
 
-func scene1(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func armScene1() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +63,8 @@ func scene1(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene2(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "xarm7", logger)
+func armScene2() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm7")
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +134,8 @@ func scene2(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene3(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func armScene3() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}
@@ -190,8 +189,8 @@ func scene3(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene4(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "xarm6", logger)
+func armScene4() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm6")
 	if err != nil {
 		return nil, err
 	}
@@ -245,8 +244,8 @@ func scene4(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, nil
 }
 
-func scene5(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "xarm7", logger)
+func armScene5() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm7")
 	if err != nil {
 		return nil, err
 	}
@@ -320,8 +319,8 @@ func scene5(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	}, err
 }
 
-func scene6(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	cfg, err := scene5(ctx, logger)
+func armScene6() (*armplanning.PlanRequest, error) {
+	cfg, err := armScene5()
 	if err != nil {
 		return nil, err
 	}
@@ -352,8 +351,8 @@ func scene6(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	return cfg, err
 }
 
-func scene7(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	cfg, err := scene4(ctx, logger)
+func armScene7() (*armplanning.PlanRequest, error) {
+	cfg, err := armScene4()
 	if err != nil {
 		return nil, err
 	}
@@ -388,8 +387,8 @@ func scene7(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	return cfg, err
 }
 
-func scene8(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	cfg, err := scene2(ctx, logger)
+func armScene8() (*armplanning.PlanRequest, error) {
+	cfg, err := armScene2()
 	if err != nil {
 		return nil, err
 	}
@@ -402,8 +401,8 @@ func scene8(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 	return cfg, nil
 }
 
-func scene9(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
+func armScene9() (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e")
 	if err != nil {
 		return nil, err
 	}
@@ -441,178 +440,6 @@ func scene9(ctx context.Context, logger logging.Logger) (*armplanning.PlanReques
 
 	obstaclesInFrame := referenceframe.NewGeometriesInFrame(referenceframe.World, obstacles)
 	worldState, err := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{obstaclesInFrame}, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &armplanning.PlanRequest{
-		StartState:  armplanning.NewPlanState(nil, startMap),
-		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
-		FrameSystem: fs,
-		WorldState:  worldState,
-	}, nil
-}
-
-func scene10(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
-	if err != nil {
-		return nil, err
-	}
-	startInput := referenceframe.FloatsToInputs([]float64{0, -math.Pi / 4, math.Pi / 2, 3 * math.Pi / 4, -math.Pi / 2, 0})
-	startPose, _ := model.Transform(startInput)
-
-	// Add frame system and needed frames
-	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
-
-	startMap := map[string][]referenceframe.Input{"arm": startInput}
-
-	// Goal specification
-	goalPt := startPose.Point()
-	goalPt.X += 1200
-	goalPt.Y += 600
-	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
-	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
-
-	// Pose of UR5 mount pillar
-	pillarPose := spatialmath.NewPose(
-		r3.Vector{X: 0., Y: 0., Z: -1000.},
-		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
-	)
-	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
-		Obstacles: []*commonpb.GeometriesInFrame{
-			{
-				ReferenceFrame: "world",
-				Geometries: []*commonpb.Geometry{
-					{
-						Center: spatialmath.PoseToProtobuf(pillarPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 130,
-								Y: 130,
-								Z: 2000,
-							}},
-						},
-						Label: "pillar",
-					},
-				},
-			},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &armplanning.PlanRequest{
-		StartState:  armplanning.NewPlanState(nil, startMap),
-		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
-		FrameSystem: fs,
-		WorldState:  worldState,
-	}, nil
-}
-
-// Corresponds to move that has been demonstrated to cause a self-collision on the UR5's basic planning
-func scene11(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
-	if err != nil {
-		return nil, err
-	}
-	startInput := referenceframe.FloatsToInputs([]float64{3.8141, -1.3106, 2.4543, 4.9485, -3.4041, -2.6749})
-
-	// Add frame system and needed frames
-	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
-
-	startMap := map[string][]referenceframe.Input{"arm": startInput}
-
-	// Goal specification
-	goalPos := r3.Vector{X: -244.43, Y: -255.12, Z: 676.97}
-	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.233, Y: -1.637, Z: 1.224})
-	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPos, goalRot))
-	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
-
-	// Pose of UR5 mount pillar
-	pillarPose := spatialmath.NewPose(
-		r3.Vector{X: 0., Y: 0., Z: -1000.},
-		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
-	)
-	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
-		Obstacles: []*commonpb.GeometriesInFrame{
-			{
-				ReferenceFrame: "world",
-				Geometries: []*commonpb.Geometry{
-					{
-						Center: spatialmath.PoseToProtobuf(pillarPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 130,
-								Y: 130,
-								Z: 2000,
-							}},
-						},
-						Label: "pillar",
-					},
-				},
-			},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &armplanning.PlanRequest{
-		StartState:  armplanning.NewPlanState(nil, startMap),
-		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
-		FrameSystem: fs,
-		WorldState:  worldState,
-	}, nil
-}
-
-// Corresponds to move that only works with MoveJ from an engineering move set
-func scene12(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	model, err := newArmModel(ctx, "ur5e", logger)
-	if err != nil {
-		return nil, err
-	}
-	startInput := referenceframe.FloatsToInputs([]float64{1.2807, -1.4437, -1.3287, 3.7446, 1.4315, -0.2135})
-
-	// Add frame system and needed frames
-	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
-
-	startMap := map[string][]referenceframe.Input{"arm": startInput}
-
-	// Goal specification
-	goalPos := r3.Vector{X: -50.47, Y: -366.47, Z: 189.04}
-	goalRot := spatialmath.R3ToR4(r3.Vector{X: 0.808, Y: 2.168, Z: 2.916})
-	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPos, goalRot))
-	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
-
-	// Pose of UR5 mount pillar
-	pillarPose := spatialmath.NewPose(
-		r3.Vector{X: 0., Y: 0., Z: -1000.},
-		&spatialmath.R4AA{Theta: 0, RX: 1., RY: 0., RZ: 0.},
-	)
-	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
-		Obstacles: []*commonpb.GeometriesInFrame{
-			{
-				ReferenceFrame: "world",
-				Geometries: []*commonpb.Geometry{
-					{
-						Center: spatialmath.PoseToProtobuf(pillarPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 130,
-								Y: 130,
-								Z: 2000,
-							}},
-						},
-						Label: "pillar",
-					},
-				},
-			},
-		},
-	})
 	if err != nil {
 		return nil, err
 	}

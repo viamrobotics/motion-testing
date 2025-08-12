@@ -123,7 +123,7 @@ func scoreFolder(folder string) (*testResult, error) {
 					return nil, err
 				}
 
-				jScore, tScore, oScore, err := evaluateSolution(data, sceneNum)
+				jScore, tScore, oScore, err := evaluateSolution(data, allScenes[sceneNum])
 				if err != nil {
 					return nil, err
 				}
@@ -140,7 +140,7 @@ func scoreFolder(folder string) (*testResult, error) {
 				})
 
 				score.successes += 1
-				score.qualities = append(score.qualities, jScore)
+				score.qualities = append(score.qualities, jScore) // joint score is the scope we will use for quality
 				score.performances = append(score.performances, time)
 			} else {
 				w.Write([]string{
@@ -189,7 +189,6 @@ func compareResults(baseline, modification *testResult) error {
 	builder.WriteString(fmt.Sprintf("\nThe SHA1 for %s is: %s", baseline.name, baseline.sha1))
 	builder.WriteString(fmt.Sprintf("\nThe SHA1 for %s is: %s", modification.name, modification.sha1))
 	builder.WriteString(fmt.Sprintf("\n* **%d samples** were taken for each scene", numTests))
-	builder.WriteString(fmt.Sprintf("\n* A timeout of **%.1f seconds** was imposed for each trial", timeout))
 
 	f.WriteString(builder.String())
 	return nil

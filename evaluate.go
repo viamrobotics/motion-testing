@@ -1,91 +1,32 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"math"
 	"strings"
 
 	"github.com/golang/geo/r3"
-	"github.com/pkg/errors"
-	"go.viam.com/rdk/logging"
-	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
-	"gonum.org/v1/gonum/floats"
 )
 
 const defaultEpsilon = 1e-2
 
-var logger logging.Logger = logging.NewLogger("motion-testing")
-
-var scene *armplanning.PlanRequest = &armplanning.PlanRequest{
-	PlannerOptions: armplanning.NewBasicPlannerOptions(),
-}
-
-var allScenes = map[int]func(context.Context, logging.Logger) (*armplanning.PlanRequest, error){
-	// arm scenes
-	1:  scene1,
-	2:  scene2,
-	3:  scene3,
-	4:  scene4,
-	5:  scene5,
-	6:  scene6,
-	7:  scene7,
-	8:  scene8,
-	9:  scene9,
-	10: scene10,
-	11: scene11,
-	12: scene12,
-
-	// base scenes
-	// 13: scene13,
-	// 14: scene14,
-	// 15: scene15,
-	// 16: scene16,
-	// 17: scene17,
-	// 18: scene18,
-}
-
-var baseSceneStart = 13
-
 const ptgDistStartIdx = 2
 const ptgDistEndIdx = 3
 
-// initScene takes a scene number and loads the relevant information into memory
-func initScene(sceneNum int) (err error) {
-	ctx := context.Background()
-	logger := logging.NewLogger(fmt.Sprintf("scene-%d", sceneNum))
-	if sceneFn, ok := allScenes[sceneNum]; ok {
-		scene, err = sceneFn(ctx, logger)
-		if err != nil {
-			return
-		}
-		return
-	}
-	return errors.Errorf("scene %d does not exist", sceneNum)
-}
-
-func interpolateInputs(from, to []referenceframe.Input, by float64) []referenceframe.Input {
-	var newVals []referenceframe.Input
-	for i, j1 := range from {
-		newVals = append(newVals, referenceframe.Input{j1.Value + ((to[i].Value - j1.Value) * by)})
-	}
-	return newVals
-}
-
-func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, float64, error) {
+func evaluateSolution(solution [][]float64, scene sceneFunc) (float64, float64, float64, error) {
 	var l2Score, lineScore, oScore, totalLineDist float64
 	var err error
 
-	if err := initScene(sceneNum); err != nil {
+	req, err := scene()
+	if err != nil {
 		return -1, -1, -1, err
 	}
-	var poseStart, poseEnd spatialmath.Pose
-	sceneFrame := scene.FrameSystem.Frame("test_base")
 
-	if sceneNum < baseSceneStart {
-		sceneFrame = scene.FrameSystem.Frame("arm")
+	var poseStart, poseEnd spatialmath.Pose
+	sceneFrame := req.FrameSystem.Frame("test_base")
+	if req.FrameSystem.Frame("arm") != nil {
+		sceneFrame = req.FrameSystem.Frame("arm")
 		poseStart, err = sceneFrame.Transform(referenceframe.FloatsToInputs(solution[0]))
 		if poseStart == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 			return -1, -1, -1, err
@@ -99,17 +40,20 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 
 	// For each step
 	for i := 0; i < len(solution)-1; i++ {
-		l2Score += L2Distance(solution[i], solution[i+1])
+		l2Score += referenceframe.InputsL2Distance(referenceframe.FloatsToInputs(solution[i]), referenceframe.FloatsToInputs(solution[i+1]))
 
 		// Check linear and orientation excursion every 2 degrees of joint movement
-		if sceneNum < baseSceneStart {
+		if req.FrameSystem.Frame("arm") != nil {
 			nSteps := getSteps(solution[i], solution[i+1])
 			for j := 1; j <= nSteps; j++ {
-				step := interpolateInputs(
+				step, err := sceneFrame.Interpolate(
 					referenceframe.FloatsToInputs(solution[i]),
 					referenceframe.FloatsToInputs(solution[i+1]),
 					float64(j)/float64(nSteps),
 				)
+				if err != nil {
+					return -1, -1, -1, err
+				}
 				pose, err := sceneFrame.Transform(step)
 				if pose == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 					return -1, -1, -1, err
@@ -127,16 +71,6 @@ func evaluateSolution(solution [][]float64, sceneNum int) (float64, float64, flo
 	}
 
 	return l2Score, lineScore, oScore, nil
-}
-
-// L2Distance returns the L2 normalized difference between two equal length arrays.
-func L2Distance(q1, q2 []float64) float64 {
-	diff := make([]float64, len(q1))
-	for i := 0; i < len(q1); i++ {
-		diff[i] = q1[i] - q2[i]
-	}
-	// 2 is the L value returning a standard L2 Normalization
-	return floats.Norm(diff, 2)
 }
 
 // L2Distance returns the L2 normalized difference between two equal length arrays.

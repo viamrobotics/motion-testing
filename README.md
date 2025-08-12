@@ -67,9 +67,6 @@ At this time, each scene is tightly coupled to a specific robot configuration. F
 | scene7       | Reach over a short obstacle, staying within a narrow corridor                                                            | xArm6 + None  |
 | scene8       | Pouring motion with end effector, with large obstacles nearby                                                            | xArm7 + None  |
 | scene9       | Large arm motion within a “forest”, numerous small obstacles in a random distribution surrounding the robot              | UR5 + None    |
-| scene10      | Move a large distance around the robot base                                                                              | UR5 + None    |
-| scene11      | Specific start-goal pose pairing that has been found to induce collisions when used with the built-in UR5 planning       | UR5 + None    |
-| scene12      | Specific start-goal pose pairing that is difficult to execute with any low-level robot motion primitive other than MoveJ | UR5 + None    |
 
 ## Base Scenes
 
