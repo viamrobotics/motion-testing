@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/golang/geo/r3"
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/spatialmath"
 )
@@ -14,11 +15,11 @@ const defaultEpsilon = 1e-2
 const ptgDistStartIdx = 2
 const ptgDistEndIdx = 3
 
-func evaluateSolution(solution [][]float64, scene sceneFunc) (float64, float64, float64, error) {
+func evaluateSolution(solution [][]float64, scene sceneFunc, logger logging.Logger) (float64, float64, float64, error) {
 	var l2Score, lineScore, oScore, totalLineDist float64
 	var err error
 
-	req, err := scene()
+	req, err := scene(logger)
 	if err != nil {
 		return -1, -1, -1, err
 	}

@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/test"
 )
@@ -29,10 +30,10 @@ func TestDefault(t *testing.T) {
 	if name == "" {
 		name = "default"
 	}
-	test.That(t, runScenes(name, armplanning.NewBasicPlannerOptions()), test.ShouldBeNil)
+	test.That(t, runScenes(t, name, armplanning.NewBasicPlannerOptions()), test.ShouldBeNil)
 }
 
-func runScenes(name string, options *armplanning.PlannerOptions) error {
+func runScenes(t *testing.T, name string, options *armplanning.PlannerOptions) error {
 	outputFolder := filepath.Join(resultsDirectory, name)
 	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
 		// TODO(rb): potentially create a temp directory to be storing these files
@@ -43,17 +44,18 @@ func runScenes(name string, options *armplanning.PlannerOptions) error {
 	}
 
 	for sceneNum, scene := range allScenes {
-		for i := 1; i <= numTests; i++ {
-			req, err := scene()
-			if err != nil {
-				return err
+		t.Run(fmt.Sprintf("scene%d", sceneNum), func(t *testing.T) {
+			logger := logging.NewTestLogger(t)
+			for i := 1; i <= numTests; i++ {
+				req, err := scene(logger)
+				test.That(t, err, test.ShouldBeNil)
+
+				req.PlannerOptions = options
+				req.PlannerOptions.RandomSeed = i
+				runPlanner(filepath.Join(outputFolder, "scene"+strconv.Itoa(sceneNum)+"_"+strconv.Itoa(i)), req, logger)
+				test.That(t, err, test.ShouldBeNil)
 			}
-			req.PlannerOptions = options
-			req.PlannerOptions.RandomSeed = i
-			if err := runPlanner(filepath.Join(outputFolder, "scene"+strconv.Itoa(sceneNum)+"_"+strconv.Itoa(i)), req); err != nil {
-				return err
-			}
-		}
+		})
 	}
 
 	// Create SHA-containing file for this execution in the output folder
@@ -65,7 +67,7 @@ func runScenes(name string, options *armplanning.PlannerOptions) error {
 	return nil
 }
 
-func runPlanner(fileName string, req *armplanning.PlanRequest) error {
+func runPlanner(fileName string, req *armplanning.PlanRequest, logger logging.Logger) error {
 	start := time.Now()
 
 	// run planning query

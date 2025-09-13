@@ -5,9 +5,7 @@ import (
 	"go.viam.com/rdk/motionplan/armplanning"
 )
 
-var logger = logging.NewLogger("motion-testing")
-
-type sceneFunc func() (*armplanning.PlanRequest, error)
+type sceneFunc func(logger logging.Logger) (*armplanning.PlanRequest, error)
 
 var allScenes = map[int]sceneFunc{
 	// arm scenes

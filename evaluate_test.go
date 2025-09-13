@@ -16,6 +16,8 @@ import (
 	"github.com/montanaflynn/stats"
 	"go.viam.com/test"
 	"gonum.org/v1/gonum/stat/distuv"
+
+	"go.viam.com/rdk/logging"
 )
 
 type testResult struct {
@@ -41,16 +43,17 @@ var percentImprovementHealthThresholds = [2]float64{0, 0}
 var probabilityImprovementHealthThresholds = [2]float64{16, 84} // numbers derive from first standard deviation of normal distribution
 
 func TestScores(t *testing.T) {
-	baseline, err := scoreFolder(*baselineFlag)
+	logger := logging.NewTestLogger(t)
+	baseline, err := scoreFolder(*baselineFlag, logger)
 	test.That(t, err, test.ShouldBeNil)
-	modification, err := scoreFolder(*modifiedFlag)
+	modification, err := scoreFolder(*modifiedFlag, logger)
 	test.That(t, err, test.ShouldBeNil)
 
 	// compare folders with results
 	test.That(t, compareResults(baseline, modification), test.ShouldBeNil)
 }
 
-func scoreFolder(folder string) (*testResult, error) {
+func scoreFolder(folder string, logger logging.Logger) (*testResult, error) {
 	if folder == nilFolder {
 		return nil, errors.New("folder not specified for flag baselineDir or modifiedDir")
 	}
@@ -123,7 +126,7 @@ func scoreFolder(folder string) (*testResult, error) {
 					return nil, err
 				}
 
-				jScore, tScore, oScore, err := evaluateSolution(data, allScenes[sceneNum])
+				jScore, tScore, oScore, err := evaluateSolution(data, allScenes[sceneNum], logger)
 				if err != nil {
 					return nil, err
 				}

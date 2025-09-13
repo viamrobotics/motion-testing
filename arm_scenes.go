@@ -7,6 +7,7 @@ import (
 
 	"go.viam.com/rdk/components/arm"
 	"go.viam.com/rdk/components/arm/fake"
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/resource"
@@ -16,7 +17,7 @@ import (
 	commonpb "go.viam.com/api/common/v1"
 )
 
-func newArmModel(armModelName string) (referenceframe.Model, error) {
+func newArmModel(armModelName string, logger logging.Logger) (referenceframe.Model, error) {
 	ctx := context.Background()
 	cfg := resource.Config{
 		Name:  arm.Named("arm").Name,
@@ -32,8 +33,8 @@ func newArmModel(armModelName string) (referenceframe.Model, error) {
 	return a.Kinematics(ctx)
 }
 
-func armScene1() (*armplanning.PlanRequest, error) {
-	model, err := newArmModel("ur5e")
+func armScene1(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e", logger)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +64,8 @@ func armScene1() (*armplanning.PlanRequest, error) {
 	}, nil
 }
 
-func armScene2() (*armplanning.PlanRequest, error) {
-	model, err := newArmModel("xarm7")
+func armScene2(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm7", logger)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +135,8 @@ func armScene2() (*armplanning.PlanRequest, error) {
 	}, nil
 }
 
-func armScene3() (*armplanning.PlanRequest, error) {
-	model, err := newArmModel("ur5e")
+func armScene3(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e", logger)
 	if err != nil {
 		return nil, err
 	}
@@ -189,8 +190,8 @@ func armScene3() (*armplanning.PlanRequest, error) {
 	}, nil
 }
 
-func armScene4() (*armplanning.PlanRequest, error) {
-	model, err := newArmModel("xarm6")
+func armScene4(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm6", logger)
 	if err != nil {
 		return nil, err
 	}
@@ -244,8 +245,8 @@ func armScene4() (*armplanning.PlanRequest, error) {
 	}, nil
 }
 
-func armScene5() (*armplanning.PlanRequest, error) {
-	model, err := newArmModel("xarm7")
+func armScene5(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("xarm7", logger)
 	if err != nil {
 		return nil, err
 	}
@@ -319,8 +320,8 @@ func armScene5() (*armplanning.PlanRequest, error) {
 	}, err
 }
 
-func armScene6() (*armplanning.PlanRequest, error) {
-	cfg, err := armScene5()
+func armScene6(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	cfg, err := armScene5(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -351,8 +352,8 @@ func armScene6() (*armplanning.PlanRequest, error) {
 	return cfg, err
 }
 
-func armScene7() (*armplanning.PlanRequest, error) {
-	cfg, err := armScene4()
+func armScene7(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	cfg, err := armScene4(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -387,8 +388,8 @@ func armScene7() (*armplanning.PlanRequest, error) {
 	return cfg, err
 }
 
-func armScene8() (*armplanning.PlanRequest, error) {
-	cfg, err := armScene2()
+func armScene8(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	cfg, err := armScene2(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -401,8 +402,8 @@ func armScene8() (*armplanning.PlanRequest, error) {
 	return cfg, nil
 }
 
-func armScene9() (*armplanning.PlanRequest, error) {
-	model, err := newArmModel("ur5e")
+func armScene9(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	model, err := newArmModel("ur5e", logger)
 	if err != nil {
 		return nil, err
 	}
