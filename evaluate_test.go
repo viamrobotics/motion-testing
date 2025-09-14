@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"errors"
 	"flag"
 	"fmt"
 	"math"
@@ -32,11 +31,9 @@ type testScore struct {
 	performances stats.Float64Data
 }
 
-const nilFolder = ""
-
 // flags used to define folders insider results folder to compare
-var baselineFlag = flag.String("baselineDir", nilFolder, "name of test to use as a baseline")
-var modifiedFlag = flag.String("modifiedDir", nilFolder, "name of test to compare to the baseline")
+var baselineFlag = flag.String("baselineDir", "baseline", "name of test to use as a baseline")
+var modifiedFlag = flag.String("modifiedDir", "default", "name of test to compare to the baseline")
 
 // these variables represent the lower and higher bounds (exclusive) for unacceptable and acceptable values respectively
 var percentImprovementHealthThresholds = [2]float64{0, 0}
@@ -54,9 +51,6 @@ func TestScores(t *testing.T) {
 }
 
 func scoreFolder(folder string, logger logging.Logger) (*testResult, error) {
-	if folder == nilFolder {
-		return nil, errors.New("folder not specified for flag baselineDir or modifiedDir")
-	}
 	fullPath := filepath.Join(resultsDirectory, folder)
 	fileInfo, err := os.Stat(fullPath)
 	if err != nil || !fileInfo.IsDir() {
@@ -73,7 +67,6 @@ func scoreFolder(folder string, logger logging.Logger) (*testResult, error) {
 		return nil, err
 	}
 	defer f.Close()
-
 	w := csv.NewWriter(f)
 	defer w.Flush()
 	w.Write([]string{"scene", "seed", "success", "time", "total_score", "joint_score", "line_score", "orient_score"})

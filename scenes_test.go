@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -67,7 +68,32 @@ func runScenes(t *testing.T, name string, options *armplanning.PlannerOptions) e
 	return nil
 }
 
+func writePlanRequest(filePrefix string, req *armplanning.PlanRequest) error {
+	fn := filePrefix + "_request.json"
+
+	data, err := json.MarshalIndent(req, "", "  ")
+	if err != nil {
+		return err
+	}
+	file, err := os.OpenFile(filepath.Clean(fn), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.Write(data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func runPlanner(fileName string, req *armplanning.PlanRequest, logger logging.Logger) error {
+
+	err := writePlanRequest(fileName, req)
+	if err != nil {
+		return err
+	}
+
 	start := time.Now()
 
 	// run planning query
