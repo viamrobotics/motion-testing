@@ -17,7 +17,6 @@ import (
 	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/services/motion"
 	"go.viam.com/rdk/services/motion/builtin"
-	"go.viam.com/rdk/services/slam"
 	"go.viam.com/rdk/spatialmath"
 	"go.viam.com/test"
 )
@@ -54,8 +53,8 @@ func TestMotionExtendedGlobe(t *testing.T) {
 		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
-			ComponentName:      baseResource,
-			MovementSensorName: moveSensorResource,
+			ComponentName:      baseResource.ShortName(),
+			MovementSensorName: moveSensorResource.ShortName(),
 			Destination:        dst,
 			Extra:              extra,
 		}
@@ -68,8 +67,8 @@ func TestMotionExtendedGlobe(t *testing.T) {
 		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
-			ComponentName:      baseResource,
-			MovementSensorName: moveSensorResource,
+			ComponentName:      baseResource.ShortName(),
+			MovementSensorName: moveSensorResource.ShortName(),
 			Heading:            math.NaN(),
 			Destination:        dst,
 			Extra:              extra,
@@ -83,8 +82,8 @@ func TestMotionExtendedGlobe(t *testing.T) {
 		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
-			ComponentName:      baseResource,
-			MovementSensorName: moveSensorResource,
+			ComponentName:      baseResource.ShortName(),
+			MovementSensorName: moveSensorResource.ShortName(),
 			Heading:            10000000,
 			Destination:        dst,
 			Extra:              extra,
@@ -98,8 +97,8 @@ func TestMotionExtendedGlobe(t *testing.T) {
 		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
-			ComponentName:      baseResource,
-			MovementSensorName: moveSensorResource,
+			ComponentName:      baseResource.ShortName(),
+			MovementSensorName: moveSensorResource.ShortName(),
 			Heading:            -10000000,
 			Destination:        dst,
 			Extra:              extra,
@@ -113,8 +112,8 @@ func TestMotionExtendedGlobe(t *testing.T) {
 		_, ms, closeFunc := builtin.CreateMoveOnGlobeTestEnvironment(ctx, t, gpsPoint, 80, nil)
 		defer closeFunc(ctx)
 		req := motion.MoveOnGlobeReq{
-			ComponentName:      baseResource,
-			MovementSensorName: moveSensorResource,
+			ComponentName:      baseResource.ShortName(),
+			MovementSensorName: moveSensorResource.ShortName(),
 			Heading:            90,
 			Destination:        dst,
 			MotionCfg:          &motion.MotionConfiguration{},
@@ -141,9 +140,9 @@ func TestMotionExtendedGlobe(t *testing.T) {
 		test.That(t, err, test.ShouldBeNil)
 
 		req := motion.MoveOnGlobeReq{
-			ComponentName:      baseResource,
+			ComponentName:      baseResource.ShortName(),
 			Destination:        dst,
-			MovementSensorName: moveSensorResource,
+			MovementSensorName: moveSensorResource.ShortName(),
 			Obstacles:          []*spatialmath.GeoGeometry{geoGeometry},
 			MotionCfg:          motionCfg,
 			Extra:              extra,
@@ -201,9 +200,9 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		)
 		defer closeFunc(ctx)
 		req := motion.MoveOnMapReq{
-			ComponentName: base.Named("test-base"),
+			ComponentName: "test-base",
 			Destination:   goalInSLAMFrame,
-			SlamName:      slam.Named("test_slam"),
+			SlamName:      "test_slam",
 			Extra:         extra,
 			MotionCfg:     motionCfgFast,
 		}
@@ -244,9 +243,9 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			defer closeFunc(ctx)
 
 			req := motion.MoveOnMapReq{
-				ComponentName: base.Named("test-base"),
+				ComponentName: "test-base",
 				Destination:   goalInSLAMFrame,
-				SlamName:      slam.Named("test_slam"),
+				SlamName:      "test_slam",
 				Extra:         extra,
 				MotionCfg:     motionCfg,
 			}
@@ -278,10 +277,10 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			easyGoalInSLAMFrame := spatialmath.PoseBetweenInverse(motion.SLAMOrientationAdjustment, easyGoalInBaseFrame)
 
 			req := motion.MoveOnMapReq{
-				ComponentName: base.Named("test-base"),
+				ComponentName: "test-base",
 				Destination:   easyGoalInSLAMFrame,
 				MotionCfg:     motionCfg,
-				SlamName:      slam.Named("test_slam"),
+				SlamName:      "test_slam",
 				Extra:         extra,
 			}
 
@@ -311,9 +310,9 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			defer closeFunc(ctx)
 
 			req := motion.MoveOnMapReq{
-				ComponentName: base.Named("test-base"),
+				ComponentName: "test-base",
 				Destination:   goalInSLAMFrame,
-				SlamName:      slam.Named("test_slam"),
+				SlamName:      "test_slam",
 				MotionCfg:     motionCfg,
 				Extra:         extraPosOnly,
 			}
@@ -352,9 +351,9 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 			executionID, err := ms.MoveOnMap(
 				context.Background(),
 				motion.MoveOnMapReq{
-					ComponentName: base.Named("test-base"),
+					ComponentName: "test-base",
 					Destination:   easyGoalInSLAMFrame,
-					SlamName:      slam.Named("test_slam"),
+					SlamName:      "test_slam",
 					Extra:         extra,
 				},
 			)
@@ -376,10 +375,10 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		defer closeFunc(ctx)
 
 		req := motion.MoveOnMapReq{
-			ComponentName: base.Named("test-base"),
+			ComponentName: "test-base",
 			Destination:   goal1SLAMFrame,
 			MotionCfg:     motionCfg,
-			SlamName:      slam.Named("test_slam"),
+			SlamName:      "test_slam",
 			Extra:         map[string]interface{}{"smooth_iter": 5},
 		}
 
@@ -407,9 +406,9 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		// Now, we try to go to the second goal. Since the `CurrentPosition` of our base is at `goal1`, the pose that motion solves for and
 		// logs should be {x:-1043  y:593}
 		req = motion.MoveOnMapReq{
-			ComponentName: base.Named("test-base"),
+			ComponentName: "test-base",
 			Destination:   goal2SLAMFrame,
-			SlamName:      slam.Named("test_slam"),
+			SlamName:      "test_slam",
 			MotionCfg:     motionCfg,
 			Extra:         map[string]interface{}{"smooth_iter": 5},
 		}
@@ -434,7 +433,7 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		test.That(t, spatialmath.PoseAlmostEqualEps(endPos.Pose(), goal2BaseFrame, PlanDeviationMM), test.ShouldBeTrue)
 
 		plans, err := ms.PlanHistory(ctx, motion.PlanHistoryReq{
-			ComponentName: base.Named("test-base"),
+			ComponentName: "test-base",
 			LastPlanOnly:  false,
 			ExecutionID:   executionID,
 		})
@@ -461,10 +460,10 @@ func TestMotionExtendedMapSimple(t *testing.T) {
 		defer closeFunc(ctx)
 
 		req := motion.MoveOnMapReq{
-			ComponentName: base.Named("test-base"),
+			ComponentName: "test-base",
 			MotionCfg:     motionCfg,
 			Destination:   spatialmath.NewPoseFromOrientation(&spatialmath.OrientationVectorDegrees{OZ: 1, Theta: 150}),
-			SlamName:      slam.Named("test_slam"),
+			SlamName:      "test_slam",
 		}
 
 		timeoutCtx, timeoutFn := context.WithTimeout(ctx, time.Second*timeoutSec)
@@ -492,9 +491,9 @@ func TestMotionExtendedAskewIMU(t *testing.T) {
 		defer closeFunc(ctx)
 
 		req := motion.MoveOnMapReq{
-			ComponentName: base.Named("test-base"),
+			ComponentName: "test-base",
 			Destination:   goal1SLAMFrame,
-			SlamName:      slam.Named("test_slam"),
+			SlamName:      "test_slam",
 			Extra:         extraPosOnly,
 			MotionCfg:     motionCfg,
 		}
