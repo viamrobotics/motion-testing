@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"math/rand"
+	"os"
 	"strconv"
 
 	"go.viam.com/rdk/components/arm"
@@ -451,4 +453,20 @@ func armScene9(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		FrameSystem: fs,
 		WorldState:  worldState,
 	}, nil
+}
+
+func armScene10(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	content, err := os.ReadFile("data/sanding1.json")
+	if err != nil {
+		return nil, err
+	}
+
+	req := armplanning.PlanRequest{}
+
+	err = json.Unmarshal(content, &req)
+	if err != nil {
+		return nil, err
+	}
+
+	return &req, nil
 }

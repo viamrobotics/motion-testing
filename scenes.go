@@ -9,15 +9,16 @@ type sceneFunc func(logger logging.Logger) (*armplanning.PlanRequest, error)
 
 var allScenes = map[int]sceneFunc{
 	// arm scenes
-	1: armScene1,
-	2: armScene2,
-	3: armScene3,
-	4: armScene4,
-	5: armScene5,
-	6: armScene6,
-	7: armScene7,
-	8: armScene8,
-	9: armScene9,
+	1:  armScene1,
+	2:  armScene2,
+	3:  armScene3,
+	4:  armScene4,
+	5:  armScene5,
+	6:  armScene6,
+	7:  armScene7,
+	8:  armScene8,
+	9:  armScene9,
+	10: armScene10,
 
 	// base scenes
 	// 13: baseScene1,
