@@ -97,7 +97,7 @@ func runPlanner(fileName string, req *armplanning.PlanRequest, logger logging.Lo
 	start := time.Now()
 
 	// run planning query
-	plan, err := armplanning.PlanMotion(context.Background(), logger, req)
+	plan, _, err := armplanning.PlanMotion(context.Background(), logger, req)
 
 	// parse output
 	success := "true"
