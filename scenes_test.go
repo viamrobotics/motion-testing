@@ -4,6 +4,7 @@ import (
 	"flag"
 	"testing"
 
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/motionplan/armplanning"
 	"go.viam.com/test"
 )
