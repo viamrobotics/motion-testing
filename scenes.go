@@ -142,7 +142,7 @@ func runPlanner(fileName string, req *armplanning.PlanRequest, logger logging.Lo
 		for _, step := range path {
 			stepStr := make([]string, 0, len(path))
 			for _, joint := range step {
-				stepStr = append(stepStr, fmt.Sprintf("%f", joint.Value))
+				stepStr = append(stepStr, fmt.Sprintf("%f", joint))
 			}
 			w.Write(stepStr)
 		}
