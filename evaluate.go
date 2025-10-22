@@ -52,11 +52,11 @@ func evaluateSolution(solution [][]float64, scene sceneFunc, logger logging.Logg
 	sceneFrame := req.FrameSystem.Frame("test_base")
 	if req.FrameSystem.Frame("arm") != nil {
 		sceneFrame = req.FrameSystem.Frame("arm")
-		poseStart, err = sceneFrame.Transform(referenceframe.FloatsToInputs(solution[0]))
+		poseStart, err = sceneFrame.Transform(solution[0])
 		if poseStart == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 			return -1, -1, -1, err
 		}
-		poseEnd, err = sceneFrame.Transform(referenceframe.FloatsToInputs(solution[len(solution)-1]))
+		poseEnd, err = sceneFrame.Transform(solution[len(solution)-1])
 		if poseEnd == nil || (err != nil && !strings.Contains(err.Error(), referenceframe.OOBErrString)) {
 			return -1, -1, -1, err
 		}
@@ -65,15 +65,15 @@ func evaluateSolution(solution [][]float64, scene sceneFunc, logger logging.Logg
 
 	// For each step
 	for i := 0; i < len(solution)-1; i++ {
-		l2Score += referenceframe.InputsL2Distance(referenceframe.FloatsToInputs(solution[i]), referenceframe.FloatsToInputs(solution[i+1]))
+		l2Score += referenceframe.InputsL2Distance(solution[i], solution[i+1])
 
 		// Check linear and orientation excursion every 2 degrees of joint movement
 		if req.FrameSystem.Frame("arm") != nil {
 			nSteps := getSteps(solution[i], solution[i+1])
 			for j := 1; j <= nSteps; j++ {
 				step, err := sceneFrame.Interpolate(
-					referenceframe.FloatsToInputs(solution[i]),
-					referenceframe.FloatsToInputs(solution[i+1]),
+					solution[i],
+					solution[i+1],
 					float64(j)/float64(nSteps),
 				)
 				if err != nil {

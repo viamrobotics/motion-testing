@@ -41,7 +41,7 @@ func armScene1(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		return nil, err
 	}
 
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startInput := []float64{0, 0, 0, 0, 0, 0}
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
@@ -71,7 +71,7 @@ func armScene2(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
+	startInput := []float64{0, 0, 0, 0, 0, 0, 0}
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
@@ -142,7 +142,7 @@ func armScene3(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startInput := []float64{0, 0, 0, 0, 0, 0}
 	startPose, _ := model.Transform(startInput)
 
 	fs := referenceframe.NewEmptyFrameSystem("test")
@@ -197,7 +197,7 @@ func armScene4(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startInput := []float64{0, 0, 0, 0, 0, 0}
 	startPose, _ := model.Transform(startInput)
 
 	fs := referenceframe.NewEmptyFrameSystem("test")
@@ -253,7 +253,7 @@ func armScene5(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		return nil, err
 	}
 	// model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0, 0})
+	startInput := []float64{0, 0, 0, 0, 0, 0, 0}
 	startPose, _ := model.Transform(startInput)
 
 	fs := referenceframe.NewEmptyFrameSystem("test")
@@ -409,7 +409,7 @@ func armScene9(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0, 0, 0, 0})
+	startInput := []float64{0, 0, 0, 0, 0, 0}
 	startPose, _ := model.Transform(startInput)
 
 	// Add frame system and needed frames
