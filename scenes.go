@@ -59,10 +59,7 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 			return fmt.Errorf("scene failed for sceneNum: %d : %w", sceneNum, err)
 		}
 
-		_, _, err = armplanning.PlanMotion(context.Background(), logger, req) // run once to load caches
-		if err != nil {
-			return fmt.Errorf("runPlanner failed for sceneNum: %d : %w", sceneNum, err)
-		}
+		armplanning.PlanMotion(context.Background(), logger, req) // run once to load caches
 
 		for i := 1; i <= numTests; i++ {
 			logger.Infof("sceneNum: %d iteration: %d", sceneNum, i)
