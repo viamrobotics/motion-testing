@@ -124,37 +124,37 @@ func createBaseSceneConfig(
 }
 
 func baseScene1(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
+	startInput := []referenceframe.Input{0, 0, 0}
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 0.277 * 1000, Y: 0.593 * 1000})
 	return createBaseSceneConfig(startInput, goalPose, "pointcloud/octagonspace.pcd", logger)
 }
 
 func baseScene2(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
+	startInput := []referenceframe.Input{0, 0, 0}
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 1.32 * 1000, Y: 0})
 	return createBaseSceneConfig(startInput, goalPose, "pointcloud/octagonspace.pcd", logger)
 }
 
 func baseScene3(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	startInput := referenceframe.FloatsToInputs([]float64{-6.905 * 1000, 0.623 * 1000, 0})
+	startInput := []referenceframe.Input{-6.905 * 1000, 0.623 * 1000, 0}
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -29.164 * 1000, Y: 3.433 * 1000})
 	return createBaseSceneConfig(startInput, goalPose, "slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd", logger)
 }
 
 func baseScene4(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	startInput := referenceframe.FloatsToInputs([]float64{-19.376 * 1000, 2.305 * 1000, 0})
+	startInput := []referenceframe.Input{-19.376 * 1000, 2.305 * 1000, 0}
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -27.946 * 1000, Y: -4.406 * 1000})
 	return createBaseSceneConfig(startInput, goalPose, "slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd", logger)
 }
 
 func baseScene5(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
+	startInput := []referenceframe.Input{0, 0, 0}
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -5.959 * 1000, Y: -5.542 * 1000})
 	return createBaseSceneConfig(startInput, goalPose, "slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd", logger)
 }
 
 func baseScene6(ctx context.Context, logger logging.Logger) (*armplanning.PlanRequest, error) {
-	startInput := referenceframe.FloatsToInputs([]float64{0, 0, 0})
+	startInput := []referenceframe.Input{0, 0, 0}
 	goalPose := spatialmath.NewPoseFromPoint(r3.Vector{X: -52.555 * 1000, Y: -27.215 * 1000})
 	return createBaseSceneConfig(startInput, goalPose, "slam/example_cartographer_outputs/viam-office-02-22-3/pointcloud/pointcloud_4.pcd", logger)
 }
