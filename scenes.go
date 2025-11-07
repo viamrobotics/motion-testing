@@ -17,7 +17,7 @@ import (
 )
 
 const resultsDirectory = "results"
-const numTests = 10
+const numTests = 11
 
 type sceneFunc func(logger logging.Logger) (*armplanning.PlanRequest, error)
 
