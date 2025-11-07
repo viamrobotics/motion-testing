@@ -455,18 +455,20 @@ func armScene9(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	}, nil
 }
 
-func armScene10(logger logging.Logger) (*armplanning.PlanRequest, error) {
-	content, err := os.ReadFile("data/sanding1.json")
-	if err != nil {
-		return nil, err
+func armSceneFile(fn string) func(logger logging.Logger) (*armplanning.PlanRequest, error) {
+	return func(logger logging.Logger) (*armplanning.PlanRequest, error) {
+		content, err := os.ReadFile(fn)
+		if err != nil {
+			return nil, err
+		}
+
+		req := armplanning.PlanRequest{}
+
+		err = json.Unmarshal(content, &req)
+		if err != nil {
+			return nil, err
+		}
+
+		return &req, nil
 	}
-
-	req := armplanning.PlanRequest{}
-
-	err = json.Unmarshal(content, &req)
-	if err != nil {
-		return nil, err
-	}
-
-	return &req, nil
 }

@@ -32,7 +32,8 @@ var allScenes = map[int]sceneFunc{
 	7:  armScene7,
 	8:  armScene8,
 	9:  armScene9,
-	10: armScene10,
+	10: armSceneFile("data/sanding1.json"),
+	11: armSceneFile("data/sanding-approach1.json"),
 
 	// base scenes
 	// 13: baseScene1,
