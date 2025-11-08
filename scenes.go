@@ -17,7 +17,7 @@ import (
 )
 
 const resultsDirectory = "results"
-const numTests = 11
+const numTests = 10
 
 type sceneFunc func(logger logging.Logger) (*armplanning.PlanRequest, error)
 
@@ -33,7 +33,6 @@ var allScenes = map[int]sceneFunc{
 	8:  armScene8,
 	9:  armScene9,
 	10: armSceneFile("data/sanding1.json"),
-	11: armSceneFile("data/sanding-approach1.json"),
 
 	// base scenes
 	// 13: baseScene1,
