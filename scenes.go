@@ -17,7 +17,6 @@ import (
 )
 
 const resultsDirectory = "results"
-const numTests = 10
 
 type sceneFunc func(logger logging.Logger) (*armplanning.PlanRequest, error)
 
@@ -33,6 +32,7 @@ var allScenes = map[int]sceneFunc{
 	8:  armScene8,
 	9:  armScene9,
 	10: armSceneFile("data/sanding1.json"),
+	11: armSceneFile("data/sanding-esha1.json"),
 
 	// base scenes
 	// 13: baseScene1,
@@ -42,6 +42,8 @@ var allScenes = map[int]sceneFunc{
 	// 17: baseScene5,
 	// 18: baseScene6,
 }
+
+var numTests = len(allScenes)
 
 func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.Logger) error {
 	outputFolder := filepath.Join(resultsDirectory, name)

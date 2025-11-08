@@ -335,8 +335,8 @@ func tableEntryInt(sceneNum int, initial, final float64) string {
 	delta := percentDifference(initial, final)
 	return fmt.Sprintf("| %d | %.0f%% | %.0f%% | %.0f%% | %c | \n",
 		sceneNum,
-		100*initial/numTests,
-		100*final/numTests,
+		100*initial/float64(numTests),
+		100*final/float64(numTests),
 		delta,
 		healthIndicator(delta, percentImprovementHealthThresholds),
 	)
