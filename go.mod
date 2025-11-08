@@ -6,8 +6,8 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/kellydunn/golang-geo v0.7.0
-	go.viam.com/api v0.1.483
-	go.viam.com/rdk v0.98.1-0.20251022195908-81635b1665c6
+	go.viam.com/api v0.1.485
+	go.viam.com/rdk v0.100.1-0.20251107201808-882efa005ad3
 )
 
 require (
@@ -34,6 +34,7 @@ require (
 	github.com/chenzhekl/goply v0.0.0-20190930133256-258c2381defd // indirect
 	github.com/chewxy/hm v1.0.0 // indirect
 	github.com/chewxy/math32 v1.10.1 // indirect
+	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
@@ -147,7 +148,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.5.5 // indirect
 	github.com/jhump/protoreflect v1.15.6 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/dns v1.1.58 // indirect
 	github.com/montanaflynn/stats v0.7.1
@@ -167,7 +168,6 @@ require (
 	github.com/pion/turn/v2 v2.1.6 // indirect
 	github.com/pion/webrtc/v3 v3.2.42 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/srikrsna/protoc-gen-gotag v0.6.2 // indirect
@@ -181,15 +181,15 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go.viam.com/test v1.2.4
-	go.viam.com/utils v0.1.174
+	go.viam.com/utils v0.1.176
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
 	golang.org/x/image v0.25.0 // indirect
 	golang.org/x/mod v0.26.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
