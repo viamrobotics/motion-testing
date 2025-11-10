@@ -7,7 +7,7 @@ require (
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/kellydunn/golang-geo v0.7.0
 	go.viam.com/api v0.1.485
-	go.viam.com/rdk v0.100.1-0.20251107201808-882efa005ad3
+	go.viam.com/rdk v0.101.0-rc0.0.20251110185944-afe72a73a000
 )
 
 require (
