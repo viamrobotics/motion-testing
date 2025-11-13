@@ -37,7 +37,8 @@ var allScenes = map[int]sceneFunc{
 var numTests = len(allScenes)
 
 func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.Logger) error {
-	sceneLogger := logging.NewLogger("RunScenes logger") // so we don't buffer debug messages
+	sceneLogger := logger.Sublogger("RunScenes logger")
+	sceneLogger.SetLevel(logging.INFO)
 
 	outputFolder := filepath.Join(resultsDirectory, name)
 	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
@@ -49,19 +50,20 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 	}
 
 	for sceneNum, scene := range allScenes {
+		logger := sceneLogger.Sublogger(fmt.Sprintf("scene_%d", sceneNum))
 		req, err := scene(logger)
 		if err != nil {
 			return fmt.Errorf("scene failed for sceneNum: %d : %w", sceneNum, err)
 		}
 
-		armplanning.PlanMotion(context.Background(), sceneLogger, req) // run once to load caches
+		armplanning.PlanMotion(context.Background(), logger, req) // run once to load caches
 
 		for i := 1; i <= numTests; i++ {
 			logger.Infof("sceneNum: %d iteration: %d", sceneNum, i)
 
 			req.PlannerOptions = options
 			req.PlannerOptions.RandomSeed = i
-			err = runPlanner(filepath.Join(outputFolder, "scene"+strconv.Itoa(sceneNum)+"_"+strconv.Itoa(i)), req, sceneLogger)
+			err = runPlanner(filepath.Join(outputFolder, "scene"+strconv.Itoa(sceneNum)+"_"+strconv.Itoa(i)), req, logger)
 			if err != nil {
 				return fmt.Errorf("runPlanner failed for sceneNum: %d : %w", sceneNum, err)
 			}
