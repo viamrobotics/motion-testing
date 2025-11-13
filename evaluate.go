@@ -338,7 +338,7 @@ func tableEntryInt(sceneNum int, initial, final float64) string {
 		100*initial/float64(numTests),
 		100*final/float64(numTests),
 		delta,
-		healthIndicator(delta, percentImprovementHealthThresholds),
+		healthIndicator(delta, delta, percentImprovementHealthThresholds),
 	)
 }
 
@@ -385,13 +385,14 @@ func tableEntryFloats(sceneNum int, initial, final stats.Float64Data) string {
 	}
 
 	delta := percentDifference(A.Mu, B.Mu)
+
 	return fmt.Sprintf("| %d | %.2f\u00B1%.2f | %.2f\u00B1%.2f | %.0f%% | %.0f%% | %c | \n",
 		sceneNum,
 		A.Mu, A.Sigma,
 		B.Mu, B.Sigma,
 		-delta, // want to flip it so its an improvement if its less
 		probability,
-		healthIndicator(probability, probabilityImprovementHealthThresholds),
+		healthIndicator(-delta, probability, probabilityImprovementHealthThresholds),
 	)
 }
 
@@ -409,11 +410,13 @@ func normal(data stats.Float64Data) (distuv.Normal, bool) {
 	return distuv.Normal{Mu: mean, Sigma: stdDev}, true
 }
 
-func healthIndicator(data float64, thresholds [2]float64) rune {
+func healthIndicator(val, prob float64, thresholds [2]float64) rune {
 	switch {
-	case data < thresholds[0]:
+	case math.Abs(val) <= 5 || math.IsNaN(prob):
+		return '➖'
+	case (prob + .1) < thresholds[0]:
 		return '❌'
-	case data > thresholds[1]:
+	case (prob - .1) > thresholds[1]:
 		return '✅'
 	default:
 		return '➖'
