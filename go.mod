@@ -5,8 +5,8 @@ go 1.25.1
 require (
 	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
-	go.viam.com/api v0.1.487
-	go.viam.com/rdk v0.103.0-rc0
+	go.viam.com/api v0.1.495
+	go.viam.com/rdk v0.103.0-rc0.0.20251126012813-31ce1e5189bd
 )
 
 require (
@@ -81,7 +81,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/viamrobotics/ice/v2 v2.3.40 // indirect
@@ -175,7 +175,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go.viam.com/test v1.2.4
-	go.viam.com/utils v0.3.1 // indirect
+	go.viam.com/utils v0.3.3 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
 	golang.org/x/image v0.25.0 // indirect
