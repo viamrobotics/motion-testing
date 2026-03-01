@@ -51,6 +51,7 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 	}
 
 	for sceneNum, scene := range allScenes {
+		logger.Warnf("starting sceneNum: %d", sceneNum)
 		logger := sceneLogger.Sublogger(fmt.Sprintf("scene_%d", sceneNum))
 		req, err := scene(logger)
 		if err != nil {
