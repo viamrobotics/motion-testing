@@ -3,6 +3,7 @@ results/
 .artifact/cache
 .DS_Store
 *~
+cli
 
 # Claude Code
 .claude/worktrees
