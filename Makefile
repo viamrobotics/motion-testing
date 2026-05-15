@@ -1,5 +1,5 @@
 
-cli: *.go cmd-cli/*.go
+cli: *.go cmd-cli/*.go go.*
 	go build -o cli cmd-cli/*.go
 
 run-gomod: cli
@@ -12,6 +12,7 @@ run-local: cli
 	git checkout go.mod
 	go mod tidy
 	./cli score gomodversion local
+	cat results/motion-benchmarks.md
 
 update:
 	go get go.viam.com/rdk@latest
