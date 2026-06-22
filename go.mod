@@ -6,7 +6,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	go.viam.com/api v0.1.555
-	go.viam.com/rdk v0.126.1
+	go.viam.com/rdk v0.132.0-rc0
 )
 
 require (
@@ -226,5 +226,3 @@ require (
 	google.golang.org/protobuf v1.36.11
 	nhooyr.io/websocket v1.8.10 // indirect
 )
-
-replace go.viam.com/rdk => /Users/joseph.borodach/viam/rdk
