@@ -94,34 +94,30 @@ func armScene2(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		r3.Vector{X: 1., Y: -200., Z: 3.},
 		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
 	)
-	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
-		Obstacles: []*commonpb.GeometriesInFrame{
+	obstacles, err := referenceframe.ProtobufToGeometriesInFrame(&commonpb.GeometriesInFrame{
+		ReferenceFrame: referenceframe.World,
+		Geometries: []*commonpb.Geometry{
 			{
-				ReferenceFrame: referenceframe.World,
-				Geometries: []*commonpb.Geometry{
-					{
-						Center: spatialmath.PoseToProtobuf(testPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 2000,
-								Y: 2000,
-								Z: 20,
-							}},
-						},
-						Label: "floor",
-					},
-					{
-						Center: spatialmath.PoseToProtobuf(testPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 2000,
-								Y: 20,
-								Z: 2000,
-							}},
-						},
-						Label: "wall",
-					},
+				Center: spatialmath.PoseToProtobuf(testPose),
+				GeometryType: &commonpb.Geometry_Box{
+					Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+						X: 2000,
+						Y: 2000,
+						Z: 20,
+					}},
 				},
+				Label: "floor",
+			},
+			{
+				Center: spatialmath.PoseToProtobuf(testPose),
+				GeometryType: &commonpb.Geometry_Box{
+					Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+						X: 2000,
+						Y: 20,
+						Z: 2000,
+					}},
+				},
+				Label: "wall",
 			},
 		},
 	})
@@ -130,10 +126,10 @@ func armScene2(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	}
 
 	return &armplanning.PlanRequest{
-		StartState:  armplanning.NewPlanState(nil, startMap),
-		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
-		FrameSystem: fs,
-		WorldState:  worldState,
+		StartState:            armplanning.NewPlanState(nil, startMap),
+		Goals:                 []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
+		FrameSystem:           fs,
+		ObstaclesInWorldFrame: obstacles,
 	}, nil
 }
 
@@ -160,23 +156,19 @@ func armScene3(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		r3.Vector{X: 0., Y: 150., Z: 0.},
 		&spatialmath.R4AA{Theta: 0, RX: 0., RY: 0., RZ: 1.},
 	)
-	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
-		Obstacles: []*commonpb.GeometriesInFrame{
+	obstacles, err := referenceframe.ProtobufToGeometriesInFrame(&commonpb.GeometriesInFrame{
+		ReferenceFrame: "world",
+		Geometries: []*commonpb.Geometry{
 			{
-				ReferenceFrame: "world",
-				Geometries: []*commonpb.Geometry{
-					{
-						Center: spatialmath.PoseToProtobuf(testPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 2000,
-								Y: 20,
-								Z: 120,
-							}},
-						},
-						Label: "blocker",
-					},
+				Center: spatialmath.PoseToProtobuf(testPose),
+				GeometryType: &commonpb.Geometry_Box{
+					Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+						X: 2000,
+						Y: 20,
+						Z: 120,
+					}},
 				},
+				Label: "blocker",
 			},
 		},
 	})
@@ -185,10 +177,10 @@ func armScene3(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	}
 
 	return &armplanning.PlanRequest{
-		StartState:  armplanning.NewPlanState(nil, startMap),
-		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
-		FrameSystem: fs,
-		WorldState:  worldState,
+		StartState:            armplanning.NewPlanState(nil, startMap),
+		Goals:                 []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
+		FrameSystem:           fs,
+		ObstaclesInWorldFrame: obstacles,
 	}, nil
 }
 
@@ -215,23 +207,19 @@ func armScene4(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	testPt := startPose.Point()
 	testPt.X += 150
 	testPose := spatialmath.NewPose(testPt, startPose.Orientation())
-	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
-		Obstacles: []*commonpb.GeometriesInFrame{
+	obstacles, err := referenceframe.ProtobufToGeometriesInFrame(&commonpb.GeometriesInFrame{
+		ReferenceFrame: "world",
+		Geometries: []*commonpb.Geometry{
 			{
-				ReferenceFrame: "world",
-				Geometries: []*commonpb.Geometry{
-					{
-						Center: spatialmath.PoseToProtobuf(testPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 20,
-								Y: 2000,
-								Z: 60,
-							}},
-						},
-						Label: "blocker",
-					},
+				Center: spatialmath.PoseToProtobuf(testPose),
+				GeometryType: &commonpb.Geometry_Box{
+					Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+						X: 20,
+						Y: 2000,
+						Z: 60,
+					}},
 				},
+				Label: "blocker",
 			},
 		},
 	})
@@ -240,10 +228,10 @@ func armScene4(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	}
 
 	return &armplanning.PlanRequest{
-		StartState:  armplanning.NewPlanState(nil, startMap),
-		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
-		FrameSystem: fs,
-		WorldState:  worldState,
+		StartState:            armplanning.NewPlanState(nil, startMap),
+		Goals:                 []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
+		FrameSystem:           fs,
+		ObstaclesInWorldFrame: obstacles,
 	}, nil
 }
 
@@ -271,54 +259,50 @@ func armScene5(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	wallPose := spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -200, Z: 0})
 	obs1Pose := spatialmath.NewPoseFromPoint(r3.Vector{X: 300, Y: 0, Z: 0})
 	obs2Pose := spatialmath.NewPoseFromPoint(r3.Vector{X: 300, Y: 0, Z: 500})
-	worldState, err := referenceframe.WorldStateFromProtobuf(&commonpb.WorldState{
-		Obstacles: []*commonpb.GeometriesInFrame{
+	obstacles, err := referenceframe.ProtobufToGeometriesInFrame(&commonpb.GeometriesInFrame{
+		ReferenceFrame: "world",
+		Geometries: []*commonpb.Geometry{
 			{
-				ReferenceFrame: "world",
-				Geometries: []*commonpb.Geometry{
-					{
-						Center: spatialmath.PoseToProtobuf(wallPose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 2000,
-								Y: 50,
-								Z: 2000,
-							}},
-						},
-						Label: "wall",
-					},
-					{
-						Center: spatialmath.PoseToProtobuf(obs1Pose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 50,
-								Y: 1250,
-								Z: 200,
-							}},
-						},
-						Label: "lower_window",
-					},
-					{
-						Center: spatialmath.PoseToProtobuf(obs2Pose),
-						GeometryType: &commonpb.Geometry_Box{
-							Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
-								X: 50,
-								Y: 1250,
-								Z: 200,
-							}},
-						},
-						Label: "upper_window",
-					},
+				Center: spatialmath.PoseToProtobuf(wallPose),
+				GeometryType: &commonpb.Geometry_Box{
+					Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+						X: 2000,
+						Y: 50,
+						Z: 2000,
+					}},
 				},
+				Label: "wall",
+			},
+			{
+				Center: spatialmath.PoseToProtobuf(obs1Pose),
+				GeometryType: &commonpb.Geometry_Box{
+					Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+						X: 50,
+						Y: 1250,
+						Z: 200,
+					}},
+				},
+				Label: "lower_window",
+			},
+			{
+				Center: spatialmath.PoseToProtobuf(obs2Pose),
+				GeometryType: &commonpb.Geometry_Box{
+					Box: &commonpb.RectangularPrism{DimsMm: &commonpb.Vector3{
+						X: 50,
+						Y: 1250,
+						Z: 200,
+					}},
+				},
+				Label: "upper_window",
 			},
 		},
 	})
 
 	return &armplanning.PlanRequest{
-		StartState:  armplanning.NewPlanState(nil, startMap),
-		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
-		FrameSystem: fs,
-		WorldState:  worldState,
+		StartState:            armplanning.NewPlanState(nil, startMap),
+		Goals:                 []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
+		FrameSystem:           fs,
+		ObstaclesInWorldFrame: obstacles,
 	}, err
 }
 
@@ -328,28 +312,12 @@ func armScene6(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		return nil, err
 	}
 
-	newGeometries := make([]*referenceframe.GeometriesInFrame, 0)
-	oldWorld, err := cfg.WorldState.ToProtobuf()
-	for _, protoGeometries := range oldWorld.GetObstacles() {
-		oldGeometries, err := referenceframe.ProtobufToGeometriesInFrame(protoGeometries)
-		if err != nil {
-			return nil, err
-		}
-		newGeometries = append(newGeometries, oldGeometries)
-	}
-
 	obstacle, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{X: -150, Y: 0, Z: 0}), r3.Vector{X: 20, Y: 2000, Z: 2000}, "extra_obs")
 	if err != nil {
 		return nil, err
 	}
-	obstaclesInFrame := referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{obstacle})
-	newGeometries = append(newGeometries, obstaclesInFrame)
-
-	newWorldState, err := referenceframe.NewWorldState(newGeometries, nil)
-	if err != nil {
-		return nil, err
-	}
-	cfg.WorldState = newWorldState
+	merged := append(cfg.ObstaclesInWorldFrame.Geometries(), obstacle)
+	cfg.ObstaclesInWorldFrame = referenceframe.NewGeometriesInFrame(referenceframe.World, merged)
 
 	return cfg, err
 }
@@ -360,16 +328,6 @@ func armScene7(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		return nil, err
 	}
 
-	newGeometries := make([]*referenceframe.GeometriesInFrame, 0)
-	oldWorld, err := cfg.WorldState.ToProtobuf()
-	for _, protoGeometries := range oldWorld.GetObstacles() {
-		oldGeometries, err := referenceframe.ProtobufToGeometriesInFrame(protoGeometries)
-		if err != nil {
-			return nil, err
-		}
-		newGeometries = append(newGeometries, oldGeometries)
-	}
-
 	left_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: 140, Z: 0}), r3.Vector{X: 2000, Y: 20, Z: 2000}, "left_wall")
 	if err != nil {
 		return nil, err
@@ -378,14 +336,8 @@ func armScene7(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	obstaclesInFrame := referenceframe.NewGeometriesInFrame(referenceframe.World, []spatialmath.Geometry{left_wall, right_wall})
-	newGeometries = append(newGeometries, obstaclesInFrame)
-
-	newWorldState, err := referenceframe.NewWorldState(newGeometries, nil)
-	if err != nil {
-		return nil, err
-	}
-	cfg.WorldState = newWorldState
+	merged := append(cfg.ObstaclesInWorldFrame.Geometries(), left_wall, right_wall)
+	cfg.ObstaclesInWorldFrame = referenceframe.NewGeometriesInFrame(referenceframe.World, merged)
 
 	return cfg, err
 }
@@ -442,16 +394,12 @@ func armScene9(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	}
 
 	obstaclesInFrame := referenceframe.NewGeometriesInFrame(referenceframe.World, obstacles)
-	worldState, err := referenceframe.NewWorldState([]*referenceframe.GeometriesInFrame{obstaclesInFrame}, nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return &armplanning.PlanRequest{
-		StartState:  armplanning.NewPlanState(nil, startMap),
-		Goals:       []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
-		FrameSystem: fs,
-		WorldState:  worldState,
+		StartState:            armplanning.NewPlanState(nil, startMap),
+		Goals:                 []*armplanning.PlanState{armplanning.NewPlanState(goalPathState, nil)},
+		FrameSystem:           fs,
+		ObstaclesInWorldFrame: obstaclesInFrame,
 	}, nil
 }
 
