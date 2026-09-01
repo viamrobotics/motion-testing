@@ -1,0 +1,137 @@
+version: "2"
+run:
+  modules-download-mode: readonly
+  tests: true
+linters:
+  default: standard
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - decorder
+    - dogsled
+    - dupword
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - forbidigo
+    - gocheckcompilerdirectives
+    - gochecksumtype
+    - gocritic
+    - goprintffuncname
+    - gosec
+    - gosmopolitan
+    - govet
+    - grouper
+    - lll
+    - loggercheck
+    - mirror
+    - misspell
+    - nilerr
+    - nilnesserr
+    - noctx
+    - nolintlint
+    - reassign
+    - revive
+    - sloglint
+    - staticcheck
+    - tagalign
+    - testableexamples
+    - unconvert
+    - unused
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    - whitespace
+  settings:
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+    gosec:
+      excludes:
+        # Scene and result files are addressed by caller-supplied names by design; this is a
+        # local benchmarking tool, not a service handling untrusted input.
+        - G304
+    govet:
+      disable:
+        - fieldalignment
+        - shadow
+        - composites
+      enable-all: true
+    lll:
+      line-length: 140
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+          arguments:
+            - allowTypesBefore: testing.TB,*testing.T,*testing.B,*testing.F
+          disabled: false
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: var-declaration
+        - name: var-naming
+          arguments:
+            - [] # AllowList
+            - [] # DenyList
+            - - skip-package-name-collision-with-go-std: true
+                skip-package-name-checks: true
+    staticcheck:
+      checks:
+        - all
+        - -ST1000
+        - -ST1003
+        - -ST1005
+        - -ST1016
+        - -ST1020
+        - -ST1021
+        - -ST1022
+        - -QF1008
+        - -QF1001
+        - -QF1002
+        - -QF1003
+        - -QF1005
+        - -QF1006
+        - -QF1012
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - dupword
+          - errcheck
+          - exhaustive
+          - goconst
+          - gosec
+        path: _test\.go$
+issues:
+  max-same-issues: 0
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(go.viam.com/motiontesting)
+    gofumpt:
+      extra-rules: true

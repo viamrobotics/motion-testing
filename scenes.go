@@ -1,3 +1,6 @@
+// Package motiontesting runs repeatable motion planning scenes and scores the resulting
+// trajectories so that changes to Viam's motion planning code can be benchmarked against
+// each other.
 package motiontesting
 
 import (
@@ -38,6 +41,8 @@ var allScenes = map[int]sceneFunc{
 
 var numTests = len(allScenes)
 
+// RunScenes plans every scene numTests times with the given planner options, writing the
+// request, trajectory and timing files for each run into results/<name>.
 func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.Logger) error {
 	sceneLogger := logger.Sublogger("RunScenes logger")
 	sceneLogger.SetLevel(logging.INFO)
@@ -45,7 +50,7 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 	outputFolder := filepath.Join(resultsDirectory, name)
 	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
 		// TODO(rb): potentially create a temp directory to be storing these files
-		err := os.MkdirAll(outputFolder, os.ModePerm)
+		err := os.MkdirAll(outputFolder, 0o750)
 		if err != nil {
 			return err
 		}
@@ -59,7 +64,8 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 			return fmt.Errorf("scene failed for sceneNum: %d : %w", sceneNum, err)
 		}
 
-		armplanning.PlanMotion(context.Background(), logger, req) // run once to load caches
+		// Run once to load caches; this plan's outcome is deliberately discarded.
+		_, _, _ = armplanning.PlanMotion(context.Background(), logger, req)
 
 		for i := 1; i <= numTests; i++ {
 			logger.Infof("sceneNum: %d iteration: %d", sceneNum, i)
@@ -83,7 +89,6 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 }
 
 func runPlanner(fileName string, req *armplanning.PlanRequest, logger logging.Logger) error {
-
 	err := req.WriteToFile(fileName + "_request.json")
 	if err != nil {
 		return err
@@ -103,22 +108,9 @@ func runPlanner(fileName string, req *armplanning.PlanRequest, logger logging.Lo
 	took := time.Since(start)
 
 	// write stats file
-	statsFile, err := os.Create(fileName + "_stats.txt")
-	if err != nil {
+	if err := writeCSV(fileName+"_stats.txt", [][]string{{success, fmt.Sprintf("%f", took.Seconds())}}); err != nil {
 		return err
 	}
-	defer statsFile.Close()
-
-	w := csv.NewWriter(statsFile)
-	defer w.Flush()
-	w.Write([]string{success, fmt.Sprintf("%f", took.Seconds())})
-
-	// write solution to file
-	csvFile, err := os.Create(fileName + ".csv")
-	if err != nil {
-		return err
-	}
-	defer csvFile.Close()
 
 	fName := ""
 
@@ -134,45 +126,52 @@ func runPlanner(fileName string, req *armplanning.PlanRequest, logger logging.Lo
 		return fmt.Errorf("can't figure out what to move")
 	}
 
+	var solution [][]string
 	if success == "true" {
 		path, err := plan.Trajectory().GetFrameInputs(fName)
 		if err != nil {
 			return err
 		}
-		w = csv.NewWriter(csvFile)
-		defer w.Flush()
 		for _, step := range path {
-			stepStr := make([]string, 0, len(path))
+			stepStr := make([]string, 0, len(step))
 			for _, joint := range step {
 				stepStr = append(stepStr, fmt.Sprintf("%f", joint))
 			}
-			w.Write(stepStr)
+			solution = append(solution, stepStr)
 		}
 	}
-	return nil
+
+	// write solution to file
+	return writeCSV(fileName+".csv", solution)
 }
 
-func generateHashFile(folder string) error {
-	hashFile, err := os.Create(filepath.Join(folder, "hash"))
+// writeCSV writes records to fileName, surfacing flush and close errors so that a truncated
+// results file cannot be silently scored later.
+func writeCSV(fileName string, records [][]string) (err error) {
+	f, err := os.Create(fileName)
 	if err != nil {
 		return err
 	}
-	defer hashFile.Close()
+	defer func() {
+		if closeErr := f.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
-	cmd := exec.Command("git", "rev-parse", "HEAD")
+	w := csv.NewWriter(f)
+	return w.WriteAll(records)
+}
+
+func generateHashFile(folder string) error {
+	cmd := exec.CommandContext(context.Background(), "git", "rev-parse", "HEAD")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		if len(out) != 0 {
-			return fmt.Errorf("error running git rev-parse HEAD")
+			return fmt.Errorf("error running git rev-parse HEAD: %s", out)
 		}
 		return err
 	}
 
 	hash := strings.TrimSpace(string(out))
-	_, err = hashFile.WriteString(hash)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return os.WriteFile(filepath.Join(folder, "hash"), []byte(hash), 0o600)
 }

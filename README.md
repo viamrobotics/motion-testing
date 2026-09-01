@@ -48,6 +48,24 @@ Note the two directory arguments for `TestScores` and how these compare to the p
 
 By changing checked out branches in the `rdk` repository (or other repos), a developer could also benchmark multiple sets of changes against each other.
 
+## Continuous Integration
+
+Every push to `main` and every pull request runs the `CI` workflow
+(`.github/workflows/ci.yml`), which has two jobs:
+
+- **Lint** — verifies `go.mod`/`go.sum` are tidy and runs `golangci-lint` against the
+  configuration in `.golangci.yaml`. Run the same checks locally with `make lint`, and apply the
+  formatter with `make format`.
+- **Test** — builds the module, plans every scene with `TestDefault`, then scores the run with
+  `TestScores`. The generated `results/` directory is uploaded as a workflow artifact and the
+  benchmark table is written to the job summary.
+
+The CI run scores its results against themselves, so it does not detect planning regressions; it
+verifies that the scenes, the scorer and the report generator all still work. Regressions are
+tracked by the `Motion Benchmarks` workflow in
+[`rdk`](https://github.com/viamrobotics/rdk), which runs these same scenes against a PR branch and
+its base and posts the comparison to the PR.
+
 ## Arm Scenes
 
 Basic Arm Scenes 1-12 are derived from brainstorming sessions the Motion team participated in to get automated performance testing off the ground. These do not have any specific user in mind, but could be thought of as possible situations users might encounter during workspace setup or application development.

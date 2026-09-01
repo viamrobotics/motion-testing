@@ -7,11 +7,10 @@ import (
 	"errors"
 
 	"github.com/go-viper/mapstructure/v2"
-	"google.golang.org/protobuf/encoding/protojson"
-
 	"go.viam.com/rdk/motionplan"
 	"go.viam.com/rdk/services/motion"
 	"go.viam.com/rdk/services/motion/builtin"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // DoPlan is a helper function to wrap DoPlan (a utility inside builtin/DoCommand) with types that are easier to work with.
