@@ -17,3 +17,9 @@ run-local: cli
 update:
 	go get go.viam.com/rdk@latest
 	go mod tidy
+
+lint:
+	golangci-lint run ./...
+
+format:
+	golangci-lint fmt ./...

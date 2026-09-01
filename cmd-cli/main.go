@@ -1,3 +1,4 @@
+// Package main provides a CLI for running and scoring motion planning scenes.
 package main
 
 import (
@@ -62,5 +63,4 @@ func realMain() error {
 	default:
 		return fmt.Errorf("unknown command [%s]", cmd)
 	}
-
 }

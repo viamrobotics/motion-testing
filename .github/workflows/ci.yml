@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      # go.viam.com/rdk links against nlopt through cgo, which resolves it with pkg-config.
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libnlopt-dev
+
+      - name: Check go.mod and go.sum are tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.11.4
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      # go.viam.com/rdk links against nlopt through cgo, which resolves it with pkg-config.
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libnlopt-dev
+
+      - name: Build
+        run: go build ./...
+
+      # Plans every scene and writes the per-run trajectory and timing files to results/ci.
+      - name: Run scenes
+        run: go test ./... -run TestDefault --name=ci
+
+      # Scores results/ci against itself: the comparison is trivial, but it exercises the whole
+      # scoring and reporting path against freshly generated results.
+      - name: Score results
+        run: go test ./... -v -run TestScores --baselineDir=ci --modifiedDir=ci
+
+      - name: Publish benchmark report
+        if: always()
+        run: |
+          if [ -f results/motion-benchmarks.md ]; then
+            cat results/motion-benchmarks.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: motion-testing-results
+          path: results/
+          retention-days: 14

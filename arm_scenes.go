@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/golang/geo/r3"
+	commonpb "go.viam.com/api/common/v1"
 	"go.viam.com/rdk/components/arm"
 	"go.viam.com/rdk/components/arm/fake"
 	"go.viam.com/rdk/logging"
@@ -14,9 +16,6 @@ import (
 	"go.viam.com/rdk/referenceframe"
 	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/spatialmath"
-
-	"github.com/golang/geo/r3"
-	commonpb "go.viam.com/api/common/v1"
 )
 
 func newArmModel(armModelName string, logger logging.Logger) (referenceframe.Model, error) {
@@ -46,7 +45,9 @@ func armScene1(logger logging.Logger) (*armplanning.PlanRequest, error) {
 
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
+	if err := fs.AddFrame(model, fs.World()); err != nil {
+		return nil, err
+	}
 
 	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
@@ -76,7 +77,9 @@ func armScene2(logger logging.Logger) (*armplanning.PlanRequest, error) {
 
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
+	if err := fs.AddFrame(model, fs.World()); err != nil {
+		return nil, err
+	}
 
 	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
@@ -142,7 +145,9 @@ func armScene3(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	startPose, _ := model.Transform(startInput)
 
 	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
+	if err := fs.AddFrame(model, fs.World()); err != nil {
+		return nil, err
+	}
 
 	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
@@ -193,7 +198,9 @@ func armScene4(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	startPose, _ := model.Transform(startInput)
 
 	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
+	if err := fs.AddFrame(model, fs.World()); err != nil {
+		return nil, err
+	}
 
 	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
@@ -240,12 +247,13 @@ func armScene5(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	// model, _ := xarm.MakeModelFrame(xarm.ModelName7DOF, nil, nil, nil)
 	startInput := []float64{0, 0, 0, 0, 0, 0, 0}
 	startPose, _ := model.Transform(startInput)
 
 	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
+	if err := fs.AddFrame(model, fs.World()); err != nil {
+		return nil, err
+	}
 
 	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
@@ -312,7 +320,11 @@ func armScene6(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		return nil, err
 	}
 
-	obstacle, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{X: -150, Y: 0, Z: 0}), r3.Vector{X: 20, Y: 2000, Z: 2000}, "extra_obs")
+	obstacle, err := spatialmath.NewBox(
+		spatialmath.NewPoseFromPoint(r3.Vector{X: -150, Y: 0, Z: 0}),
+		r3.Vector{X: 20, Y: 2000, Z: 2000},
+		"extra_obs",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -328,15 +340,23 @@ func armScene7(logger logging.Logger) (*armplanning.PlanRequest, error) {
 		return nil, err
 	}
 
-	left_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: 140, Z: 0}), r3.Vector{X: 2000, Y: 20, Z: 2000}, "left_wall")
+	leftWall, err := spatialmath.NewBox(
+		spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: 140, Z: 0}),
+		r3.Vector{X: 2000, Y: 20, Z: 2000},
+		"left_wall",
+	)
 	if err != nil {
 		return nil, err
 	}
-	right_wall, err := spatialmath.NewBox(spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -140, Z: 0}), r3.Vector{X: 2000, Y: 20, Z: 2000}, "right_wall")
+	rightWall, err := spatialmath.NewBox(
+		spatialmath.NewPoseFromPoint(r3.Vector{X: 0, Y: -140, Z: 0}),
+		r3.Vector{X: 2000, Y: 20, Z: 2000},
+		"right_wall",
+	)
 	if err != nil {
 		return nil, err
 	}
-	merged := append(cfg.ObstaclesInWorldFrame.Geometries(), left_wall, right_wall)
+	merged := append(cfg.ObstaclesInWorldFrame.Geometries(), leftWall, rightWall)
 	cfg.ObstaclesInWorldFrame = referenceframe.NewGeometriesInFrame(referenceframe.World, merged)
 
 	return cfg, err
@@ -366,7 +386,9 @@ func armScene9(logger logging.Logger) (*armplanning.PlanRequest, error) {
 
 	// Add frame system and needed frames
 	fs := referenceframe.NewEmptyFrameSystem("test")
-	fs.AddFrame(model, fs.World())
+	if err := fs.AddFrame(model, fs.World()); err != nil {
+		return nil, err
+	}
 
 	startMap := map[string][]referenceframe.Input{"arm": startInput}
 
@@ -377,7 +399,8 @@ func armScene9(logger logging.Logger) (*armplanning.PlanRequest, error) {
 	goalPose := referenceframe.NewPoseInFrame(referenceframe.World, spatialmath.NewPose(goalPt, startPose.Orientation()))
 	goalPathState := referenceframe.FrameSystemPoses{"arm": goalPose}
 
-	rGen := rand.New(rand.NewSource(int64(1)))
+	// Fixed seed: the obstacle field must be identical on every run for scores to be comparable.
+	rGen := rand.New(rand.NewSource(int64(1))) //nolint:gosec
 	obstacles := make([]spatialmath.Geometry, 0)
 	for i := 0; i < 100; i++ {
 		cubePose := spatialmath.NewPoseFromPoint(r3.Vector{

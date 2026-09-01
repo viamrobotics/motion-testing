@@ -20,10 +20,13 @@ import (
 
 const defaultEpsilon = 1e-2
 
-const ptgDistStartIdx = 2
-const ptgDistEndIdx = 3
+const (
+	ptgDistStartIdx = 2
+	ptgDistEndIdx   = 3
+)
 
-type testResult struct {
+// TestResult holds the per-scene scores for a single results folder.
+type TestResult struct {
 	name  string
 	score map[int]*testScore
 	sha1  string
@@ -36,8 +39,10 @@ type testScore struct {
 }
 
 // these variables represent the lower and higher bounds (exclusive) for unacceptable and acceptable values respectively
-var percentImprovementHealthThresholds = [2]float64{0, 0}
-var probabilityImprovementHealthThresholds = [2]float64{16, 84} // numbers derive from first standard deviation of normal distribution
+var (
+	percentImprovementHealthThresholds     = [2]float64{0, 0}
+	probabilityImprovementHealthThresholds = [2]float64{16, 84} // numbers derive from first standard deviation of normal distribution
+)
 
 func evaluateSolution(solution [][]float64, scene sceneFunc, logger logging.Logger) (float64, float64, float64, error) {
 	var l2Score, lineScore, oScore, totalLineDist float64
@@ -92,7 +97,7 @@ func evaluateSolution(solution [][]float64, scene sceneFunc, logger logging.Logg
 	}
 
 	if totalLineDist != 0 {
-		lineScore = lineScore / totalLineDist
+		lineScore /= totalLineDist
 	}
 
 	return l2Score, lineScore, oScore, nil
@@ -152,7 +157,9 @@ func orientScore(start, end, query spatialmath.Orientation) float64 {
 	return (sDist + gDist) - origDist
 }
 
-func ScoreFolder(folder string, logger logging.Logger) (*testResult, error) {
+// ScoreFolder scores every run recorded in results/<folder>, writing a per-run breakdown to
+// results/<folder>/results.csv and returning the scores aggregated by scene.
+func ScoreFolder(folder string, logger logging.Logger) (*TestResult, error) {
 	fullPath := filepath.Join(resultsDirectory, folder)
 	fileInfo, err := os.Stat(fullPath)
 	if err != nil || !fileInfo.IsDir() {
@@ -164,21 +171,16 @@ func ScoreFolder(folder string, logger logging.Logger) (*testResult, error) {
 		return nil, err
 	}
 
-	f, err := os.Create(filepath.Join(fullPath, "results.csv"))
-	if err != nil {
-		return nil, err
+	records := [][]string{
+		{"scene", "seed", "success", "time", "total_score", "joint_score", "line_score", "orient_score"},
 	}
-	defer f.Close()
-	w := csv.NewWriter(f)
-	defer w.Flush()
-	w.Write([]string{"scene", "seed", "success", "time", "total_score", "joint_score", "line_score", "orient_score"})
 
 	hashBytes, err := os.ReadFile(filepath.Join(fullPath, "hash"))
 	if err != nil {
 		return nil, err
 	}
 
-	results := &testResult{
+	results := &TestResult{
 		name:  folder,
 		score: make(map[int]*testScore, 0),
 		sha1:  string(hashBytes),
@@ -226,7 +228,7 @@ func ScoreFolder(folder string, logger logging.Logger) (*testResult, error) {
 					return nil, err
 				}
 
-				w.Write([]string{
+				records = append(records, []string{
 					fileName[0],
 					fileName[1],
 					pass,
@@ -237,11 +239,11 @@ func ScoreFolder(folder string, logger logging.Logger) (*testResult, error) {
 					fmt.Sprintf("%f", oScore),
 				})
 
-				score.successes += 1
+				score.successes++
 				score.qualities = append(score.qualities, jScore) // joint score is the scope we will use for quality
 				score.performances = append(score.performances, time)
 			} else {
-				w.Write([]string{
+				records = append(records, []string{
 					fileName[0],
 					fileName[1],
 					pass,
@@ -255,16 +257,16 @@ func ScoreFolder(folder string, logger logging.Logger) (*testResult, error) {
 			results.score[sceneNum] = score
 		}
 	}
+
+	if err := writeCSV(filepath.Join(fullPath, "results.csv"), records); err != nil {
+		return nil, err
+	}
 	return results, nil
 }
 
-func CompareResults(baseline, modification *testResult) error {
-	f, err := os.Create(filepath.Join(resultsDirectory, "motion-benchmarks.md"))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
+// CompareResults writes a markdown report to results/motion-benchmarks.md contrasting the
+// availability, quality and performance scores of the two given result sets.
+func CompareResults(baseline, modification *TestResult) error {
 	var builder strings.Builder
 
 	builder.WriteString(tableHeaderInts("Availability", baseline.name, modification.name))
@@ -288,17 +290,15 @@ func CompareResults(baseline, modification *testResult) error {
 	builder.WriteString(fmt.Sprintf("\nThe SHA1 for %s is: %s", modification.name, modification.sha1))
 	builder.WriteString(fmt.Sprintf("\n* **%d samples** were taken for each scene", numTests))
 
-	f.WriteString(builder.String())
-	return nil
+	return os.WriteFile(filepath.Join(resultsDirectory, "motion-benchmarks.md"), []byte(builder.String()), 0o600)
 }
 
 func readSolutionFromCSV(filepath string) ([][]float64, error) {
 	csvfile, err := os.Open(filepath)
-
 	if err != nil {
 		return nil, err
 	}
-	defer csvfile.Close()
+	defer func() { _ = csvfile.Close() }()
 
 	reader := csv.NewReader(csvfile)
 	fields, err := reader.ReadAll()
