@@ -676,7 +676,8 @@ func orderedSequenceSection(sceneNum, ordinal int, baseline, modification *TestR
 	builder.WriteString("\nCold columns are the single cold-start pass; the improvement statistics compare the warm passes.\n")
 
 	writeFullTable := func(title string, data func(*testScore) stats.Float64Data) {
-		builder.WriteString(fmt.Sprintf("\n### %s\n| Plan | %s (cold) | %s (cold) | %s (warm) | %s (warm) | Percent Improvement | Probability of Improvement | Health | \n",
+		builder.WriteString(fmt.Sprintf("\n### %s\n| Plan | %s (cold) | %s (cold) | %s (warm) | %s (warm) "+
+			"| Percent Improvement | Probability of Improvement | Health | \n",
 			title, baseline.name, modification.name, baseline.name, modification.name))
 		builder.WriteString("| :--- | :----: | :---: | :----: | :---: | :---: | :----: | :---: |\n")
 		for _, idx := range nums {
