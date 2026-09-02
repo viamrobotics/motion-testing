@@ -28,11 +28,12 @@ const (
 
 // TestResult holds the per-scene scores for a single results folder.
 type TestResult struct {
-	name  string
+	name string
+	// score holds the warm aggregate over the remaining
+	// passes, alongside the single scenes.
 	score map[int]*testScore
 	// coldScore holds each ordered sequence's cold-start aggregate: the metrics of the single
-	// pass replayed against cleared caches. score holds the warm aggregate over the remaining
-	// passes, alongside the single scenes.
+	// pass replayed against cleared caches.
 	coldScore map[int]*testScore
 	// sequencePlans holds, for each ordered sequence, the per-plan scores keyed by the plan's
 	// index in the recorded order, over the warm passes. The scene-level aggregates live in score
@@ -675,8 +676,7 @@ func orderedSequenceSection(sceneNum, ordinal int, baseline, modification *TestR
 	builder.WriteString("\nCold columns are the single cold-start pass; the improvement statistics compare the warm passes.\n")
 
 	writeFullTable := func(title string, data func(*testScore) stats.Float64Data) {
-		builder.WriteString(fmt.Sprintf("\n### %s\n| Plan | %s (cold) | %s (cold) | %s (warm) | %s (warm) "+
-			"| Percent Improvement | Probability of Improvement | Health | \n",
+		builder.WriteString(fmt.Sprintf("\n### %s\n| Plan | %s (cold) | %s (cold) | %s (warm) | %s (warm) | Percent Improvement | Probability of Improvement | Health | \n",
 			title, baseline.name, modification.name, baseline.name, modification.name))
 		builder.WriteString("| :--- | :----: | :---: | :----: | :---: | :---: | :----: | :---: |\n")
 		for _, idx := range nums {
