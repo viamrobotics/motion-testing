@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -27,13 +28,26 @@ const (
 
 // TestResult holds the per-scene scores for a single results folder.
 type TestResult struct {
-	name  string
+	name string
+	// score holds the warm aggregate over the remaining
+	// passes, alongside the single scenes.
 	score map[int]*testScore
-	sha1  string
+	// coldScore holds each ordered sequence's cold-start aggregate: the metrics of the single
+	// pass replayed against cleared caches.
+	coldScore map[int]*testScore
+	// sequencePlans holds, for each ordered sequence, the per-plan scores keyed by the plan's
+	// index in the recorded order, over the warm passes. The scene-level aggregates live in score
+	// and coldScore; this is what lets the comparison say which plans inside the sequence moved.
+	sequencePlans map[int]map[int]*testScore
+	// coldSequencePlans is the per-plan view of the cold pass. One sample per plan is too noisy
+	// to judge, so it renders as raw values in the opt-in details table, never as a health call.
+	coldSequencePlans map[int]map[int]*testScore
+	sha1              string
 }
 
 type testScore struct {
 	successes    float64
+	samples      float64
 	qualities    stats.Float64Data
 	performances stats.Float64Data
 }
@@ -181,15 +195,31 @@ func ScoreFolder(folder string, logger logging.Logger) (*TestResult, error) {
 	}
 
 	results := &TestResult{
-		name:  folder,
-		score: make(map[int]*testScore, 0),
-		sha1:  string(hashBytes),
+		name:              folder,
+		score:             make(map[int]*testScore, 0),
+		coldScore:         make(map[int]*testScore),
+		sequencePlans:     make(map[int]map[int]*testScore),
+		coldSequencePlans: make(map[int]map[int]*testScore),
+		sha1:              string(hashBytes),
 	}
+
+	// Totals of one replay pass over a sequence, folded into the sequence's scene-level score
+	// after the scan. Keyed sceneNum → pass.
+	type sequencePassTotals struct {
+		seconds float64
+		quality float64
+		solved  int
+		plans   int
+	}
+	sequencePasses := map[int]map[int]*sequencePassTotals{}
+
 	for _, run := range runs {
 		if path.Ext(run.Name()) == ".txt" {
-			// parse file name to determine what the test parameters were
+			// parse file name to determine what the test parameters were: single scenes write
+			// scene<N>_<seed>_stats.txt, ordered sequences scene<N>-<planIdx>_<pass>_stats.txt
 			fileName := strings.Split(run.Name(), "_")
-			sceneNum, err := strconv.Atoi(strings.ReplaceAll(fileName[0], "scene", ""))
+			sceneName, planIdxStr, isSequencePlan := strings.Cut(strings.TrimPrefix(fileName[0], "scene"), "-")
+			sceneNum, err := strconv.Atoi(sceneName)
 			if err != nil {
 				return nil, err
 			}
@@ -210,6 +240,75 @@ func ScoreFolder(folder string, logger logging.Logger) (*TestResult, error) {
 				return nil, err
 			}
 
+			if isSequencePlan {
+				planIdx, err := strconv.Atoi(planIdxStr)
+				if err != nil {
+					return nil, err
+				}
+				passNum, err := strconv.Atoi(fileName[1])
+				if err != nil {
+					return nil, err
+				}
+
+				passes, ok := sequencePasses[sceneNum]
+				if !ok {
+					passes = map[int]*sequencePassTotals{}
+					sequencePasses[sceneNum] = passes
+				}
+				totals, ok := passes[passNum]
+				if !ok {
+					totals = &sequencePassTotals{}
+					passes[passNum] = totals
+				}
+
+				// Pass 0 is the cold-start pass; its per-plan scores are kept apart from the
+				// warm ones so a single cold sample never feeds a statistical comparison.
+				planMaps := results.sequencePlans
+				if passNum == 0 {
+					planMaps = results.coldSequencePlans
+				}
+				plans, ok := planMaps[sceneNum]
+				if !ok {
+					plans = map[int]*testScore{}
+					planMaps[sceneNum] = plans
+				}
+				plan, ok := plans[planIdx]
+				if !ok {
+					plan = &testScore{}
+					plans[planIdx] = plan
+				}
+				plan.samples++
+
+				// Like single scenes, a failed plan contributes no quality or performance
+				// sample — a plan that fails fast must not read as one that got faster.
+				totals.plans++
+				jScore, csvTime := -1., -1.
+				if pass == "true" {
+					data, err := readSolutionFromCSV(filepath.Join(fullPath, fileName[0]+"_"+fileName[1]+".csv"))
+					if err != nil {
+						return nil, err
+					}
+					jScore, csvTime = solutionL2(data), time
+					totals.quality += jScore
+					totals.seconds += time
+					totals.solved++
+					plan.successes++
+					plan.qualities = append(plan.qualities, jScore)
+					plan.performances = append(plan.performances, time)
+				}
+				records = append(records, []string{
+					fileName[0],
+					fileName[1],
+					pass,
+					fmt.Sprintf("%f", csvTime),
+					fmt.Sprintf("%f", jScore),
+					fmt.Sprintf("%f", jScore),
+					fmt.Sprintf("%f", -1.),
+					fmt.Sprintf("%f", -1.),
+				})
+				continue
+			}
+
 			score, ok := results.score[sceneNum]
 			if !ok {
 				score = &testScore{
@@ -217,6 +316,7 @@ func ScoreFolder(folder string, logger logging.Logger) (*TestResult, error) {
 					performances: make(stats.Float64Data, 0),
 				}
 			}
+			score.samples++
 			if pass == "true" {
 				data, err := readSolutionFromCSV(filepath.Join(fullPath, fileName[0]+"_"+fileName[1]+".csv"))
 				if err != nil {
@@ -258,39 +358,391 @@ func ScoreFolder(folder string, logger logging.Logger) (*TestResult, error) {
 		}
 	}
 
+	// A sequence's scene-level rows aggregate whole passes: one availability, quality and
+	// performance sample per replay of the entire sequence, with pass 0 — replayed against
+	// cleared caches — reported separately as the cold start. A pass with any failed plan yields
+	// no quality or performance sample — its totals cover less work, so comparing them against a
+	// clean pass would let a regression that fails plans render as an improvement. Availability
+	// is what reports such a pass.
+	for sceneNum, passes := range sequencePasses {
+		if _, ok := results.score[sceneNum]; ok {
+			return nil, fmt.Errorf("scene number %d has both single-scene and ordered-sequence results", sceneNum)
+		}
+		warm, cold := &testScore{}, &testScore{}
+		for passNum, totals := range passes {
+			score := warm
+			if passNum == 0 {
+				score = cold
+			}
+			score.samples++
+			score.successes += float64(totals.solved) / float64(totals.plans)
+			if totals.solved == totals.plans {
+				score.performances = append(score.performances, totals.seconds)
+				score.qualities = append(score.qualities, totals.quality)
+			}
+		}
+		results.score[sceneNum] = warm
+		if cold.samples > 0 {
+			results.coldScore[sceneNum] = cold
+		}
+	}
+
 	if err := writeCSV(filepath.Join(fullPath, "results.csv"), records); err != nil {
 		return nil, err
 	}
 	return results, nil
 }
 
+// solutionL2 is the joint-space length of a solution: the same joint score evaluateSolution
+// computes, without needing the scene rebuilt. Ordered-sequence plans are scored this way because
+// rebuilding a scene means re-reading a multi-megabyte captured request for every pass.
+func solutionL2(solution [][]float64) float64 {
+	total := 0.
+	for i := 0; i < len(solution)-1; i++ {
+		total += referenceframe.InputsL2Distance(solution[i], solution[i+1])
+	}
+	return total
+}
+
 // CompareResults writes a markdown report to results/motion-benchmarks.md contrasting the
 // availability, quality and performance scores of the two given result sets.
 func CompareResults(baseline, modification *TestResult) error {
+	sceneNums := sortedSceneNums(baseline, modification)
+	ordinals := sequenceOrdinals(baseline, modification)
+	rows := comparisonRows(sceneNums, ordinals, baseline, modification)
+
 	var builder strings.Builder
 
 	builder.WriteString(tableHeaderInts("Availability", baseline.name, modification.name))
-	for i := 1; i <= len(allScenes); i++ {
-		builder.WriteString(tableEntryInt(i, baseline.score[i].successes, modification.score[i].successes))
+	for _, row := range rows {
+		builder.WriteString(tableEntryInt(row.label, row.baseline, row.modification))
 	}
 
 	builder.WriteString(tableHeaderFloats("Quality", baseline.name, modification.name))
-	for i := 1; i <= len(allScenes); i++ {
-		builder.WriteString(tableEntryFloats(i, baseline.score[i].qualities, modification.score[i].qualities))
+	for _, row := range rows {
+		builder.WriteString(tableEntryFloats(row.label, row.baseline, row.modification, (*testScore).qualityData))
 	}
 
 	builder.WriteString(tableHeaderFloats("Performance", baseline.name, modification.name))
-	for i := 1; i <= len(allScenes); i++ {
-		builder.WriteString(tableEntryFloats(i, baseline.score[i].performances, modification.score[i].performances))
+	for _, row := range rows {
+		builder.WriteString(tableEntryFloats(row.label, row.baseline, row.modification, (*testScore).performanceData))
+	}
+
+	for _, sceneNum := range sceneNums {
+		if ordinal, ok := ordinals[sceneNum]; ok {
+			builder.WriteString(orderedSequenceSection(sceneNum, ordinal, baseline, modification))
+		}
 	}
 
 	builder.WriteString("\nThe above data was generated by running scenes defined in the " +
 		"[`motion-testing`](https://github.com/viamrobotics/motion-testing/) repository")
 	builder.WriteString(fmt.Sprintf("\nThe SHA1 for %s is: %s", baseline.name, baseline.sha1))
 	builder.WriteString(fmt.Sprintf("\nThe SHA1 for %s is: %s", modification.name, modification.sha1))
-	builder.WriteString(fmt.Sprintf("\n* **%d samples** were taken for each scene", numTests))
+	builder.WriteString(fmt.Sprintf("\n* **%d samples** were taken for each scene, **1 cold + %d warm passes** for each ordered sequence",
+		numTests, numSequencePasses))
 
 	return os.WriteFile(filepath.Join(resultsDirectory, "motion-benchmarks.md"), []byte(builder.String()), 0o600)
+}
+
+// comparisonRow is one line of the aggregate tables: a label and the two scores it compares. An
+// ordered sequence contributes two rows, its cold start and its warm aggregate.
+type comparisonRow struct {
+	label                  string
+	baseline, modification *testScore
+}
+
+func comparisonRows(sceneNums []int, ordinals map[int]int, baseline, modification *TestResult) []comparisonRow {
+	rows := make([]comparisonRow, 0, len(sceneNums))
+	for _, i := range sceneNums {
+		ordinal, isSequence := ordinals[i]
+		if !isSequence {
+			rows = append(rows, comparisonRow{fmt.Sprintf("Scene %d", i), baseline.score[i], modification.score[i]})
+			continue
+		}
+		if coldBase, coldMod := baseline.coldScore[i], modification.coldScore[i]; coldBase != nil || coldMod != nil {
+			rows = append(rows, comparisonRow{fmt.Sprintf("Ordered Sequence %d (cold)", ordinal), coldBase, coldMod})
+		}
+		rows = append(rows, comparisonRow{fmt.Sprintf("Ordered Sequence %d (warm)", ordinal), baseline.score[i], modification.score[i]})
+	}
+	return rows
+}
+
+// sequenceOrdinals maps each scene number holding ordered-sequence data on either side to its
+// display ordinal: sequences are labeled by their position among the sequences (Ordered
+// Sequence 1, ...) rather than by their internal scene number, which is offset to stay out of
+// the single scenes' numbering space.
+func sequenceOrdinals(baseline, modification *TestResult) map[int]int {
+	seen := map[int]bool{}
+	for _, result := range []*TestResult{baseline, modification} {
+		for i := range result.sequencePlans {
+			seen[i] = true
+		}
+		for i := range result.coldSequencePlans {
+			seen[i] = true
+		}
+		for i := range result.coldScore {
+			seen[i] = true
+		}
+	}
+	nums := make([]int, 0, len(seen))
+	for i := range seen {
+		nums = append(nums, i)
+	}
+	sort.Ints(nums)
+	ordinals := make(map[int]int, len(nums))
+	for pos, i := range nums {
+		ordinals[i] = pos + 1
+	}
+	return ordinals
+}
+
+// sortedSceneNums returns every scene number either result has data for, in order, so the tables
+// stay complete even when the two runs did not execute the same scene set.
+func sortedSceneNums(baseline, modification *TestResult) []int {
+	seen := map[int]bool{}
+	for i := range baseline.score {
+		seen[i] = true
+	}
+	for i := range modification.score {
+		seen[i] = true
+	}
+	nums := make([]int, 0, len(seen))
+	for i := range seen {
+		nums = append(nums, i)
+	}
+	sort.Ints(nums)
+	return nums
+}
+
+func (ts *testScore) qualityData() stats.Float64Data {
+	if ts == nil {
+		return nil
+	}
+	return ts.qualities
+}
+
+func (ts *testScore) performanceData() stats.Float64Data {
+	if ts == nil {
+		return nil
+	}
+	return ts.performances
+}
+
+// minNotablePlanSeconds keeps trivially short plans out of the per-plan tables: a plan going
+// from 3ms to 9ms is a 3x that means nothing to the sequence.
+const minNotablePlanSeconds = 0.05
+
+// maxPlanRows caps each per-plan table; a comment that runs to a hundred rows does not get read.
+const maxPlanRows = 15
+
+// orderedSequenceSection renders the plan-by-plan breakdown of an ordered sequence: which plans
+// newly fail and which moved appreciably in time or joint travel over the warm passes, plus a
+// collapsed table of every plan's cold and warm metrics. The cold and warm rows in the tables
+// above say whether the sequence as a whole moved; this section says which plans carried it.
+func orderedSequenceSection(sceneNum, ordinal int, baseline, modification *TestResult) string {
+	basePlans := baseline.sequencePlans[sceneNum]
+	modPlans := modification.sequencePlans[sceneNum]
+	if len(basePlans) == 0 && len(modPlans) == 0 {
+		return ""
+	}
+	if len(basePlans) == 0 || len(modPlans) == 0 {
+		missing := baseline.name
+		if len(basePlans) > 0 {
+			missing = modification.name
+		}
+		return fmt.Sprintf("\n## Ordered Sequence %d plan-by-plan\n\n%s has no ordered-sequence data for this sequence, "+
+			"so plans cannot be compared.\n", ordinal, missing)
+	}
+	baseCold := baseline.coldSequencePlans[sceneNum]
+	modCold := modification.coldSequencePlans[sceneNum]
+
+	planNums := map[int]bool{}
+	for _, plans := range []map[int]*testScore{basePlans, modPlans, baseCold, modCold} {
+		for i := range plans {
+			planNums[i] = true
+		}
+	}
+	nums := make([]int, 0, len(planNums))
+	for i := range planNums {
+		nums = append(nums, i)
+	}
+	sort.Ints(nums)
+
+	title, labels := sequenceManifestInfo(sceneNum, len(nums))
+	label := func(idx int) string {
+		if l, ok := labels[idx]; ok {
+			return l
+		}
+		return fmt.Sprintf("%03d", idx)
+	}
+
+	var builder strings.Builder
+	builder.WriteString(fmt.Sprintf("\n## Ordered Sequence %d plan-by-plan: %s\n", ordinal, title))
+
+	var newlyFailing, newlyFixed []string
+	type planRow struct {
+		label    string
+		cmp      floatComparison
+		absDelta float64
+	}
+	var timeRows, qualityRows []planRow
+
+	for _, idx := range nums {
+		b, m := basePlans[idx], modPlans[idx]
+		if b == nil || m == nil {
+			continue
+		}
+		switch {
+		case b.successes == b.samples && m.successes < m.samples:
+			newlyFailing = append(newlyFailing, fmt.Sprintf("`%s` failed %.0f of %.0f warm passes", label(idx), m.samples-m.successes, m.samples))
+		case b.successes < b.samples && m.successes == m.samples:
+			newlyFixed = append(newlyFixed, fmt.Sprintf("`%s`", label(idx)))
+		}
+
+		// A plan with no successful pass on a side has no quality or performance samples to
+		// compare; the newly failing/passing lists are what report it.
+		if b.successes == 0 || m.successes == 0 {
+			continue
+		}
+		if cmp := compareFloatData(b.performances, m.performances); cmp.notable() &&
+			(cmp.baseMu >= minNotablePlanSeconds || cmp.modMu >= minNotablePlanSeconds) {
+			timeRows = append(timeRows, planRow{label(idx), cmp, math.Abs(cmp.modMu - cmp.baseMu)})
+		}
+		if cmp := compareFloatData(b.qualities, m.qualities); cmp.notable() {
+			qualityRows = append(qualityRows, planRow{label(idx), cmp, math.Abs(cmp.modMu - cmp.baseMu)})
+		}
+	}
+
+	if len(newlyFailing) > 0 {
+		builder.WriteString(fmt.Sprintf("\n⛔ **Newly failing plans (%d):**\n", len(newlyFailing)))
+		for _, line := range newlyFailing {
+			builder.WriteString("* " + line + "\n")
+		}
+	}
+	if len(newlyFixed) > 0 {
+		builder.WriteString(fmt.Sprintf("\n✅ **Newly passing plans (%d):** %s\n", len(newlyFixed), strings.Join(newlyFixed, ", ")))
+	}
+
+	writeRows := func(title string, rows []planRow) {
+		if len(rows) == 0 {
+			return
+		}
+		sort.Slice(rows, func(i, j int) bool { return rows[i].absDelta > rows[j].absDelta })
+		shown := rows
+		if len(shown) > maxPlanRows {
+			shown = shown[:maxPlanRows]
+		}
+		builder.WriteString(fmt.Sprintf("\n### %s\n| Plan | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
+			title, baseline.name, modification.name))
+		builder.WriteString("| :--- | :----: | :---: | :---: | :----: | :---: |\n")
+		for _, row := range shown {
+			builder.WriteString(fmt.Sprintf("| `%s` | %.2f±%.2f | %.2f±%.2f | %.0f%% | %.0f%% | %c | \n",
+				row.label,
+				row.cmp.baseMu, row.cmp.baseSigma,
+				row.cmp.modMu, row.cmp.modSigma,
+				row.cmp.improvement,
+				row.cmp.probability,
+				row.cmp.health,
+			))
+		}
+		if len(rows) > len(shown) {
+			builder.WriteString(fmt.Sprintf("\n…and %d more.\n", len(rows)-len(shown)))
+		}
+	}
+	writeRows("Time moved (seconds, warm passes, by absolute change)", timeRows)
+	writeRows("Joint travel moved (L2, warm passes, by absolute change)", qualityRows)
+
+	if len(newlyFailing) == 0 && len(newlyFixed) == 0 && len(timeRows) == 0 && len(qualityRows) == 0 {
+		builder.WriteString("\nNo individual plan moved appreciably.\n")
+	}
+
+	// The tables above are the signal; the full per-plan data stays available behind a
+	// collapsed section for anyone who wants to dig.
+	builder.WriteString(fmt.Sprintf("\n<details>\n<summary>All %d plans (cold pass and warm passes)</summary>\n", len(nums)))
+
+	allSolved := true
+	for _, plans := range []map[int]*testScore{basePlans, modPlans, baseCold, modCold} {
+		for _, plan := range plans {
+			if plan.successes < plan.samples {
+				allSolved = false
+			}
+		}
+	}
+	if allSolved {
+		builder.WriteString("\nEvery plan solved every pass in both runs.")
+	} else {
+		builder.WriteString("\nA — marks a value from passes the plan failed.")
+	}
+	builder.WriteString("\nCold columns are the single cold-start pass; the improvement statistics compare the warm passes.\n")
+
+	writeFullTable := func(title string, data func(*testScore) stats.Float64Data) {
+		builder.WriteString(fmt.Sprintf("\n### %s\n| Plan | %s (cold) | %s (cold) | %s (warm) | %s (warm) "+
+			"| Percent Improvement | Probability of Improvement | Health | \n",
+			title, baseline.name, modification.name, baseline.name, modification.name))
+		builder.WriteString("| :--- | :----: | :---: | :----: | :---: | :---: | :----: | :---: |\n")
+		for _, idx := range nums {
+			cmp := compareFloatData(data(basePlans[idx]), data(modPlans[idx]))
+			builder.WriteString(fmt.Sprintf("| `%s` | %s | %s | %s | %s | %s | %s | %c | \n",
+				label(idx),
+				singleValueCell(data(baseCold[idx])),
+				singleValueCell(data(modCold[idx])),
+				meanStdCell(cmp.baseMu, cmp.baseSigma),
+				meanStdCell(cmp.modMu, cmp.modSigma),
+				percentCell(cmp.improvement),
+				percentCell(cmp.probability),
+				cmp.health,
+			))
+		}
+	}
+	writeFullTable("Time (seconds)", (*testScore).performanceData)
+	writeFullTable("Joint travel (L2)", (*testScore).qualityData)
+
+	builder.WriteString("\n</details>\n")
+	return builder.String()
+}
+
+// singleValueCell renders a metric that has at most one sample: the value itself, or a dash when
+// the pass failed and left none.
+func singleValueCell(data stats.Float64Data) string {
+	if len(data) == 0 {
+		return "—"
+	}
+	return fmt.Sprintf("%.2f", data[0])
+}
+
+func meanStdCell(mu, sigma float64) string {
+	if math.IsNaN(mu) {
+		return "—"
+	}
+	return fmt.Sprintf("%.2f±%.2f", mu, sigma)
+}
+
+func percentCell(v float64) string {
+	if math.IsNaN(v) {
+		return "—"
+	}
+	return fmt.Sprintf("%.0f%%", v)
+}
+
+// sequenceManifestInfo names an ordered sequence and its plans from the sequence's manifest;
+// scoring results from a sequence whose manifest is no longer registered still renders, just
+// without the labels.
+func sequenceManifestInfo(sceneNum, planCount int) (string, map[int]string) {
+	title := fmt.Sprintf("%d plans replayed in recorded order", planCount)
+	manifestPath, ok := allOrderedSequences[sceneNum]
+	if !ok {
+		return title, nil
+	}
+	m, err := loadSequenceManifest(manifestPath)
+	if err != nil {
+		return title, nil
+	}
+	title = fmt.Sprintf("%s (%d plans replayed in recorded order)", strings.TrimSuffix(filepath.Base(manifestPath), ".json"), len(m.Entries))
+	labels := make(map[int]string, len(m.Entries))
+	for _, e := range m.Entries {
+		labels[e.Index] = e.name()
+	}
+	return title, labels
 }
 
 func readSolutionFromCSV(filepath string) ([][]float64, error) {
@@ -324,34 +776,70 @@ func readSolutionFromCSV(filepath string) ([][]float64, error) {
 
 func tableHeaderInts(name, baseline, modification string) string {
 	formatLine := "| :---: | :----: | :---: | :----: | :---: |\n"
-	return fmt.Sprintf("\n## %s\n| Scene # | %s | %s | Percent Improvement | Health | \n",
+	return fmt.Sprintf("\n## %s\n| Scene / Ordered Sequence # | %s | %s | Percent Improvement | Health | \n",
 		name,
 		baseline,
 		modification,
 	) + formatLine
 }
 
-func tableEntryInt(sceneNum int, initial, final float64) string {
-	delta := percentDifference(initial, final)
-	return fmt.Sprintf("| %d | %.0f%% | %.0f%% | %.0f%% | %c | \n",
-		sceneNum,
-		100*initial/float64(numTests),
-		100*final/float64(numTests),
+func tableEntryInt(label string, initial, final *testScore) string {
+	initialPct, finalPct := initial.successPercent(), final.successPercent()
+	delta := percentDifference(initialPct, finalPct)
+	return fmt.Sprintf("| %s | %.0f%% | %.0f%% | %.0f%% | %c | \n",
+		label,
+		initialPct,
+		finalPct,
 		delta,
 		healthIndicator(delta, delta, percentImprovementHealthThresholds),
 	)
 }
 
+func (ts *testScore) successPercent() float64 {
+	if ts == nil || ts.samples == 0 {
+		return math.NaN()
+	}
+	return 100 * ts.successes / ts.samples
+}
+
 func tableHeaderFloats(name, baseline, modification string) string {
 	formatLine := "| :---: | :----: | :---: | :---: | :----: | :---: |\n"
-	return fmt.Sprintf("\n## %s\n| Scene # | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
+	return fmt.Sprintf("\n## %s\n| Scene / Ordered Sequence # | %s | %s | Percent Improvement | Probability of Improvement | Health | \n",
 		name,
 		baseline,
 		modification,
 	) + formatLine
 }
 
-func tableEntryFloats(sceneNum int, initial, final stats.Float64Data) string {
+func tableEntryFloats(label string, initial, final *testScore, data func(*testScore) stats.Float64Data) string {
+	cmp := compareFloatData(data(initial), data(final))
+	return fmt.Sprintf("| %s | %.2f\u00B1%.2f | %.2f\u00B1%.2f | %.0f%% | %.0f%% | %c | \n",
+		label,
+		cmp.baseMu, cmp.baseSigma,
+		cmp.modMu, cmp.modSigma,
+		cmp.improvement,
+		cmp.probability,
+		cmp.health,
+	)
+}
+
+// floatComparison is the comparison of one metric's samples across the two runs. Lower is better
+// for every metric compared this way, so improvement is positive when the value went down.
+type floatComparison struct {
+	baseMu, baseSigma float64
+	modMu, modSigma   float64
+	improvement       float64
+	probability       float64
+	health            rune
+}
+
+// notable reports whether the change is worth a reader's attention: big enough to matter and
+// unlikely to be noise, by the same thresholds the health column uses.
+func (c floatComparison) notable() bool {
+	return c.health != '\u2796'
+}
+
+func compareFloatData(initial, final stats.Float64Data) floatComparison {
 	// create normal distributions from initial and final float slices
 	A, AValid := normal(initial)
 	B, BValid := normal(final)
@@ -386,14 +874,13 @@ func tableEntryFloats(sceneNum int, initial, final stats.Float64Data) string {
 
 	delta := percentDifference(A.Mu, B.Mu)
 
-	return fmt.Sprintf("| %d | %.2f\u00B1%.2f | %.2f\u00B1%.2f | %.0f%% | %.0f%% | %c | \n",
-		sceneNum,
-		A.Mu, A.Sigma,
-		B.Mu, B.Sigma,
-		-delta, // want to flip it so its an improvement if its less
-		probability,
-		healthIndicator(-delta, probability, probabilityImprovementHealthThresholds),
-	)
+	return floatComparison{
+		baseMu: A.Mu, baseSigma: A.Sigma,
+		modMu: B.Mu, modSigma: B.Sigma,
+		improvement: -delta, // want to flip it so its an improvement if its less
+		probability: probability,
+		health:      healthIndicator(-delta, probability, probabilityImprovementHealthThresholds),
+	}
 }
 
 func percentDifference(initial, final float64) float64 {

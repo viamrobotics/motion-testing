@@ -6,7 +6,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	go.viam.com/api v0.1.577
-	go.viam.com/rdk v1.5.0
+	go.viam.com/rdk v1.6.0
 )
 
 require (
@@ -209,7 +209,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.viam.com/test v1.2.4
-	go.viam.com/utils v0.10.1 // indirect
+	go.viam.com/utils v0.10.1
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/image v0.41.0 // indirect

@@ -86,6 +86,22 @@ At this time, each scene is tightly coupled to a specific robot configuration. F
 | armScene8       | Pouring motion with end effector, with large obstacles nearby                                                            | xArm7 + None  |
 | armScene9       | Large arm motion within a “forest”, numerous small obstacles in a random distribution surrounding the robot              | UR5 + None    |
 
+## Ordered Sequences
+
+Where the scenes above measure a single plan request in isolation, **ordered sequences** replay a series of plan requests captured from production, in the order the robot planned them. They exist because `armplanning` carries learned roadmaps, smart-seed caches and a static-scene SDF registry between calls within a process, so what a plan costs depends on which plans ran before it — replaying a whole sequence is the shape production actually runs, and it is what catches regressions in that cross-plan state.
+
+Ordered sequences are numbered from 100 internally to keep the lower numbers free for single-request scenes; reports label them by their ordinal instead (`Ordered Sequence 1`, ...).
+
+| Ordered Sequences | Description                                                                                 | Plans |
+| ----------------- | ------------------------------------------------------------------------------------------- | ----- |
+| 100               | One full espresso-drink order captured from a Cappuccina machine (xArm6), about 7.5 minutes  | 98    |
+
+Mechanically, an ordered sequence is defined by a manifest committed at `data/sequences/<name>.json`, which pins the replay order, the step/motion labels used to join plans across two runs, and the content hashes of the captured requests. The request payloads themselves are far too large for git (~100MB per sequence) and live in the artifact store; they are fetched on demand through the `.artifact` configuration the first time the sequence runs.
+
+Each sequence starts from a cold planner: the smart-seed cache is cleared and the on-disk roadmap cache is disabled before the replay begins, the way production runs. The first pass is recorded as the sequence's **cold-start** metrics — it doubles as the cache warm-up — and the following passes measure the planner **warm**, in its steady-state shape; fewer warm passes are taken than the samples per single scene, since one pass replays the entire sequence. The recorded planner options are kept so each request is planned the way production planned it; only the random seed varies per pass and the per-plan timeout is capped. The garbage collector target is pinned during a replay so that an inherited `GOGC` difference between two runs cannot masquerade as a planner change.
+
+In the results tables an ordered sequence appears as two rows aggregating whole passes — `Ordered Sequence 1 (cold)` and `Ordered Sequence 1 (warm)`: availability is the fraction of plans in the sequence that solved, quality is the summed joint travel of the sequence, and performance is the wall time of the whole sequence. Below the tables, a plan-by-plan section lists the individual plans within the sequence that newly fail, newly pass, or moved appreciably in time or joint travel between the two runs' warm passes — a handful of plans usually carry a regression that the sequence total alone would blur. A collapsed details block under that section holds the full per-plan data: every plan's cold-pass values and warm-pass statistics, for both time and joint travel.
+
 ## Base Scenes
 
 Basic Base Scenes 13-18 cover a variety of situations where planning for a base on a SLAM map might be used. These scenes aren't specific to any type of base.
