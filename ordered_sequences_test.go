@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"go.viam.com/rdk/logging"
@@ -86,12 +87,15 @@ func TestOrderedSequenceScoringAndRendering(t *testing.T) {
 	test.That(t, mod.coldScore[100].successes, test.ShouldAlmostEqual, 2./3.)
 	test.That(t, len(mod.coldScore[100].performances), test.ShouldEqual, 0)
 
-	// Failed plans contribute no per-plan samples, and the cold pass stays out of the per-plan
-	// scores entirely.
+	// Failed plans contribute no per-plan samples, and the cold pass is kept apart from the
+	// warm per-plan scores.
 	test.That(t, mod.sequencePlans[100][1].samples, test.ShouldEqual, 2.)
 	test.That(t, mod.sequencePlans[100][1].successes, test.ShouldEqual, 0.)
 	test.That(t, len(mod.sequencePlans[100][1].performances), test.ShouldEqual, 0)
 	test.That(t, base.sequencePlans[100][0].samples, test.ShouldEqual, 2.)
+	test.That(t, base.coldSequencePlans[100][0].performances[0], test.ShouldAlmostEqual, 3.0)
+	test.That(t, mod.coldSequencePlans[100][1].successes, test.ShouldEqual, 0.)
+	test.That(t, len(mod.coldSequencePlans[100][1].performances), test.ShouldEqual, 0)
 
 	test.That(t, CompareResults(base, mod), test.ShouldBeNil)
 	mdBytes, err := os.ReadFile(filepath.Join(resultsDirectory, "motion-benchmarks.md"))
@@ -100,15 +104,28 @@ func TestOrderedSequenceScoringAndRendering(t *testing.T) {
 
 	// The ordered sequence renders as a cold and a warm row in the aggregate tables, and the
 	// plan-by-plan section reports the newly failing plan and the plan that slowed down.
-	test.That(t, md, test.ShouldContainSubstring, "| 100 (cold) | 100% | 67% |")
-	test.That(t, md, test.ShouldContainSubstring, "| 100 (warm) | 100% | 67% |")
-	test.That(t, md, test.ShouldContainSubstring, "| 100 (cold) | 5.00±0.00 |")
+	test.That(t, md, test.ShouldContainSubstring, "| Scene / Ordered Sequence # |")
+	test.That(t, md, test.ShouldContainSubstring, "| Ordered Sequence 1 (cold) | 100% | 67% |")
+	test.That(t, md, test.ShouldContainSubstring, "| Ordered Sequence 1 (warm) | 100% | 67% |")
+	test.That(t, md, test.ShouldContainSubstring, "| Ordered Sequence 1 (cold) | 5.00±0.00 |")
+	test.That(t, md, test.ShouldContainSubstring, "## Ordered Sequence 1 plan-by-plan")
 	test.That(t, md, test.ShouldContainSubstring, "Newly failing plans (1)")
 	test.That(t, md, test.ShouldContainSubstring, "`001 grinding/move` failed 2 of 2 warm passes")
 	test.That(t, md, test.ShouldContainSubstring, "| `000 grinding/move` | 1.00±0.00 | 2.00±0.00 | -100% | 0% | ❌ |")
-	// The failing plan and the unchanged plan must not appear in the time table.
-	test.That(t, md, test.ShouldNotContainSubstring, "| `001 grinding/move` |")
-	test.That(t, md, test.ShouldNotContainSubstring, "| `002 grinding/move` |")
+
+	// The failing plan and the unchanged plan must not appear in the curated time table; every
+	// plan appears in the collapsed details block, with the cold pass as raw values and a dash
+	// where a pass failed.
+	curated, details, found := strings.Cut(md, "<details>")
+	test.That(t, found, test.ShouldBeTrue)
+	test.That(t, curated, test.ShouldNotContainSubstring, "| `001 grinding/move` |")
+	test.That(t, curated, test.ShouldNotContainSubstring, "| `002 grinding/move` |")
+	test.That(t, details, test.ShouldContainSubstring, "<summary>All 3 plans (cold pass and warm passes)</summary>")
+	test.That(t, details, test.ShouldContainSubstring, "A — marks a value from passes the plan failed.")
+	test.That(t, details, test.ShouldContainSubstring, "| `000 grinding/move` | 3.00 | 6.00 | 1.00±0.00 | 2.00±0.00 | -100% | 0% | ❌ |")
+	test.That(t, details, test.ShouldContainSubstring, "| `001 grinding/move` | 1.50 | — | 0.50±0.00 | — | — | 0% | ❌ |")
+	test.That(t, details, test.ShouldContainSubstring, "| `002 grinding/move` | 0.50 | 0.50 | 0.20±0.00 | 0.20±0.00 |")
+	test.That(t, details, test.ShouldContainSubstring, "### Joint travel (L2)")
 }
 
 func TestOrderedSequenceOneSidedComparison(t *testing.T) {
