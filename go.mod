@@ -6,7 +6,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	go.viam.com/api v0.1.577
-	go.viam.com/rdk v1.5.0
+	go.viam.com/rdk v1.6.0
 )
 
 require (
