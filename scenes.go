@@ -57,6 +57,14 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 	sceneLogger := logger.Sublogger("RunScenes logger")
 	sceneLogger.SetLevel(logging.INFO)
 
+	// Both kinds of scene write results keyed by scene number, so a collision would silently
+	// merge two different scenes when scoring.
+	for sceneNum := range allOrderedSequences {
+		if _, ok := allScenes[sceneNum]; ok {
+			return fmt.Errorf("scene number %d is defined as both a single scene and an ordered sequence", sceneNum)
+		}
+	}
+
 	outputFolder := filepath.Join(resultsDirectory, name)
 	if _, err := os.Stat(outputFolder); errors.Is(err, os.ErrNotExist) {
 		// TODO(rb): potentially create a temp directory to be storing these files
@@ -90,6 +98,14 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 		}
 	}
 
+	for _, sceneNum := range slices.Sorted(maps.Keys(allOrderedSequences)) {
+		logger.Warnf("starting ordered sequence sceneNum: %d", sceneNum)
+		logger := sceneLogger.Sublogger(fmt.Sprintf("scene_%d", sceneNum))
+		if err := runOrderedSequence(outputFolder, sceneNum, allOrderedSequences[sceneNum], logger); err != nil {
+			return fmt.Errorf("runOrderedSequence failed for sceneNum: %d : %w", sceneNum, err)
+		}
+	}
+
 	// Create SHA-containing file for this execution in the output folder
 	err := generateHashFile(outputFolder)
 	if err != nil {
@@ -105,6 +121,13 @@ func runPlanner(fileName string, req *armplanning.PlanRequest, logger logging.Lo
 		return err
 	}
 
+	return planAndRecord(fileName, req, logger)
+}
+
+// planAndRecord runs one planning query and writes its stats and solution files. Unlike
+// runPlanner it does not write the request back out: ordered sequences replay requests that are
+// already pinned by a manifest, and re-dumping ~100MB of them per pass would be pure waste.
+func planAndRecord(fileName string, req *armplanning.PlanRequest, logger logging.Logger) error {
 	start := time.Now()
 
 	// run planning query

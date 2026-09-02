@@ -209,7 +209,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.viam.com/test v1.2.4
-	go.viam.com/utils v0.10.1 // indirect
+	go.viam.com/utils v0.10.1
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/image v0.41.0 // indirect
