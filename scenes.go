@@ -8,9 +8,11 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -41,6 +43,14 @@ var allScenes = map[int]sceneFunc{
 
 var numTests = len(allScenes)
 
+// sceneNumbers returns the scene ids in ascending order. Scenes must always be planned in the same
+// order: armplanning keeps process-global state (the roadmap harvests waypoints from every
+// successful plan), so a scene's result depends on what was planned before it, and Go randomises
+// map iteration per process.
+func sceneNumbers() []int {
+	return slices.Sorted(maps.Keys(allScenes))
+}
+
 // RunScenes plans every scene numTests times with the given planner options, writing the
 // request, trajectory and timing files for each run into results/<name>.
 func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.Logger) error {
@@ -56,7 +66,8 @@ func RunScenes(name string, options *armplanning.PlannerOptions, logger logging.
 		}
 	}
 
-	for sceneNum, scene := range allScenes {
+	for _, sceneNum := range sceneNumbers() {
+		scene := allScenes[sceneNum]
 		logger.Warnf("starting sceneNum: %d", sceneNum)
 		logger := sceneLogger.Sublogger(fmt.Sprintf("scene_%d", sceneNum))
 		req, err := scene(logger)
